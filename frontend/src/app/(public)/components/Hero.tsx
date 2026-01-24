@@ -96,42 +96,27 @@ export default function Hero() {
             {!isLight && (
                 <>
                     {/* Video Background */}
-                    <video autoPlay loop muted playsInline poster="/hero_student_dark.png" className="absolute inset-0 w-full h-full object-cover z-0"
+                    <video
+                        autoPlay
+                        loop
+                        muted
+                        playsInline
+                        preload="auto"
+                        poster="/hero_student_dark.png"
+                        className="absolute inset-0 w-full h-full object-cover z-0 opacity-80"
                         style={{
-                            transform: 'translate(10%,-25%)',
-                            filter: 'brightness(1) contrast(0.9)',
-                            maskImage: `
-                                radial-gradient(ellipse 30% 50% at 40% 80%, 
-                                    rgba(0,0,0,1) 0%, 
-                                    rgba(0,0,0,1) 30%, 
-                                    rgba(0,0,0,0.5) 60%, 
-                                    rgba(0,0,0,0.3) 100%
-                                ),
-                                linear-gradient(to bottom, black 0%, black 60%, transparent 100%),
-                                linear-gradient(to right, transparent 0%, black 20%)
-                            `,
-                            WebkitMaskImage: `
-                                radial-gradient(ellipse 60% 50% at 55% 50%, 
-                                    rgba(0,0,0,1) 0%, 
-                                    rgba(0,0,0,1) 30%, 
-                                    rgba(0,0,0,0.5) 60%, 
-                                    rgba(0,0,0,0.3) 100%
-                                ),
-                                linear-gradient(to bottom, black 0%, black 60%, transparent 100%),
-                                linear-gradient(to right, transparent 0%, black 20%)
-                            `,
-                            maskComposite: 'intersect',
-                            WebkitMaskComposite: 'source-in'
+                            transform: 'translate(10%,-20%)',
+                            filter: 'brightness(1.1) contrast(1.1)',
+                            maskImage: 'radial-gradient(ellipse 60% 80% at 50% 50%, black 40%, transparent 90%)',
+                            WebkitMaskImage: 'radial-gradient(ellipse 60% 80% at 50% 50%, black 40%, transparent 90%)'
                         }}>
                         <source src="/assets/hero-video.mp4" type="video/mp4" />
                     </video>
 
                     {/* Dark overlays */}
-                    <div className="absolute inset-0 z-[5] pointer-events-none" style={{ background: 'radial-gradient(circle at 70% 50%, rgba(0,0,0,0.3), rgba(0,0,0,0.85))' }}></div>
-                    <div className="absolute inset-0 z-[6] pointer-events-none" style={{ background: 'radial-gradient(circle at 95% 85%, rgba(10,15,20,0.95) 0%, rgba(10,15,20,0.5) 40%, transparent 70%)' }}></div>
-                    <div className="absolute inset-0 z-[7] pointer-events-none" style={{ background: 'linear-gradient(to top, rgba(5,10,15,0.9) 0%, transparent 0%)' }}></div>
-                    <div className="absolute inset-0 z-[8] pointer-events-none" style={{ background: 'radial-gradient(ellipse at 50% 60%, rgba(255,193,7,0.12) 0%, transparent 45%)' }}></div>
-                    <div className="absolute inset-0 z-[10] pointer-events-none" style={{ background: 'linear-gradient(to left, rgba(0,0,0,0.7) -0%, rgba(0,0,0,0.4) 0%, transparent 50%)' }}></div>
+                    <div className="absolute inset-0 z-[5] pointer-events-none" style={{ background: 'radial-gradient(circle at 70% 50%, rgba(0,0,0,0.2), rgba(0,0,0,0.9))' }}></div>
+                    <div className="absolute inset-0 z-[6] pointer-events-none" style={{ background: 'radial-gradient(circle at 95% 85%, rgba(10,15,20,0.95) 0%, rgba(10,15,20,0.4) 40%, transparent 70%)' }}></div>
+                    <div className="absolute inset-0 z-[8] pointer-events-none" style={{ background: 'radial-gradient(ellipse at 50% 60%, rgba(255,193,7,0.08) 0%, transparent 45%)' }}></div>
 
                     {/* Left headlight cone */}
                     <div
@@ -203,8 +188,8 @@ export default function Hero() {
             )}
 
             {/* Synced with Variant */}
-            <div className="hero-content relative z-20 container-wide pt-8 md:pt-16 pb-4 md:pl-32">
-                <div className="max-w-xl space-y-4">
+            <div className="hero-content relative z-20 container-wide pt-8 md:pt-16 pb-4 md:px-12 flex flex-col md:items-center text-center">
+                <div className="max-w-2xl space-y-4 md:flex md:flex-col md:items-center">
                     <div className="flex flex-wrap items-center gap-4 text-sm font-medium tracking-wide">
                         <div className={`flex items-center gap-2 backdrop-blur-sm px-3 py-1.5 rounded-full border transition-colors ${isLight ? 'bg-black/5 border-black/10' : 'bg-white/5 border-white/10'}`}>
                             <Star className="h-4 w-4 text-signal fill-signal" />
