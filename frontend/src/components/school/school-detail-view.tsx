@@ -69,6 +69,16 @@ export function SchoolDetailView({ school }: { school: any }) {
                             Partenaires
                             <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-signal group-hover:w-full transition-all duration-300"></span>
                         </Link>
+
+                        {isAuthenticated ? (
+                            <Link href="/dashboard" className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-xs font-bold text-snow hover:border-signal/30 transition-all">
+                                Dashboard
+                            </Link>
+                        ) : (
+                            <Link href="/login" className="px-4 py-2 rounded-xl bg-signal text-asphalt text-xs font-bold hover:shadow-[0_0_15px_rgba(255,193,7,0.3)] transition-all">
+                                Connexion
+                            </Link>
+                        )}
                     </div>
 
                     <button onClick={() => setMenuOpen(!menuOpen)} className="md:hidden p-2 z-50 text-snow hover:text-signal transition-colors">
