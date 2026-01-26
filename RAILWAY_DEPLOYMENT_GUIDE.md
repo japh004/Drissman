@@ -29,9 +29,13 @@ Allez dans l'onglet **Variables** de votre service backend et ajoutez les variab
 
 | Variable | Valeur (Référence Railway) |
 | :--- | :--- |
-| `SPRING_DATASOURCE_URL` | `r2dbc:postgresql://${{Postgres.DATABASE_URL}}` |
-| `SPRING_DATASOURCE_USERNAME` | `${{Postgres.PGUSER}}` |
-| `SPRING_DATASOURCE_PASSWORD` | `${{Postgres.PGPASSWORD}}` |
+| **`SPRING_R2DBC_URL`** | `r2dbc:postgresql://${{Postgres.PGHOST}}:${{Postgres.PGPORT}}/${{Postgres.PGDATABASE}}` |
+| **`SPRING_LIQUIBASE_URL`** | `jdbc:postgresql://${{Postgres.PGHOST}}:${{Postgres.PGPORT}}/${{Postgres.PGDATABASE}}` |
+| **`SPRING_DATASOURCE_URL`** | `jdbc:postgresql://${{Postgres.PGHOST}}:${{Postgres.PGPORT}}/${{Postgres.PGDATABASE}}` |
+| **`SPRING_LIQUIBASE_USER`** | `${{Postgres.PGUSER}}` |
+| **`SPRING_LIQUIBASE_PASSWORD`** | `${{Postgres.PGPASSWORD}}` |
+| **`SPRING_DATASOURCE_USERNAME`** | `${{Postgres.PGUSER}}` |
+| **`SPRING_DATASOURCE_PASSWORD`** | `${{Postgres.PGPASSWORD}}` |
 | `SPRING_REDIS_HOST` | `${{Redis.REDISHOST}}` |
 | `SPRING_REDIS_PORT` | `${{Redis.REDISPORT}}` |
 | `SPRING_REDIS_PASSWORD` | `${{Redis.REDISPASSWORD}}` |
@@ -40,14 +44,30 @@ Allez dans l'onglet **Variables** de votre service backend et ajoutez les variab
 > [!IMPORTANT]
 > Notez l'utilisation de `r2dbc:postgresql://` dans l'URL de la base de données pour supporter le mode réactif du backend.
 
-## 5. Liaison avec le Frontend (Vercel)
+### 5. Liaison avec le Frontend (Vercel)
 
-Une fois le backend déployé, Railway vous donnera une URL (ex: `https://backend-production-xxx.up.railway.app`).
+Une fois le backend déployé, Railway vous donnera une URL (ex: `https://aphelion-granule-production.up.railway.app`).
 
 1.  Allez sur votre projet **Vercel**.
 2.  Allez dans **Settings** -> **Environment Variables**.
-3.  Ajoutez `NEXT_PUBLIC_API_URL` avec votre URL Railway.
-4.  Redéployez le frontend sur Vercel.
+3.  Ajoutez ou modifiez la variable `NEXT_PUBLIC_API_URL`.
+4.  **VALEUR CRITIQUE** : L'URL doit être complète. Elle doit commencer par **`https://`** et se terminer par **`/api`**.
+    *   Exemple correct : **`https://`**`aphelion-granule-production.up.railway.app/api`
+    *   **Attention** : Si vous oubliez le `https://`, le navigateur croira que c'est un dossier local et affichera une erreur **404**.
+5.  **Redéployez** le frontend sur Vercel (allez dans l'onglet "Deployments", cliquez sur les trois petits points du dernier déploiement et faites "Redeploy").
 
 ---
 Besoin d'aide ? N'hésitez pas à me demander !
+
+---
+
+## 🛠️ Dépannage : Les tables n'apparaissent pas ?
+
+Si votre Postgres est "Online" mais vide, voici les étapes à suivre :
+
+1.  **Vérifiez les Logs** : Cliquez sur le service `aphelion-granule` -> Onglet **Deployments** -> Cliquez sur le déploiement actif -> **View Logs**.
+2.  **Cherchez les Erreurs** :
+    *   Si vous voyez `Connection refused`, c'est que les variables d'URL (JDBC/R2DBC) sont mal configurées.
+    *   Si vous voyez `Access denied` ou `Authentication failed`, vérifiez vos variables `USERNAME` et `PASSWORD`.
+3.  **Vérifiez les Variables** : Assurez-vous d'avoir SEPARÉ `SPRING_R2DBC_URL` (commence par `r2dbc:`) et `SPRING_DATASOURCE_URL` (commence par `jdbc:`). Liquibase a besoin du préfixe `jdbc:`.
+4.  **Redémarrez** : Si vous avez corrigé des variables, Railway relance normalement le service, mais vous pouvez cliquer sur **"Restart Service"** dans les Settings pour être sûr.

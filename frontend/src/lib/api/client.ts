@@ -47,7 +47,13 @@ class ApiClient {
         }
 
         try {
-            const cleanBaseUrl = this.baseUrl.replace(/\/$/, '');
+            let cleanBaseUrl = this.baseUrl.trim().replace(/\/$/, '');
+
+            // Si l'URL ne commence pas par http, on rajoute https://
+            if (cleanBaseUrl && !cleanBaseUrl.startsWith('http')) {
+                cleanBaseUrl = `https://${cleanBaseUrl}`;
+            }
+
             const cleanEndpoint = endpoint.replace(/^\//, '');
             const url = `${cleanBaseUrl}/${cleanEndpoint}`;
 
