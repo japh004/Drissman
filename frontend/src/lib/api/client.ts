@@ -47,7 +47,13 @@ class ApiClient {
         }
 
         try {
-            const response = await fetch(`${this.baseUrl}${endpoint}`, {
+            const cleanBaseUrl = this.baseUrl.replace(/\/$/, '');
+            const cleanEndpoint = endpoint.replace(/^\//, '');
+            const url = `${cleanBaseUrl}/${cleanEndpoint}`;
+
+            console.log(`[ApiClient] Requesting: ${url}`);
+
+            const response = await fetch(url, {
                 ...options,
                 headers,
             });
