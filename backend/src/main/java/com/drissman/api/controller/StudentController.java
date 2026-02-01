@@ -26,11 +26,14 @@ public class StudentController {
         if (principal == null) {
             log.info("Demo mode: returning mock student progress");
             return Mono.just(StudentProgressDto.builder()
-                    .totalHours(20)
-                    .completedHours(12)
-                    .theoreticalProgress(75)
-                    .practicalProgress(60)
-                    .nextLesson("Mardi 10h00 - Conduite en ville")
+                    .codeProgress(75)
+                    .codeExamsCompleted(3)
+                    .codeTotalExams(4)
+                    .conduiteProgress(60)
+                    .conduiteHoursCompleted(12)
+                    .conduiteTotalHours(20)
+                    .nextExamDate("2026-02-15")
+                    .nextExamType("CODE")
                     .build());
         }
         UUID userId = UUID.fromString(principal.getName());
