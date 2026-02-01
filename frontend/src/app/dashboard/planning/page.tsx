@@ -160,8 +160,8 @@ export default function PlanningPage() {
                                     <th key={day} className="p-4 text-center">
                                         <span className="text-[10px] font-black text-mist uppercase tracking-widest block">{day}</span>
                                         <span className={`text-lg font-black ${weekDates[index].toDateString() === new Date().toDateString()
-                                                ? 'text-signal'
-                                                : 'text-snow'
+                                            ? 'text-signal'
+                                            : 'text-snow'
                                             }`}>
                                             {weekDates[index].getDate()}
                                         </span>
@@ -181,15 +181,15 @@ export default function PlanningPage() {
                                             <td key={dayIndex} className="p-2">
                                                 {booking ? (
                                                     <div className={`p-3 rounded-xl ${booking.status === 'CONFIRMED'
-                                                            ? 'bg-signal/10 border border-signal/20'
-                                                            : booking.status === 'PENDING'
-                                                                ? 'bg-yellow-500/10 border border-yellow-500/20'
-                                                                : 'bg-white/5 border border-white/10'
+                                                        ? 'bg-signal/10 border border-signal/20'
+                                                        : booking.status === 'PENDING'
+                                                            ? 'bg-yellow-500/10 border border-yellow-500/20'
+                                                            : 'bg-white/5 border border-white/10'
                                                         }`}>
                                                         <div className="flex items-center gap-2 mb-1">
                                                             <User className="h-3 w-3 text-signal" />
                                                             <span className="text-xs font-bold text-snow truncate">
-                                                                {booking.user?.firstName || 'Élève'}
+                                                                Élève
                                                             </span>
                                                         </div>
                                                         <div className="flex items-center gap-1">
