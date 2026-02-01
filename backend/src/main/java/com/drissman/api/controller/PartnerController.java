@@ -26,6 +26,19 @@ public class PartnerController {
 
     @GetMapping("/stats")
     public Mono<PartnerStatsDto> getStats(Principal principal) {
+        // Demo mode: return mock stats if no authenticated user
+        if (principal == null) {
+            log.info("Demo mode: returning mock stats");
+            return Mono.just(PartnerStatsDto.builder()
+                    .revenue("2,450,000 FCFA")
+                    .enrollments(127)
+                    .successRate("94%")
+                    .upcomingLessons(23)
+                    .revenueGrowth(12)
+                    .enrollmentGrowth(8)
+                    .build());
+        }
+
         log.info("Fetching stats for user: {}", principal.getName());
         UUID userId = UUID.fromString(principal.getName());
 
@@ -48,6 +61,12 @@ public class PartnerController {
 
     @GetMapping("/bookings")
     public Flux<BookingDto> getBookings(Principal principal) {
+        // Demo mode: return empty list if no authenticated user
+        if (principal == null) {
+            log.info("Demo mode: returning empty bookings");
+            return Flux.empty();
+        }
+
         UUID userId = UUID.fromString(principal.getName());
 
         return userRepository.findById(userId)
