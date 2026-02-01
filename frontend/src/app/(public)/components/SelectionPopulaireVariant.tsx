@@ -131,7 +131,7 @@ export default function SelectionPopulaireVariant() {
                                     <div className="flex items-center gap-1">
                                         <Star className="h-4 w-4 text-signal fill-signal" />
                                         <span className="text-sm font-bold text-white">{school.rating}</span>
-                                        <span className="text-xs text-mist/60">({school.reviewCount || 25})</span>
+                                        <span className="text-xs text-mist/60">(25+)</span>
                                     </div>
                                 </div>
 
