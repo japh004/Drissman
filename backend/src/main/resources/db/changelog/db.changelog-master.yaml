@@ -31,3 +31,5 @@ databaseChangeLog:
       file: db/changelog/changes/015-update-school-images.yaml
   - include:
       file: db/changelog/changes/016-update-school-images-local.yaml
+  - include:
+      file: db/changelog/changes/017-add-is-demo-column.yaml

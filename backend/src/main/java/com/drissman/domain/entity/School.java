@@ -39,6 +39,10 @@ public class School {
     @Column("image_url")
     private String imageUrl;
 
+    @Column("is_demo")
+    @Builder.Default
+    private Boolean isDemo = false;
+
     @Column("created_at")
     private LocalDateTime createdAt;
 }

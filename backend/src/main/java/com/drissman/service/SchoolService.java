@@ -28,12 +28,17 @@ public class SchoolService {
                         SchoolDto dto = toDto(school);
                         return offerRepository.findBySchoolId(school.getId())
                                         .collectList()
-                                        .map(offers -> {
+                                        .flatMap(offers -> {
+                                                // Filter out schools without offers, unless they are demo schools
+                                                if (offers.isEmpty() && !Boolean.TRUE.equals(school.getIsDemo())) {
+                                                        return Mono.empty(); // Skip this school
+                                                }
+
                                                 // Calculate min price
                                                 Integer minPrice = offers.stream()
                                                                 .map(com.drissman.domain.entity.Offer::getPrice)
                                                                 .min(Integer::compare)
-                                                                .orElse(150000); // Fallback price
+                                                                .orElse(150000); // Fallback price for demo schools
                                                 dto.setMinPrice(minPrice);
 
                                                 // Map offers to DTOs
@@ -48,7 +53,7 @@ public class SchoolService {
                                                                 .toList();
                                                 dto.setOffers(offerDtos);
 
-                                                return dto;
+                                                return Mono.just(dto);
                                         });
                 });
         }
