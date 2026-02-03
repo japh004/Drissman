@@ -3,6 +3,7 @@ package com.drissman.api.controller;
 import com.drissman.api.dto.SchoolDto;
 import com.drissman.service.SchoolService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -22,7 +23,9 @@ public class SchoolController {
     }
 
     @GetMapping("/{id}")
-    public Mono<SchoolDto> getById(@PathVariable UUID id) {
-        return schoolService.findById(id);
+    public Mono<ResponseEntity<SchoolDto>> getById(@PathVariable UUID id) {
+        return schoolService.findById(id)
+                .map(ResponseEntity::ok)
+                .defaultIfEmpty(ResponseEntity.notFound().build());
     }
 }
