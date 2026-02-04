@@ -20,6 +20,7 @@ export interface Offer {
     description?: string;
     price: number;
     hours: number;
+    permitType?: string; // A, B, C, D, E, F, G
 }
 
 // Schools Service
@@ -52,6 +53,7 @@ export const offersService = {
         description?: string;
         price: number;
         hours: number;
+        permitType?: string;
     }): Promise<Offer> {
         const { data, error } = await api.post<Offer>('/offers', payload);
         if (error) throw new Error(error);

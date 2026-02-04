@@ -26,14 +26,27 @@ interface OfferFormData {
     description: string;
     price: string;
     hours: string;
+    permitType: string;
 }
 
 const initialFormData: OfferFormData = {
     name: "",
     description: "",
     price: "",
-    hours: ""
+    hours: "",
+    permitType: "B"
 };
+
+const PERMIT_TYPES = [
+    { value: "A", label: "Permis A - Moto" },
+    { value: "A1", label: "Permis A1 - Moto légère" },
+    { value: "B", label: "Permis B - Voiture" },
+    { value: "C", label: "Permis C - Poids lourd" },
+    { value: "D", label: "Permis D - Transport passagers" },
+    { value: "E", label: "Permis E - Remorque" },
+    { value: "F", label: "Permis F - Véhicule agricole" },
+    { value: "G", label: "Permis G - Engin spécial" },
+];
 
 export default function OffersPage() {
     const { user } = useAuth();
@@ -52,13 +65,14 @@ export default function OffersPage() {
         setIsModalOpen(true);
     };
 
-    const handleOpenEdit = (offer: { id: string; name: string; description?: string; price: number; hours: number }) => {
+    const handleOpenEdit = (offer: { id: string; name: string; description?: string; price: number; hours: number; permitType?: string }) => {
         setEditingId(offer.id);
         setFormData({
             name: offer.name,
             description: offer.description || "",
             price: offer.price.toString(),
-            hours: offer.hours.toString()
+            hours: offer.hours.toString(),
+            permitType: offer.permitType || "B"
         });
         setIsModalOpen(true);
     };
@@ -84,7 +98,8 @@ export default function OffersPage() {
                     name: formData.name,
                     description: formData.description || undefined,
                     price: parseInt(formData.price),
-                    hours: parseInt(formData.hours)
+                    hours: parseInt(formData.hours),
+                    permitType: formData.permitType
                 });
                 toast.success("Offre mise à jour avec succès !");
             } else {
@@ -93,7 +108,8 @@ export default function OffersPage() {
                     name: formData.name,
                     description: formData.description || undefined,
                     price: parseInt(formData.price),
-                    hours: parseInt(formData.hours)
+                    hours: parseInt(formData.hours),
+                    permitType: formData.permitType
                 });
                 toast.success("Offre créée avec succès !");
             }
@@ -270,6 +286,23 @@ export default function OffersPage() {
                             className="bg-white/5 border-white/10 rounded-xl focus:border-signal/50 focus:ring-signal/20"
                             required
                         />
+                    </div>
+
+                    <div className="space-y-2">
+                        <Label htmlFor="permitType" className="text-[10px] font-black uppercase tracking-widest text-mist">Type de permis *</Label>
+                        <select
+                            id="permitType"
+                            value={formData.permitType}
+                            onChange={(e) => setFormData({ ...formData, permitType: e.target.value })}
+                            className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-sm text-snow focus:outline-none focus:ring-2 focus:ring-signal/20 focus:border-signal/50 transition-all font-medium"
+                            required
+                        >
+                            {PERMIT_TYPES.map((type) => (
+                                <option key={type.value} value={type.value} className="bg-asphalt text-snow">
+                                    {type.label}
+                                </option>
+                            ))}
+                        </select>
                     </div>
 
                     <div className="space-y-2">

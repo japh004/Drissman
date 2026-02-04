@@ -30,4 +30,7 @@ public class Offer {
     private Integer price;
 
     private Integer hours;
+
+    @Column("permit_type")
+    private String permitType; // A, B, C, D, E, F, G, etc.
 }

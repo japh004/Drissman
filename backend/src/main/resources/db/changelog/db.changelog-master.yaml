@@ -33,3 +33,5 @@ databaseChangeLog:
       file: db/changelog/changes/016-update-school-images-local.yaml
   - include:
       file: db/changelog/changes/017-add-is-demo-column.yaml
+  - include:
+      file: db/changelog/changes/018-add-permit-type-to-offers.yaml

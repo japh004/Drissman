@@ -9,6 +9,7 @@ interface CreateOfferPayload {
     description?: string;
     price: number;
     hours: number;
+    permitType?: string;
 }
 
 export function useOffers(schoolId?: string) {
