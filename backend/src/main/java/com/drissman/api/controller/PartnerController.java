@@ -2,13 +2,13 @@ package com.drissman.api.controller;
 
 import com.drissman.api.dto.BookingDto;
 import com.drissman.api.dto.PartnerStatsDto;
+import com.drissman.api.dto.UpdateSchoolRequest;
 import com.drissman.domain.repository.UserRepository;
 import com.drissman.service.PartnerService;
+import com.drissman.service.SchoolService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -22,6 +22,7 @@ import java.util.UUID;
 public class PartnerController {
 
     private final PartnerService partnerService;
+    private final SchoolService schoolService;
     private final UserRepository userRepository;
 
     @GetMapping("/stats")
@@ -75,6 +76,34 @@ public class PartnerController {
                         return Flux.empty();
                     }
                     return partnerService.getBookings(user.getSchoolId());
+                });
+    }
+
+    @PatchMapping("/school")
+    public Mono<Void> updateSchool(Principal principal, @RequestBody UpdateSchoolRequest request) {
+        if (principal == null)
+            return Mono.empty();
+
+        UUID userId = UUID.fromString(principal.getName());
+        return userRepository.findById(userId)
+                .flatMap(user -> {
+                    if (user.getSchoolId() == null)
+                        return Mono.empty();
+                    return schoolService.findById(user.getSchoolId())
+                            .flatMap(schoolDto -> schoolService.save(com.drissman.domain.entity.School.builder()
+                                    .id(user.getSchoolId())
+                                    .name(request.getName() != null ? request.getName() : schoolDto.getName())
+                                    .description(request.getDescription() != null ? request.getDescription()
+                                            : schoolDto.getDescription())
+                                    .imageUrl(request.getImageUrl() != null ? request.getImageUrl()
+                                            : schoolDto.getImageUrl())
+                                    .address(schoolDto.getAddress())
+                                    .city(schoolDto.getCity())
+                                    .phone(schoolDto.getPhone())
+                                    .email(schoolDto.getEmail())
+                                    .rating(schoolDto.getRating())
+                                    .build()))
+                            .then();
                 });
     }
 }

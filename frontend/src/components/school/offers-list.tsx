@@ -3,6 +3,7 @@ import { Check, Clock, Car, BookOpen, Users } from "lucide-react";
 
 interface OffersListProps {
     offers?: Offer[];
+    schoolImageUrl?: string;
     onSelectOffer?: (offer: Offer) => void;
 }
 
@@ -15,8 +16,8 @@ const offerImages: Record<string, string> = {
     default: "https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?q=80&w=800&auto=format&fit=crop"
 };
 
-function getOfferImage(offer: Offer): string {
-    if (offer.imageUrl) return offer.imageUrl;
+function getOfferImage(offer: Offer, schoolImageUrl?: string): string {
+    if (schoolImageUrl) return schoolImageUrl;
 
     const permitType = offer.permitType?.toUpperCase();
     const name = offer.name.toLowerCase();
@@ -50,7 +51,7 @@ function getOfferIcon(offer: Offer) {
     return <Car className="h-5 w-5" />;
 }
 
-export function OffersList({ offers, onSelectOffer }: OffersListProps) {
+export function OffersList({ offers, schoolImageUrl, onSelectOffer }: OffersListProps) {
     if (!offers || offers.length === 0) return null;
 
     return (
@@ -62,7 +63,7 @@ export function OffersList({ offers, onSelectOffer }: OffersListProps) {
                         {/* Image Header */}
                         <div className="relative h-40 overflow-hidden">
                             <img
-                                src={getOfferImage(offer)}
+                                src={getOfferImage(offer, schoolImageUrl)}
                                 alt={offer.name}
                                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                             />

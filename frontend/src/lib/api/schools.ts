@@ -21,7 +21,6 @@ export interface Offer {
     price: number;
     hours: number;
     permitType: string;
-    imageUrl?: string;
 }
 
 // Schools Service
@@ -55,7 +54,6 @@ export const offersService = {
         price: number;
         hours: number;
         permitType: string;
-        imageUrl?: string;
     }): Promise<Offer> {
         const { data, error } = await api.post<Offer>('/offers', payload);
         if (error) throw new Error(error);

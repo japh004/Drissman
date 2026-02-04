@@ -33,7 +33,4 @@ public class Offer {
 
     @Column("permit_type")
     private String permitType; // A, B, C, D, E, F, G, etc.
-
-    @Column("image_url")
-    private String imageUrl;
 }

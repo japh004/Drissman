@@ -6,3 +6,4 @@ export { bookingsService, type Booking, type CreateBookingPayload } from './book
 export { reviewsService, type Review, type CreateReviewPayload } from './reviews';
 export { invoicesService, type Invoice } from './invoices';
 export { availabilitiesService, DAYS_OF_WEEK, type Availability, type CreateAvailabilityPayload } from './availabilities';
+export { partnerService, type PartnerStats, type UpdateSchoolRequest } from './partners';

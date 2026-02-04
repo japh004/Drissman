@@ -27,7 +27,6 @@ interface OfferFormData {
     price: string;
     hours: string;
     permitType: string;
-    imageUrl: string;
 }
 
 const initialFormData: OfferFormData = {
@@ -35,8 +34,7 @@ const initialFormData: OfferFormData = {
     description: "",
     price: "",
     hours: "",
-    permitType: "B",
-    imageUrl: ""
+    permitType: "B"
 };
 
 const PERMIT_TYPES = [
@@ -74,8 +72,7 @@ export default function OffersPage() {
             description: offer.description || "",
             price: offer.price.toString(),
             hours: offer.hours.toString(),
-            permitType: offer.permitType || "B",
-            imageUrl: offer.imageUrl || ""
+            permitType: offer.permitType || "B"
         });
         setIsModalOpen(true);
     };
@@ -102,8 +99,7 @@ export default function OffersPage() {
                     description: formData.description || undefined,
                     price: parseInt(formData.price),
                     hours: parseInt(formData.hours),
-                    permitType: formData.permitType,
-                    imageUrl: formData.imageUrl || undefined
+                    permitType: formData.permitType
                 });
                 toast.success("Offre mise à jour avec succès !");
             } else {
@@ -113,8 +109,7 @@ export default function OffersPage() {
                     description: formData.description || undefined,
                     price: parseInt(formData.price),
                     hours: parseInt(formData.hours),
-                    permitType: formData.permitType,
-                    imageUrl: formData.imageUrl || undefined
+                    permitType: formData.permitType
                 });
                 toast.success("Offre créée avec succès !");
             }
@@ -222,11 +217,7 @@ export default function OffersPage() {
                         >
                             <div className="flex items-start justify-between mb-4">
                                 <div className="p-3 rounded-2xl bg-white/5 text-signal group-hover:scale-110 transition-transform duration-500 overflow-hidden relative w-12 h-12 flex items-center justify-center">
-                                    {offer.imageUrl ? (
-                                        <img src={offer.imageUrl} alt={offer.name} className="absolute inset-0 w-full h-full object-cover" />
-                                    ) : (
-                                        <Tag className="h-5 w-5" />
-                                    )}
+                                    <Tag className="h-5 w-5" />
                                 </div>
                                 <div className="flex gap-2">
                                     <button
@@ -326,59 +317,6 @@ export default function OffersPage() {
                         />
                     </div>
 
-                    <div className="space-y-4">
-                        <Label className="text-[10px] font-black uppercase tracking-widest text-mist">Image de l&apos;offre *</Label>
-                        <div className="flex flex-col gap-4">
-                            <div className="flex items-center gap-4">
-                                <div className="h-24 w-40 rounded-2xl overflow-hidden border-2 border-dashed border-white/10 bg-white/5 flex items-center justify-center group-hover:border-signal/30 transition-all relative">
-                                    {formData.imageUrl ? (
-                                        <>
-                                            <img src={formData.imageUrl} alt="Preview" className="h-full w-full object-cover" />
-                                            <button
-                                                type="button"
-                                                onClick={() => setFormData({ ...formData, imageUrl: "" })}
-                                                className="absolute top-2 right-2 p-1.5 bg-asphalt/80 rounded-full text-snow hover:text-red-400 transition-colors"
-                                            >
-                                                <X className="h-3 w-3" />
-                                            </button>
-                                        </>
-                                    ) : (
-                                        <div className="flex flex-col items-center gap-1 text-mist/30">
-                                            <Plus className="h-6 w-6" />
-                                            <span className="text-[8px] font-black uppercase tracking-widest">Aucune image</span>
-                                        </div>
-                                    )}
-                                </div>
-                                <div className="flex-1 space-y-2">
-                                    <button
-                                        type="button"
-                                        onClick={() => document.getElementById('image-upload')?.click()}
-                                        className="w-full py-3 px-4 rounded-xl bg-white/5 border border-white/10 text-snow text-[10px] font-black uppercase tracking-widest hover:bg-white/10 hover:border-signal/30 transition-all flex items-center justify-center gap-2"
-                                    >
-                                        <Plus className="h-4 w-4 text-signal" />
-                                        Choisir un fichier
-                                    </button>
-                                    <input
-                                        id="image-upload"
-                                        type="file"
-                                        accept="image/*"
-                                        className="hidden"
-                                        onChange={(e) => {
-                                            const file = e.target.files?.[0];
-                                            if (file) {
-                                                const reader = new FileReader();
-                                                reader.onloadend = () => {
-                                                    setFormData({ ...formData, imageUrl: reader.result as string });
-                                                };
-                                                reader.readAsDataURL(file);
-                                            }
-                                        }}
-                                    />
-                                    <p className="text-[10px] text-mist/50">Format suggéré : 800x600px. Taille max : 2Mo.</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
 
                     <div className="grid grid-cols-2 gap-6">
                         <div className="space-y-2">

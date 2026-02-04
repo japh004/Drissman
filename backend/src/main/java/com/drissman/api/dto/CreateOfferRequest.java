@@ -31,5 +31,6 @@ public class CreateOfferRequest {
     @Min(1)
     private Integer hours;
 
-    private String imageUrl;
+    @NotBlank
+    private String permitType;
 }

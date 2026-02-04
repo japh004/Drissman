@@ -9,10 +9,8 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class UpdateOfferRequest {
+public class UpdateSchoolRequest {
     private String name;
     private String description;
-    private Integer price;
-    private Integer hours;
-    private String permitType;
+    private String imageUrl;
 }

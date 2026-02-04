@@ -159,7 +159,7 @@ export function SchoolDetailView({ school }: { school: any }) {
 
                             {/* Offers */}
                             {school.offers && school.offers.length > 0 && (
-                                <OffersList offers={school.offers} onSelectOffer={handleBookClick} />
+                                <OffersList offers={school.offers} schoolImageUrl={school.imageUrl} onSelectOffer={handleBookClick} />
                             )}
 
                             {/* Reviews Section */}

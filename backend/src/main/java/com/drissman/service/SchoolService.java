@@ -69,7 +69,6 @@ public class SchoolService {
                                                                 .price(offer.getPrice())
                                                                 .hours(offer.getHours())
                                                                 .permitType(offer.getPermitType())
-                                                                .imageUrl(offer.getImageUrl())
                                                                 .build())
                                                 .collectList()
                                                 .map(offers -> {
@@ -77,6 +76,10 @@ public class SchoolService {
                                                         dto.setOffers(offers);
                                                         return dto;
                                                 }));
+        }
+
+        public Mono<School> save(School school) {
+                return schoolRepository.save(school);
         }
 
         private SchoolDto toDto(School school) {
