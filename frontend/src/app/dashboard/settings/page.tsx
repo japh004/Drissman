@@ -3,14 +3,13 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Bell, User, Shield, CreditCard, LogOut, Loader2, Check, Building2, Image as ImageIcon, X, Plus } from "lucide-react";
+import { Bell, User, Shield, CreditCard, LogOut, Loader2, Check } from "lucide-react";
 import { toast } from "sonner";
-import { partnerService, schoolsService, type School } from "@/lib/api";
 
 export default function SettingsPage() {
     const { user, logout, loading: authLoading } = useAuth();
 
-    // Use local auth data (backend UserController requires Maven recompilation)
+    // Use local auth data
     const [firstName, setFirstName] = useState("");
     const [lastName, setLastName] = useState("");
     const [email, setEmail] = useState("");
@@ -19,46 +18,17 @@ export default function SettingsPage() {
     const [isSaving, setIsSaving] = useState(false);
     const [isChangingPassword, setIsChangingPassword] = useState(false);
 
-    // School settings (for partners)
-    const [school, setSchool] = useState<School | null>(null);
-    const [schoolName, setSchoolName] = useState("");
-    const [schoolDescription, setSchoolDescription] = useState("");
-    const [schoolImage, setSchoolImage] = useState("");
-    const [isSavingSchool, setIsSavingSchool] = useState(false);
-    const [isSchoolLoading, setIsSchoolLoading] = useState(false);
-
-    const isPartner = user?.role === 'SCHOOL_ADMIN';
-
     useEffect(() => {
         if (user) {
             setFirstName(user.firstName || "");
             setLastName(user.lastName || "");
             setEmail(user.email || "");
-
-            if (isPartner && user.schoolId) {
-                fetchSchool(user.schoolId);
-            }
         }
-    }, [user, isPartner]);
-
-    const fetchSchool = async (id: string) => {
-        setIsSchoolLoading(true);
-        try {
-            const data = await schoolsService.getById(id);
-            setSchool(data);
-            setSchoolName(data.name || "");
-            setSchoolDescription(data.description || "");
-            setSchoolImage(data.imageUrl || "");
-        } catch (err) {
-            console.error("Failed to fetch school:", err);
-        } finally {
-            setIsSchoolLoading(false);
-        }
-    };
+    }, [user]);
 
     const handleSaveProfile = async () => {
         setIsSaving(true);
-        // Simulate save - backend not yet deployed
+        // Simulate save
         setTimeout(() => {
             toast.success("Profil mis à jour avec succès !");
             setIsSaving(false);
@@ -76,30 +46,13 @@ export default function SettingsPage() {
         }
 
         setIsChangingPassword(true);
-        // Simulate change - backend not yet deployed
+        // Simulate change
         setTimeout(() => {
             toast.success("Mot de passe modifié avec succès !");
             setCurrentPassword("");
             setNewPassword("");
             setIsChangingPassword(false);
         }, 500);
-    };
-
-    const handleSaveSchool = async () => {
-        setIsSavingSchool(true);
-        try {
-            await partnerService.updateSchool({
-                name: schoolName,
-                description: schoolDescription,
-                imageUrl: schoolImage
-            });
-            toast.success("Informations de l'auto-école mises à jour !");
-        } catch (err) {
-            console.error("Failed to update school:", err);
-            toast.error("Erreur lors de la mise à jour");
-        } finally {
-            setIsSavingSchool(false);
-        }
     };
 
     const inputClass = "w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-snow placeholder:text-mist/50 focus:border-signal/50 focus:ring-1 focus:ring-signal/50 outline-none transition-all";
@@ -129,12 +82,6 @@ export default function SettingsPage() {
                         <User className="mr-2 h-4 w-4" />
                         <span className="hidden md:inline">Profil</span>
                     </TabsTrigger>
-                    {isPartner && (
-                        <TabsTrigger value="school" className="rounded-lg data-[state=active]:bg-signal data-[state=active]:text-asphalt text-mist">
-                            <Building2 className="mr-2 h-4 w-4" />
-                            <span className="hidden md:inline">École</span>
-                        </TabsTrigger>
-                    )}
                     <TabsTrigger value="account" className="rounded-lg data-[state=active]:bg-signal data-[state=active]:text-asphalt text-mist">
                         <Shield className="mr-2 h-4 w-4" />
                         <span className="hidden md:inline">Compte</span>
@@ -289,14 +236,6 @@ export default function SettingsPage() {
                                 <div className="flex-1">
                                     <p className="font-medium text-snow">Carte Bancaire se terminant par 4242</p>
                                     <p className="text-sm text-mist">Expire le 12/2025</p>
-                                </div>
-                                <button className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-snow text-sm hover:border-signal/30 transition-all">Modifier</button>
-                            </div>
-                            <div className="flex items-center space-x-4 border border-signal/20 bg-signal/10 p-4 rounded-xl">
-                                <div className="h-6 w-6 rounded-full bg-signal flex items-center justify-center text-[10px] font-bold text-asphalt">MTN</div>
-                                <div className="flex-1">
-                                    <p className="font-medium text-snow">Mobile Money (6xxxxxx89)</p>
-                                    <p className="text-sm text-mist">Compte par défaut</p>
                                 </div>
                                 <button className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-snow text-sm hover:border-signal/30 transition-all">Modifier</button>
                             </div>

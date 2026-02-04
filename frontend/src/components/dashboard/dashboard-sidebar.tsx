@@ -11,7 +11,8 @@ import {
     FileText,
     Menu,
     Tag,
-    Clock
+    Clock,
+    School
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -22,6 +23,7 @@ const partnerNavigation = [
     { name: "Vue d'ensemble", href: "/dashboard", icon: LayoutDashboard },
     { name: "Réservations", href: "/dashboard/bookings", icon: Users },
     { name: "Offres", href: "/dashboard/offers", icon: Tag },
+    { name: "Mon Auto-école", href: "/dashboard/school", icon: School },
     { name: "Disponibilités", href: "/dashboard/availabilities", icon: Clock },
     { name: "Planning", href: "/dashboard/planning", icon: Calendar },
     { name: "Factures", href: "/dashboard/invoices", icon: FileText },
