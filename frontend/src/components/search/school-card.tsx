@@ -1,15 +1,30 @@
 "use client";
 
-import Link from "next/link";
-import { Star, MapPin, CheckCircle, ShieldCheck, Clock, Award, Car } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Star, MapPin, ShieldCheck, Car } from "lucide-react";
 import { formatPrice } from "@/lib/format";
 import { DrivingSchool } from "@/lib/data";
+import { useAuth } from "@/hooks";
+import { toast } from "sonner";
 
 interface SchoolCardProps {
     school: DrivingSchool;
 }
 
 export function SchoolCard({ school }: SchoolCardProps) {
+    const { isAuthenticated } = useAuth();
+    const router = useRouter();
+
+    const handleViewOffer = (e: React.MouseEvent) => {
+        e.preventDefault();
+        if (!isAuthenticated) {
+            toast.info("Veuillez vous connecter pour voir l'offre");
+            router.push(`/login?redirect=/school/${school.id}`);
+        } else {
+            router.push(`/school/${school.id}`);
+        }
+    };
+
     return (
         <div className="group bg-white/[0.03] backdrop-blur-md rounded-3xl border border-white/5 hover:border-signal/40 hover:bg-white/[0.05] transition-all duration-500 overflow-hidden flex flex-col h-auto min-h-[220px] hover:shadow-[0_20px_50px_rgba(0,0,0,0.4),0_0_30px_rgba(255,193,7,0.08)]">
             <div className="flex flex-col sm:flex-row h-full">
@@ -75,12 +90,12 @@ export function SchoolCard({ school }: SchoolCardProps) {
                             </div>
                         </div>
 
-                        <Link
-                            href={`/school/${school.id}`}
+                        <button
+                            onClick={handleViewOffer}
                             className="bg-white/5 hover:bg-signal text-snow hover:text-asphalt font-black py-3 px-6 rounded-2xl text-xs transition-all duration-300 border border-white/10 hover:border-signal shadow-lg hover:shadow-[0_10px_30px_rgba(255,193,7,0.3)] active:scale-95"
                         >
                             VOIR L&apos;OFFRE
-                        </Link>
+                        </button>
                     </div>
                 </div>
             </div>

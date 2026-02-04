@@ -1,45 +1,15 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Star, Car, MapPin, ArrowRight } from "lucide-react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { useSchools } from "@/hooks";
+import { useSchools, useAuth } from "@/hooks";
+import { toast } from "sonner";
 
 gsap.registerPlugin(ScrollTrigger);
-
-// Données variées et réalistes
-const autoEcoles = [
-    {
-        id: 1,
-        name: "Auto-École Excellence",
-        location: "Yaoundé, Bastos",
-        price: "150 000",
-        rating: 4.8,
-        reviews: 127,
-        badge: "POPULAIRE"
-    },
-    {
-        id: 2,
-        name: "Conduite Pro Academy",
-        location: "Yaoundé, Mvan",
-        price: "125 000",
-        oldPrice: "145 000",
-        rating: 4.6,
-        reviews: 89,
-        badge: "-14%"
-    },
-    {
-        id: 3,
-        name: "DriveFirst Center",
-        location: "Yaoundé, Omnisport",
-        price: "145 000",
-        rating: 4.9,
-        reviews: 203,
-        badge: "PREMIUM"
-    }
-];
 
 // Skeleton Card Component
 function SkeletonCard() {
@@ -62,7 +32,9 @@ function SkeletonCard() {
 
 export default function SelectionPopulaireVariant() {
     const sectionRef = useRef<HTMLDivElement>(null);
-    const { schools, loading, error } = useSchools();
+    const { schools, loading } = useSchools();
+    const { isAuthenticated } = useAuth();
+    const router = useRouter();
 
     useEffect(() => {
         if (loading || !schools.length) return;
@@ -84,10 +56,19 @@ export default function SelectionPopulaireVariant() {
         return () => ctx.revert();
     }, [loading, schools]);
 
+    // Handle school card click
+    const handleSchoolClick = (id: string | number) => {
+        if (!isAuthenticated) {
+            toast.info("Veuillez vous connecter pour voir l'offre détaillée");
+            router.push(`/login?redirect=/school/${id}`);
+        } else {
+            router.push(`/school/${id}`);
+        }
+    };
+
     // Filter and process schools to show
     const displaySchools = schools.slice(0, 3).map(school => ({
         ...school,
-        // Calculate dynamic fields if missing
         minPrice: school.offers?.[0]?.price || 150000,
         badge: school.rating >= 4.7 ? "PREMIUM" : school.rating >= 4.5 ? "POPULAIRE" : "-10%",
         formattedPrice: new Intl.NumberFormat('fr-FR').format(school.offers?.[0]?.price || 150000).replace(/\u202f/g, ' ')
@@ -107,7 +88,6 @@ export default function SelectionPopulaireVariant() {
                     </Link>
                 </div>
 
-                {/* Grid with skeleton or real cards */}
                 <div className="grid md:grid-cols-3 gap-6">
                     {loading ? (
                         <>
@@ -117,9 +97,9 @@ export default function SelectionPopulaireVariant() {
                         </>
                     ) : (
                         displaySchools.map((school) => (
-                            <Link
-                                href={`/school/${school.id}`}
+                            <div
                                 key={school.id}
+                                onClick={() => handleSchoolClick(school.id)}
                                 className="selection-card card-product bg-asphalt border border-steel/20 p-6 rounded-xl group cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:bg-asphalt/80 block"
                             >
                                 {/* Header avec badge et rating */}
@@ -169,7 +149,7 @@ export default function SelectionPopulaireVariant() {
                                         <ArrowRight className="w-4 h-4 text-signal group-hover:text-asphalt transition-colors" />
                                     </div>
                                 </div>
-                            </Link>
+                            </div>
                         ))
                     )}
                 </div>
