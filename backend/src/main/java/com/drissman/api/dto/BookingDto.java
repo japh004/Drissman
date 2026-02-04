@@ -19,6 +19,17 @@ public class BookingDto {
     private LocalDate date;
     private String time;
     private String status;
+    private UserInfo user;
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class UserInfo {
+        private UUID id;
+        private String name;
+        private String email;
+    }
 
     @Data
     @Builder

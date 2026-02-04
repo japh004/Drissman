@@ -15,6 +15,11 @@ export interface Booking {
     date: string;
     time?: string;
     status: 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'COMPLETED';
+    user?: {
+        id: string;
+        name: string;
+        email: string;
+    };
 }
 
 export interface CreateBookingPayload {

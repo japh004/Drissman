@@ -55,9 +55,19 @@ export default function PlanningPage() {
     const getBookingAt = (dayIndex: number, hour: number) => {
         const targetDate = weekDates[dayIndex];
         return weekBookings.find(booking => {
+            // Check day
             const bookingDate = new Date(booking.date);
-            return bookingDate.toDateString() === targetDate.toDateString() &&
-                bookingDate.getHours() === hour;
+            const isSameDay = bookingDate.toDateString() === targetDate.toDateString();
+            if (!isSameDay) return false;
+
+            // Check hour
+            if (booking.time) {
+                // time format is "HH:mm"
+                const bookingHour = parseInt(booking.time.split(':')[0]);
+                return bookingHour === hour;
+            }
+
+            return bookingDate.getHours() === hour;
         });
     };
 
@@ -188,8 +198,8 @@ export default function PlanningPage() {
                                                         }`}>
                                                         <div className="flex items-center gap-2 mb-1">
                                                             <User className="h-3 w-3 text-signal" />
-                                                            <span className="text-xs font-bold text-snow truncate">
-                                                                Élève
+                                                            <span className="text-[10px] font-black text-snow truncate uppercase tracking-tighter">
+                                                                {booking.user?.name || 'Élève'}
                                                             </span>
                                                         </div>
                                                         <div className="flex items-center gap-1">

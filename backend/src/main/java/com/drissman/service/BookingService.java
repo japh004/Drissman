@@ -8,6 +8,7 @@ import com.drissman.domain.repository.BookingRepository;
 import com.drissman.domain.repository.InvoiceRepository;
 import com.drissman.domain.repository.OfferRepository;
 import com.drissman.domain.repository.SchoolRepository;
+import com.drissman.domain.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
@@ -24,6 +25,7 @@ public class BookingService {
         private final BookingRepository bookingRepository;
         private final SchoolRepository schoolRepository;
         private final OfferRepository offerRepository;
+        private final UserRepository userRepository;
         private final InvoiceService invoiceService;
         private final InvoiceRepository invoiceRepository;
 
@@ -91,11 +93,19 @@ public class BookingService {
                                                 .price(offer.getPrice())
                                                 .build());
 
-                return Mono.zip(schoolInfo, offerInfo)
+                Mono<BookingDto.UserInfo> userInfo = userRepository.findById(booking.getUserId())
+                                .map(user -> BookingDto.UserInfo.builder()
+                                                .id(user.getId())
+                                                .name(user.getFirstName() + " " + user.getLastName())
+                                                .email(user.getEmail())
+                                                .build());
+
+                return Mono.zip(schoolInfo, offerInfo, userInfo)
                                 .map(tuple -> BookingDto.builder()
                                                 .id(booking.getId())
                                                 .school(tuple.getT1())
                                                 .offer(tuple.getT2())
+                                                .user(tuple.getT3())
                                                 .date(booking.getBookingDate())
                                                 .time(booking.getBookingTime())
                                                 .status(booking.getStatus().name())
