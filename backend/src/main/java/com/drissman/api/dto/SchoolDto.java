@@ -36,5 +36,6 @@ public class SchoolDto {
         private String description;
         private Integer price;
         private Integer hours;
+        private String permitType;
     }
 }

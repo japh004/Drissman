@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Search, MapPin, Star, BadgeCheck } from "lucide-react";
 import gsap from "gsap";
 import { useTheme } from "@/components/theme-provider";
@@ -69,6 +70,24 @@ export default function Hero() {
     const heroRef = useRef<HTMLDivElement>(null);
     const { theme } = useTheme();
     const isLight = theme === "light";
+    const router = useRouter();
+    const [searchCity, setSearchCity] = useState("");
+
+    const handleSearch = () => {
+        if (searchCity.trim()) {
+            // Redirect to search page with city parameter
+            router.push(`/search?city=${encodeURIComponent(searchCity.trim())}`);
+        } else {
+            // If no city, just go to search page
+            router.push('/search');
+        }
+    };
+
+    const handleKeyPress = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter') {
+            handleSearch();
+        }
+    };
 
     useEffect(() => {
         const ctx = gsap.context(() => {
@@ -281,10 +300,15 @@ export default function Hero() {
                                 <input
                                     type="text"
                                     placeholder="Entrez votre ville (ex : Douala)"
+                                    value={searchCity}
+                                    onChange={(e) => setSearchCity(e.target.value)}
+                                    onKeyPress={handleKeyPress}
                                     className={`flex-1 bg-transparent outline-none text-sm font-medium ${isLight ? 'text-slate-900 placeholder:text-slate-400' : 'text-snow placeholder:text-white/40'}`}
                                 />
                             </div>
-                            <button className="bg-signal hover:bg-signal-dark text-asphalt font-bold py-3.5 px-7 rounded-xl shadow-[0_4px_20px_rgba(255,193,7,0.4)] flex items-center justify-center gap-2 shrink-0 transition-all duration-300 hover:scale-[1.03] hover:shadow-[0_6px_30px_rgba(255,193,7,0.5)] active:scale-[0.98]">
+                            <button
+                                onClick={handleSearch}
+                                className="bg-signal hover:bg-signal-dark text-asphalt font-bold py-3.5 px-7 rounded-xl shadow-[0_4px_20px_rgba(255,193,7,0.4)] flex items-center justify-center gap-2 shrink-0 transition-all duration-300 hover:scale-[1.03] hover:shadow-[0_6px_30px_rgba(255,193,7,0.5)] active:scale-[0.98]">
                                 <Search className="h-4 w-4" />
                                 <span className="text-sm">Rechercher</span>
                             </button>

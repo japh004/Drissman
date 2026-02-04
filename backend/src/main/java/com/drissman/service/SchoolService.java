@@ -37,7 +37,7 @@ public class SchoolService {
                                                 // Calculate min price
                                                 Integer minPrice = offers.stream()
                                                                 .map(com.drissman.domain.entity.Offer::getPrice)
-                                                                .min(Integer::compare)
+                                                                .min(java.util.Comparator.naturalOrder())
                                                                 .orElse(150000); // Fallback price for demo schools
                                                 dto.setMinPrice(minPrice);
 
@@ -49,6 +49,7 @@ public class SchoolService {
                                                                                 .description(offer.getDescription())
                                                                                 .price(offer.getPrice())
                                                                                 .hours(offer.getHours())
+                                                                                .permitType(offer.getPermitType())
                                                                                 .build())
                                                                 .toList();
                                                 dto.setOffers(offerDtos);
@@ -67,6 +68,7 @@ public class SchoolService {
                                                                 .description(offer.getDescription())
                                                                 .price(offer.getPrice())
                                                                 .hours(offer.getHours())
+                                                                .permitType(offer.getPermitType())
                                                                 .build())
                                                 .collectList()
                                                 .map(offers -> {

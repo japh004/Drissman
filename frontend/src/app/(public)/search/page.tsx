@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo, useCallback } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Menu, X, Map as MapIcon, Loader2, SlidersHorizontal } from "lucide-react";
 import { SchoolCard } from "@/components/search/school-card";
@@ -13,6 +14,7 @@ interface FilterState {
     city: "Yaoundé" | "Douala" | "Tous";
     maxPrice: number;
     ratings: number[];
+    permitType: string;
 }
 
 function getCoordinatesForCity(city: string): [number, number] {
@@ -28,10 +30,23 @@ function getCoordinatesForCity(city: string): [number, number] {
 }
 
 export default function SearchPage() {
+    const searchParams = useSearchParams();
+    const cityFromUrl = searchParams.get('city');
+
+    // Map user input to valid filter values
+    const getValidCity = (input: string | null): "Yaoundé" | "Douala" | "Tous" => {
+        if (!input) return "Yaoundé";
+        const normalized = input.toLowerCase().trim();
+        if (normalized.includes("douala")) return "Douala";
+        if (normalized.includes("yaounde") || normalized.includes("yaoundé")) return "Yaoundé";
+        return "Tous"; // For any other city, show all
+    };
+
     const [filters, setFilters] = useState<FilterState>({
-        city: "Yaoundé",
+        city: getValidCity(cityFromUrl),
         maxPrice: 500000,
-        ratings: []
+        ratings: [],
+        permitType: "Tous"
     });
 
     const [showMapMobile, setShowMapMobile] = useState(false);
@@ -67,7 +82,9 @@ export default function SearchPage() {
                 const matchesPrice = filters.maxPrice ? school.price <= filters.maxPrice : true;
                 const matchesRating = filters.ratings.length === 0 ||
                     filters.ratings.some(r => school.rating >= r);
-                return matchesPrice && matchesRating;
+                const matchesPermit = filters.permitType === "Tous" ||
+                    school.offers?.some((o: any) => o.permitType === filters.permitType);
+                return matchesPrice && matchesRating && matchesPermit;
             });
     }, [schools, filters]);
 
@@ -199,7 +216,7 @@ export default function SearchPage() {
                                     Nous n&apos;avons pas d&apos;auto-école correspondant à ces filtres. Essayez de réinitialiser votre recherche.
                                 </p>
                                 <button
-                                    onClick={() => handleFilterChange({ city: "Tous", maxPrice: 500000, ratings: [] })}
+                                    onClick={() => handleFilterChange({ city: "Tous", maxPrice: 500000, ratings: [], permitType: "Tous" })}
                                     className="px-10 py-4 rounded-2xl bg-signal text-asphalt font-black text-sm shadow-[0_10px_30px_rgba(255,193,7,0.3)] hover:scale-105 active:scale-95 transition-all"
                                 >
                                     VOIR TOUT

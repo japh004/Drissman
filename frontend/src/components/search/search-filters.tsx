@@ -18,6 +18,7 @@ interface FilterState {
     city: "Yaoundé" | "Douala" | "Tous";
     maxPrice: number;
     ratings: number[];
+    permitType: string;
 }
 
 interface SearchFiltersProps {
@@ -29,6 +30,7 @@ export function SearchFilters({ initialFilters, onApply }: SearchFiltersProps) {
     const [city, setCity] = useState(initialFilters.city);
     const [maxPrice, setMaxPrice] = useState(initialFilters.maxPrice);
     const [ratings, setRatings] = useState<number[]>(initialFilters.ratings);
+    const [permitType, setPermitType] = useState(initialFilters.permitType || "Tous");
     const [open, setOpen] = useState(false);
 
     // Sync with props ONLY when the sheet opens
@@ -37,8 +39,9 @@ export function SearchFilters({ initialFilters, onApply }: SearchFiltersProps) {
             setCity(initialFilters.city);
             setMaxPrice(initialFilters.maxPrice);
             setRatings(initialFilters.ratings);
+            setPermitType(initialFilters.permitType || "Tous");
         }
-    }, [open, initialFilters.city, initialFilters.maxPrice, initialFilters.ratings]);
+    }, [open, initialFilters.city, initialFilters.maxPrice, initialFilters.ratings, initialFilters.permitType]);
 
     const handleRatingToggle = (rating: number) => {
         setRatings(prev =>
@@ -52,21 +55,23 @@ export function SearchFilters({ initialFilters, onApply }: SearchFiltersProps) {
         const defaultFilters: FilterState = {
             city: "Tous",
             maxPrice: 500000,
-            ratings: []
+            ratings: [],
+            permitType: "Tous"
         };
         setCity(defaultFilters.city);
         setMaxPrice(defaultFilters.maxPrice);
         setRatings(defaultFilters.ratings);
+        setPermitType(defaultFilters.permitType);
         onApply(defaultFilters);
         setOpen(false);
     };
 
     const handleApply = () => {
-        onApply({ city, maxPrice, ratings });
+        onApply({ city, maxPrice, ratings, permitType });
         setOpen(false);
     };
 
-    const activeFilterCount = (city !== "Tous" ? 1 : 0) + (ratings.length > 0 ? 1 : 0) + (maxPrice < 500000 ? 1 : 0);
+    const activeFilterCount = (city !== "Tous" ? 1 : 0) + (ratings.length > 0 ? 1 : 0) + (maxPrice < 500000 ? 1 : 0) + (permitType !== "Tous" ? 1 : 0);
 
     return (
         <Sheet open={open} onOpenChange={setOpen}>
@@ -139,6 +144,25 @@ export function SearchFilters({ initialFilters, onApply }: SearchFiltersProps) {
                                 <span>50k FCFA</span>
                                 <span>500k FCFA</span>
                             </div>
+                        </div>
+                    </div>
+
+                    {/* Type de permis */}
+                    <div className="space-y-4">
+                        <Label className="text-base font-bold text-snow">Type de Permis</Label>
+                        <div className="grid grid-cols-3 gap-2">
+                            {(["Tous", "A", "B", "C", "D"] as const).map((p) => (
+                                <button
+                                    key={p}
+                                    onClick={() => setPermitType(p)}
+                                    className={`py-2 rounded-lg text-xs font-bold transition-all border ${permitType === p
+                                        ? "bg-signal text-asphalt border-signal shadow-[0_0_10px_rgba(255,193,7,0.2)]"
+                                        : "bg-white/5 text-mist border-white/10 hover:border-signal/30"
+                                        }`}
+                                >
+                                    {p === "Tous" ? "Tous" : `Permis ${p}`}
+                                </button>
+                            ))}
                         </div>
                     </div>
 

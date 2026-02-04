@@ -15,18 +15,35 @@ const offerImages: Record<string, string> = {
     default: "https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?q=80&w=800&auto=format&fit=crop"
 };
 
-function getOfferImage(offerName: string): string {
-    const name = offerName.toLowerCase();
+function getOfferImage(offer: Offer): string {
+    const permitType = offer.permitType?.toUpperCase();
+    const name = offer.name.toLowerCase();
+
     if (name.includes("code")) return offerImages.code;
+
+    // Logic based on permit type
+    if (permitType === 'C' || permitType === 'D') return "https://images.unsplash.com/photo-1591768793355-74d0cadbc663?q=80&w=800&auto=format&fit=crop"; // Truck/Bus
+    if (permitType === 'A' || permitType === 'A1') return "https://images.unsplash.com/photo-1558981403-c5f91cbba527?q=80&w=800&auto=format&fit=crop"; // Moto
+
     if (name.includes("accéléré") || name.includes("accelere") || name.includes("intensif")) return offerImages.accelere;
     if (name.includes("conduite") || name.includes("accompagnée")) return offerImages.conduite;
-    if (name.includes("permis")) return offerImages.permis;
-    return offerImages.default;
+    return offerImages.permis;
 }
 
-function getOfferIcon(offerName: string) {
-    const name = offerName.toLowerCase();
+function getOfferIcon(offer: Offer) {
+    const permitType = offer.permitType?.toUpperCase();
+    const name = offer.name.toLowerCase();
+
     if (name.includes("code")) return <BookOpen className="h-5 w-5" />;
+
+    if (permitType === 'A' || permitType === 'A1') {
+        return <div className="font-bold text-xs">MOTO</div>;
+    }
+
+    if (permitType === 'C' || permitType === 'D') {
+        return <div className="font-bold text-xs">PRO</div>;
+    }
+
     if (name.includes("accompagnée") || name.includes("duo")) return <Users className="h-5 w-5" />;
     return <Car className="h-5 w-5" />;
 }
@@ -43,7 +60,7 @@ export function OffersList({ offers, onSelectOffer }: OffersListProps) {
                         {/* Image Header */}
                         <div className="relative h-40 overflow-hidden">
                             <img
-                                src={getOfferImage(offer.name)}
+                                src={getOfferImage(offer)}
                                 alt={offer.name}
                                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                             />
@@ -52,8 +69,15 @@ export function OffersList({ offers, onSelectOffer }: OffersListProps) {
 
                             {/* Badge icon */}
                             <div className="absolute top-4 left-4 bg-signal/90 text-asphalt p-2 rounded-xl">
-                                {getOfferIcon(offer.name)}
+                                {getOfferIcon(offer)}
                             </div>
+
+                            {/* Permit Type Badge */}
+                            {offer.permitType && (
+                                <div className="absolute top-4 right-4 bg-snow/10 backdrop-blur-md px-3 py-1 rounded-lg border border-white/20">
+                                    <span className="text-[10px] font-black text-snow uppercase tracking-widest">Permis {offer.permitType}</span>
+                                </div>
+                            )}
 
                             {/* Price badge */}
                             <div className="absolute bottom-4 right-4 bg-asphalt/80 backdrop-blur-sm px-4 py-2 rounded-xl border border-signal/30">
