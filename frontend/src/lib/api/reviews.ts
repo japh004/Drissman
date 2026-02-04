@@ -27,7 +27,9 @@ export const reviewsService = {
     },
 
     async create(payload: CreateReviewPayload, userId: string): Promise<Review> {
-        const { data, error } = await api.post<Review>('/reviews', payload);
+        const { data, error } = await api.post<Review>('/reviews', payload, {
+            'X-User-Id': userId
+        });
         if (error) throw new Error(error);
         return data!;
     },

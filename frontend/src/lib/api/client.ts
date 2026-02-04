@@ -89,24 +89,27 @@ class ApiClient {
         return this.request<T>(endpoint, { method: 'GET', headers });
     }
 
-    async post<T>(endpoint: string, body?: unknown): Promise<ApiResponse<T>> {
+    async post<T>(endpoint: string, body?: unknown, headers?: Record<string, string>): Promise<ApiResponse<T>> {
         return this.request<T>(endpoint, {
             method: 'POST',
             body: body ? JSON.stringify(body) : undefined,
+            headers
         });
     }
 
-    async patch<T>(endpoint: string, body?: unknown): Promise<ApiResponse<T>> {
+    async patch<T>(endpoint: string, body?: unknown, headers?: Record<string, string>): Promise<ApiResponse<T>> {
         return this.request<T>(endpoint, {
             method: 'PATCH',
             body: body ? JSON.stringify(body) : undefined,
+            headers
         });
     }
 
-    async put<T>(endpoint: string, body?: unknown): Promise<ApiResponse<T>> {
+    async put<T>(endpoint: string, body?: unknown, headers?: Record<string, string>): Promise<ApiResponse<T>> {
         return this.request<T>(endpoint, {
             method: 'PUT',
             body: body ? JSON.stringify(body) : undefined,
+            headers
         });
     }
 
