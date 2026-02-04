@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Check, X, Eye, Loader2 } from "lucide-react";
 import { useBookings, useAuth } from "@/hooks";
 import { formatPrice } from "@/lib/format";
+import { toast } from "sonner";
 
 export default function BookingsPage() {
     const { user } = useAuth();
@@ -12,7 +13,7 @@ export default function BookingsPage() {
     const isSchoolAdmin = user?.role === "SCHOOL_ADMIN";
 
     // Fetch bookings based on user role
-    const { bookings, loading, error, updateStatus } = useBookings(
+    const { bookings, loading, error, updateStatus, refetch } = useBookings(
         isSchoolAdmin && user?.schoolId
             ? { schoolId: user.schoolId }
             : { userId: user?.id }
@@ -22,8 +23,11 @@ export default function BookingsPage() {
         if (!isSchoolAdmin) return;
         try {
             await updateStatus(id, "CONFIRMED");
+            toast.success("Réservation confirmée ! Facture générée.");
+            refetch(); // Force refresh to ensure data is up to date
         } catch (err) {
             console.error("Failed to confirm booking:", err);
+            toast.error("Erreur lors de la confirmation");
         }
     };
 
@@ -31,8 +35,11 @@ export default function BookingsPage() {
         if (!isSchoolAdmin) return;
         try {
             await updateStatus(id, "CANCELLED");
+            toast.success("Réservation refusée.");
+            refetch(); // Force refresh to ensure data is up to date
         } catch (err) {
             console.error("Failed to reject booking:", err);
+            toast.error("Erreur lors du refus");
         }
     };
 
