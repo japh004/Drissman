@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, Suspense, useMemo, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Menu, X, Map as MapIcon, Loader2, SlidersHorizontal } from "lucide-react";
@@ -29,7 +29,7 @@ function getCoordinatesForCity(city: string): [number, number] {
     ];
 }
 
-export default function SearchPage() {
+function SearchPageContent() {
     const searchParams = useSearchParams();
     const cityFromUrl = searchParams.get('city');
 
@@ -246,5 +246,17 @@ export default function SearchPage() {
                 </div>
             </div>
         </div>
+    );
+}
+
+export default function SearchPage() {
+    return (
+        <Suspense fallback={
+            <div className="flex h-screen w-full items-center justify-center bg-asphalt">
+                <Loader2 className="h-10 w-10 text-signal animate-spin" />
+            </div>
+        }>
+            <SearchPageContent />
+        </Suspense>
     );
 }
