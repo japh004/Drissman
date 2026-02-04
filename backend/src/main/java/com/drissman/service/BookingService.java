@@ -37,18 +37,19 @@ public class BookingService {
                                 .status(Booking.BookingStatus.PENDING)
                                 .build();
 
+                // Just save the booking - NO invoice created yet
+                // Invoice will be created when school confirms
                 return bookingRepository.save(booking)
-                                .flatMap(savedBooking ->
-                                // Create invoice for this booking
-                                offerRepository.findById(savedBooking.getOfferId())
-                                                .flatMap(offer -> invoiceService.createForBooking(savedBooking,
-                                                                offer.getPrice()))
-                                                .thenReturn(savedBooking))
                                 .flatMap(this::enrichWithDetails);
         }
 
         public Flux<BookingDto> findByUserId(UUID userId) {
                 return bookingRepository.findByUserId(userId)
+                                .flatMap(this::enrichWithDetails);
+        }
+
+        public Flux<BookingDto> findBySchoolId(UUID schoolId) {
+                return bookingRepository.findBySchoolId(schoolId)
                                 .flatMap(this::enrichWithDetails);
         }
 
@@ -59,9 +60,11 @@ public class BookingService {
                                         return bookingRepository.save(booking);
                                 })
                                 .flatMap(savedBooking -> {
-                                        // If booking is confirmed, update invoice status to PAID
+                                        // If booking is confirmed, create invoice and mark as PAID
                                         if (status == Booking.BookingStatus.CONFIRMED) {
-                                                return invoiceRepository.findByBookingId(savedBooking.getId())
+                                                return offerRepository.findById(savedBooking.getOfferId())
+                                                                .flatMap(offer -> invoiceService.createForBooking(
+                                                                                savedBooking, offer.getPrice()))
                                                                 .flatMap(invoice -> {
                                                                         invoice.setStatus(Invoice.InvoiceStatus.PAID);
                                                                         invoice.setPaidAt(LocalDateTime.now());

@@ -38,9 +38,16 @@ export const bookingsService = {
         return data || [];
     },
 
+    async getSchoolBookings(schoolId: string): Promise<Booking[]> {
+        const { data, error } = await api.get<Booking[]>(`/bookings/school/${schoolId}`);
+        if (error) throw new Error(error);
+        return data || [];
+    },
+
     async updateStatus(id: string, status: Booking['status']): Promise<Booking> {
         const { data, error } = await api.patch<Booking>(`/bookings/${id}/status?status=${status}`);
         if (error) throw new Error(error);
         return data!;
     }
 };
+

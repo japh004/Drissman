@@ -55,6 +55,14 @@ public class BookingController {
     }
 
     /**
+     * Get all bookings for a specific school (for school admins).
+     */
+    @GetMapping("/school/{schoolId}")
+    public Flux<BookingDto> getSchoolBookings(@PathVariable UUID schoolId) {
+        return bookingService.findBySchoolId(schoolId);
+    }
+
+    /**
      * Update booking status (for admin or school owner).
      */
     @PatchMapping("/{id}/status")

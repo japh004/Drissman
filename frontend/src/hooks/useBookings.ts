@@ -3,13 +3,20 @@
 import { useState, useEffect, useCallback } from 'react';
 import { bookingsService, Booking, CreateBookingPayload } from '@/lib/api';
 
-export function useBookings(userId?: string) {
+interface UseBookingsOptions {
+    userId?: string;
+    schoolId?: string;
+}
+
+export function useBookings(options: UseBookingsOptions = {}) {
+    const { userId, schoolId } = options;
     const [bookings, setBookings] = useState<Booking[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
     const fetchBookings = useCallback(async () => {
-        if (!userId) {
+        // School admins fetch by schoolId, students fetch by userId
+        if (!userId && !schoolId) {
             setBookings([]);
             setLoading(false);
             return;
@@ -18,14 +25,23 @@ export function useBookings(userId?: string) {
         try {
             setLoading(true);
             setError(null);
-            const data = await bookingsService.getMyBookings(userId);
+
+            let data: Booking[];
+            if (schoolId) {
+                // Fetch school's bookings (for school admins)
+                data = await bookingsService.getSchoolBookings(schoolId);
+            } else {
+                // Fetch user's bookings (for students)
+                data = await bookingsService.getMyBookings(userId!);
+            }
+
             setBookings(data);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Erreur de chargement');
         } finally {
             setLoading(false);
         }
-    }, [userId]);
+    }, [userId, schoolId]);
 
     useEffect(() => {
         fetchBookings();
@@ -46,3 +62,4 @@ export function useBookings(userId?: string) {
 
     return { bookings, loading, error, refetch: fetchBookings, createBooking, updateStatus };
 }
+

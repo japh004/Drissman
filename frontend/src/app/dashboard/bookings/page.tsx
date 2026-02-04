@@ -7,10 +7,16 @@ import { formatPrice } from "@/lib/format";
 
 export default function BookingsPage() {
     const { user } = useAuth();
-    const { bookings, loading, error, updateStatus } = useBookings(user?.id);
 
     // Only school admins can confirm/reject bookings
     const isSchoolAdmin = user?.role === "SCHOOL_ADMIN";
+
+    // Fetch bookings based on user role
+    const { bookings, loading, error, updateStatus } = useBookings(
+        isSchoolAdmin && user?.schoolId
+            ? { schoolId: user.schoolId }
+            : { userId: user?.id }
+    );
 
     const handleConfirm = async (id: string) => {
         if (!isSchoolAdmin) return;
