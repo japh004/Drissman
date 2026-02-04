@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Check, X, Eye, Loader2 } from "lucide-react";
 import { useBookings, useAuth } from "@/hooks";
 import { formatPrice } from "@/lib/format";
@@ -8,7 +9,11 @@ export default function BookingsPage() {
     const { user } = useAuth();
     const { bookings, loading, error, updateStatus } = useBookings(user?.id);
 
+    // Only school admins can confirm/reject bookings
+    const isSchoolAdmin = user?.role === "SCHOOL_ADMIN";
+
     const handleConfirm = async (id: string) => {
+        if (!isSchoolAdmin) return;
         try {
             await updateStatus(id, "CONFIRMED");
         } catch (err) {
@@ -17,6 +22,7 @@ export default function BookingsPage() {
     };
 
     const handleReject = async (id: string) => {
+        if (!isSchoolAdmin) return;
         try {
             await updateStatus(id, "CANCELLED");
         } catch (err) {
@@ -28,10 +34,18 @@ export default function BookingsPage() {
         <div className="space-y-6">
             <div className="flex justify-between items-center">
                 <div>
-                    <h2 className="text-2xl font-bold text-snow">Gestion des Réservations</h2>
-                    <p className="text-mist">Gérez les demandes d&apos;inscription et les paiements.</p>
+                    <h2 className="text-2xl font-bold text-snow">
+                        {isSchoolAdmin ? "Gestion des Réservations" : "Mes Réservations"}
+                    </h2>
+                    <p className="text-mist">
+                        {isSchoolAdmin
+                            ? "Gérez les demandes d'inscription et les paiements."
+                            : "Suivez vos inscriptions aux auto-écoles."}
+                    </p>
                 </div>
-                <button className="px-4 py-2 rounded-xl bg-signal hover:bg-signal-dark text-asphalt font-bold transition-all">Exporter CSV</button>
+                {isSchoolAdmin && (
+                    <button className="px-4 py-2 rounded-xl bg-signal hover:bg-signal-dark text-asphalt font-bold transition-all">Exporter CSV</button>
+                )}
             </div>
 
             {/* Loading State */}
@@ -90,22 +104,29 @@ export default function BookingsPage() {
                                     </td>
                                     <td className="px-6 py-4 text-right">
                                         <div className="flex justify-end gap-2">
-                                            <button className="p-1.5 hover:bg-white/5 rounded text-mist hover:text-snow transition-colors" title="Voir">
+                                            {/* View school - visible for students */}
+                                            <Link
+                                                href={`/school/${booking.school.id}`}
+                                                className="p-1.5 hover:bg-white/5 rounded text-mist hover:text-snow transition-colors"
+                                                title="Voir l'auto-école"
+                                            >
                                                 <Eye className="h-4 w-4" />
-                                            </button>
-                                            {booking.status === "PENDING" && (
+                                            </Link>
+
+                                            {/* Confirm/Reject buttons - only visible for school admins */}
+                                            {isSchoolAdmin && booking.status === "PENDING" && (
                                                 <>
                                                     <button
                                                         onClick={() => handleConfirm(booking.id)}
                                                         className="p-1.5 hover:bg-green-500/10 rounded text-green-400 transition-colors"
-                                                        title="Accepter"
+                                                        title="Confirmer la réservation"
                                                     >
                                                         <Check className="h-4 w-4" />
                                                     </button>
                                                     <button
                                                         onClick={() => handleReject(booking.id)}
                                                         className="p-1.5 hover:bg-red-500/10 rounded text-red-400 transition-colors"
-                                                        title="Refuser"
+                                                        title="Refuser la réservation"
                                                     >
                                                         <X className="h-4 w-4" />
                                                     </button>
@@ -144,3 +165,4 @@ function StatusBadge({ status }: { status: string }) {
         </span>
     );
 }
+
