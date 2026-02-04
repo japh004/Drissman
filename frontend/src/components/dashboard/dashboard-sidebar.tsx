@@ -45,15 +45,15 @@ export function DashboardSidebar() {
             {/* Desktop Sidebar */}
             <aside className="w-64 bg-asphalt border-r border-white/5 text-snow hidden md:flex flex-col h-full">
                 <div className="p-6">
-                    <Link href="/" className="flex items-center gap-2">
+                    <div className="flex items-center gap-2">
                         <div className="h-8 w-8 rounded-full bg-gradient-to-br from-signal/30 to-signal/10 border border-signal/30 flex items-center justify-center">
                             <span className="text-signal font-black text-sm">D</span>
                         </div>
                         <span className="text-lg font-black tracking-tight">
                             <span className="text-signal">DRISS</span><span className="text-snow">MAN</span>
                         </span>
-                    </Link>
-                    <p className="text-xs text-mist mt-2">
+                    </div>
+                    <p className="text-xs text-mist mt-2 font-bold uppercase tracking-wider">
                         {isPartner ? "Espace Auto-École" : "Espace Candidat"}
                     </p>
                 </div>
@@ -63,10 +63,6 @@ export function DashboardSidebar() {
                 </nav>
 
                 <div className="p-4 border-t border-white/5 space-y-2">
-                    <Link href="/" className="flex items-center w-full px-4 py-3 text-sm font-medium text-mist hover:text-snow hover:bg-white/5 rounded-lg transition-colors">
-                        <span className="mr-3">🏠</span>
-                        Retour au site
-                    </Link>
                     <button
                         onClick={logout}
                         className="flex items-center w-full px-4 py-3 text-sm font-medium text-mist hover:text-snow hover:bg-white/5 rounded-lg transition-colors"
@@ -108,14 +104,6 @@ export function MobileSidebar() {
                     <NavLinks navigation={navigation} onClick={() => setOpen(false)} />
                 </nav>
                 <div className="absolute bottom-4 left-4 right-4 space-y-2">
-                    <Link
-                        href="/"
-                        onClick={() => setOpen(false)}
-                        className="flex items-center w-full px-4 py-3 text-sm font-medium text-mist hover:text-snow hover:bg-white/5 rounded-lg transition-colors"
-                    >
-                        <span className="mr-3">🏠</span>
-                        Retour au site
-                    </Link>
                     <button
                         onClick={() => {
                             logout();

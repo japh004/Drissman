@@ -50,10 +50,6 @@ export function PartnerDashboard({ user }: PartnerDashboardProps) {
                     <h2 className="text-3xl font-black text-snow uppercase tracking-tight">Tableau de bord</h2>
                     <p className="text-mist font-bold">Ravi de vous revoir, {user.firstName} ! Voici les performances de votre école.</p>
                 </div>
-                <div className="flex gap-3">
-                    <button className="px-5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-snow text-xs font-black uppercase tracking-widest hover:border-signal/30 transition-all">Exporter</button>
-                    <button className="px-5 py-2.5 rounded-xl bg-signal hover:bg-signal-dark text-asphalt text-xs font-black uppercase tracking-widest shadow-[0_10px_30px_rgba(255,193,7,0.2)] transition-all">+ Inscription</button>
-                </div>
             </div>
 
 
