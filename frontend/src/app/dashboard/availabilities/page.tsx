@@ -64,19 +64,13 @@ export default function AvailabilitiesPage() {
         setIsModalOpen(true);
     };
 
-    const handleOpenEdit = (availability: {
-        id: string;
-        dayOfWeek: number;
-        startTime: string;
-        endTime: string;
-        maxBookings: number;
-    }) => {
+    const handleOpenEdit = (availability: Availability) => {
         setEditingId(availability.id);
         setFormData({
             dayOfWeek: availability.dayOfWeek.toString(),
             startTime: availability.startTime,
             endTime: availability.endTime,
-            maxBookings: availability.maxBookings.toString()
+            maxBookings: (availability.maxBookings || 4).toString()
         });
         setIsModalOpen(true);
     };
