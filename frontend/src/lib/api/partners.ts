@@ -1,19 +1,5 @@
 import api from './client';
-
-export interface PartnerStats {
-    revenue: string;
-    enrollments: number;
-    successRate: string;
-    upcomingLessons: number;
-    revenueGrowth: number;
-    enrollmentGrowth: number;
-}
-
-export interface UpdateSchoolRequest {
-    name?: string;
-    description?: string;
-    imageUrl?: string;
-}
+import type { PartnerStats, UpdateSchoolRequest } from '@/types/partner';
 
 export const partnerService = {
     async getStats(): Promise<PartnerStats> {

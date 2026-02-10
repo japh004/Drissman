@@ -1,8 +1,10 @@
 package com.drissman.security;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
@@ -10,10 +12,12 @@ import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
 
-import java.util.Collections;
+import io.jsonwebtoken.Claims;
+import java.util.List;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class JwtAuthenticationFilter implements WebFilter {
 
     private final JwtTokenProvider tokenProvider;
@@ -23,17 +27,23 @@ public class JwtAuthenticationFilter implements WebFilter {
         String token = resolveToken(exchange);
         if (token != null) {
             try {
-                // validateToken throws exception if invalid
-                tokenProvider.validateToken(token);
-                String userId = tokenProvider.getUserIdFromToken(token).toString();
+                Claims claims = tokenProvider.validateToken(token);
+                String userId = claims.getSubject();
+                String role = claims.get("role", String.class);
 
-                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                        userId, null, Collections.emptyList());
+                // Build authorities from JWT role claim
+                List<SimpleGrantedAuthority> authorities = role != null
+                        ? List.of(new SimpleGrantedAuthority("ROLE_" + role))
+                        : List.of();
+
+                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userId,
+                        null, authorities);
 
                 return chain.filter(exchange)
                         .contextWrite(ReactiveSecurityContextHolder.withAuthentication(authentication));
             } catch (Exception e) {
-                // Valid token check failed, continue without auth
+                log.warn("JWT validation failed: {}", e.getMessage());
+                // Continue without authentication — security rules will deny if needed
             }
         }
         return chain.filter(exchange);

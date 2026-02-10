@@ -7,13 +7,8 @@ export interface School {
     phone?: string;
     email?: string;
     rating: number;
-    reviewCount?: number;
-    priceRange: {
-        min: number;
-        max: number;
-    };
+    minPrice?: number;
     imageUrl?: string;
-    gallery?: string[];
     offers?: Offer[];
 }
 
@@ -23,6 +18,7 @@ export interface Offer {
     description?: string;
     price: number;
     hours: number;
+    permitType: string;
 }
 
 export interface SchoolFilters {

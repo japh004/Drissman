@@ -9,6 +9,8 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import com.drissman.api.dto.UpdateSchoolRequest;
+
 import java.util.List;
 import java.util.UUID;
 
@@ -60,8 +62,12 @@ public class SchoolService {
         }
 
         public Mono<SchoolDto> findById(UUID id) {
+                if (id == null)
+                        return Mono.empty();
                 return schoolRepository.findById(id)
-                                .flatMap(school -> offerRepository.findBySchoolId(id)
+                                .flatMap(school -> {
+                                        if (school == null) return Mono.empty();
+                                        return offerRepository.findBySchoolId(school.getId())
                                                 .map(offer -> SchoolDto.OfferDto.builder()
                                                                 .id(offer.getId())
                                                                 .name(offer.getName())
@@ -76,6 +82,21 @@ public class SchoolService {
                                                         dto.setOffers(offers);
                                                         return dto;
                                                 }));
+        }
+
+        public Mono<SchoolDto> update(UUID id, UpdateSchoolRequest request) {
+                return schoolRepository.findById(id)
+                                .flatMap(school -> {
+                                        if (request.getName() != null)
+                                                school.setName(request.getName());
+                                        if (request.getDescription() != null)
+                                                school.setDescription(request.getDescription());
+                                        if (request.getImageUrl() != null)
+                                                school.setImageUrl(request.getImageUrl());
+                                        return schoolRepository.save(school);
+                                })
+                                .flatMap(savedSchool -> savedSchool != null ? findById(savedSchool.getId())
+                                                : Mono.empty());
         }
 
         public Mono<School> save(School school) {

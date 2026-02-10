@@ -4,24 +4,33 @@ import com.drissman.api.dto.InvoiceDto;
 import com.drissman.domain.entity.Invoice;
 import com.drissman.service.InvoiceService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.security.Principal;
 import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/invoices")
 @RequiredArgsConstructor
+@Slf4j
 public class InvoiceController {
 
     private final InvoiceService invoiceService;
 
     /**
-     * Get all invoices for authenticated user
+     * Get all invoices for authenticated user.
+     * Uses JWT Principal instead of X-User-Id header.
      */
     @GetMapping
-    public Flux<InvoiceDto> getMyInvoices(@RequestHeader("X-User-Id") UUID userId) {
+    public Flux<InvoiceDto> getMyInvoices(Principal principal) {
+        if (principal == null) {
+            log.info("Demo mode: returning empty invoices list");
+            return Flux.empty();
+        }
+        UUID userId = UUID.fromString(principal.getName());
         return invoiceService.findByUserId(userId);
     }
 

@@ -1,33 +1,5 @@
 import api from './client';
-
-// Types
-export interface Booking {
-    id: string;
-    school: {
-        id: string;
-        name: string;
-    };
-    offer: {
-        id: string;
-        name: string;
-        price: number;
-    };
-    date: string;
-    time?: string;
-    status: 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'COMPLETED';
-    user?: {
-        id: string;
-        name: string;
-        email: string;
-    };
-}
-
-export interface CreateBookingPayload {
-    schoolId: string;
-    offerId: string;
-    date: string; // "2026-02-01"
-    time?: string; // "10:00"
-}
+import type { Booking, CreateBookingPayload } from '@/types/booking';
 
 // Bookings Service
 export const bookingsService = {

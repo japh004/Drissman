@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
+import java.security.Principal;
 import java.util.UUID;
 
 @RestController
@@ -19,6 +20,16 @@ public class UserController {
 
     private final UserService userService;
 
+    @GetMapping("/me")
+    public Mono<UserDto> getCurrentUser(Principal principal) {
+        if (principal == null) {
+            return Mono.error(new RuntimeException("Authentification requise"));
+        }
+        UUID userId = UUID.fromString(principal.getName());
+        return userService.findById(userId)
+                .switchIfEmpty(Mono.error(new RuntimeException("Utilisateur non trouvé")));
+    }
+
     @GetMapping("/{id}")
     public Mono<UserDto> getUser(@PathVariable UUID id) {
         return userService.findById(id)
@@ -27,16 +38,34 @@ public class UserController {
 
     @PutMapping("/{id}")
     public Mono<UserDto> updateProfile(
+            Principal principal,
             @PathVariable UUID id,
             @Valid @RequestBody UpdateProfileRequest request) {
+        if (principal == null) {
+            return Mono.error(new RuntimeException("Authentification requise"));
+        }
+        // Ownership check: only allow users to update their own profile
+        UUID authenticatedUserId = UUID.fromString(principal.getName());
+        if (!authenticatedUserId.equals(id)) {
+            return Mono.error(new IllegalArgumentException("Vous ne pouvez modifier que votre propre profil"));
+        }
         return userService.updateProfile(id, request);
     }
 
     @PutMapping("/{id}/password")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public Mono<Void> changePassword(
+            Principal principal,
             @PathVariable UUID id,
             @Valid @RequestBody ChangePasswordRequest request) {
+        if (principal == null) {
+            return Mono.error(new RuntimeException("Authentification requise"));
+        }
+        // Ownership check: only allow users to change their own password
+        UUID authenticatedUserId = UUID.fromString(principal.getName());
+        if (!authenticatedUserId.equals(id)) {
+            return Mono.error(new IllegalArgumentException("Vous ne pouvez modifier que votre propre mot de passe"));
+        }
         return userService.changePassword(id, request);
     }
 }

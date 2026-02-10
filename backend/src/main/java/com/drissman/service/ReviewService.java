@@ -106,8 +106,10 @@ public class ReviewService {
                                 .map(user -> ReviewDto.builder()
                                                 .id(review.getId())
                                                 .userId(review.getUserId())
-                                                .userName(user.getFirstName() + " " + user.getLastName().charAt(0)
-                                                                + ".")
+                                                .userName(user.getFirstName() + " " +
+                                                                (user.getLastName() != null && !user.getLastName()
+                                                                                .isEmpty() ? user.getLastName()
+                                                                                                .charAt(0) + "." : ""))
                                                 .schoolId(review.getSchoolId())
                                                 .rating(review.getRating())
                                                 .comment(review.getComment())

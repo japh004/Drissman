@@ -1,22 +1,5 @@
 import api from './client';
-
-// Types
-export interface Review {
-    id: string;
-    userId: string;
-    userName: string;
-    schoolId: string;
-    rating: number; // 1-5
-    comment?: string;
-    verified: boolean;
-    createdAt: string;
-}
-
-export interface CreateReviewPayload {
-    schoolId: string;
-    rating: number;
-    comment?: string;
-}
+import type { Review, CreateReviewPayload } from '@/types/review';
 
 // Reviews Service
 export const reviewsService = {
@@ -26,10 +9,8 @@ export const reviewsService = {
         return data || [];
     },
 
-    async create(payload: CreateReviewPayload, userId: string): Promise<Review> {
-        const { data, error } = await api.post<Review>('/reviews', payload, {
-            'X-User-Id': userId
-        });
+    async create(payload: CreateReviewPayload): Promise<Review> {
+        const { data, error } = await api.post<Review>('/reviews', payload);
         if (error) throw new Error(error);
         return data!;
     },

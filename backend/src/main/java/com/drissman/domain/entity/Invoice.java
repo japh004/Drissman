@@ -24,6 +24,9 @@ public class Invoice {
     @Column("booking_id")
     private UUID bookingId;
 
+    @Column("enrollment_id")
+    private UUID enrollmentId;
+
     @Column("user_id")
     private UUID userId;
 

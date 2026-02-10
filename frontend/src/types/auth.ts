@@ -3,8 +3,8 @@ export interface User {
     email: string;
     firstName: string;
     lastName: string;
-    role: 'student' | 'school_admin';
-    createdAt: string;
+    role: 'STUDENT' | 'SCHOOL_ADMIN';
+    schoolId?: string;
 }
 
 export interface AuthResponse {
@@ -20,5 +20,5 @@ export interface LoginPayload {
 export interface RegisterPayload extends LoginPayload {
     firstName: string;
     lastName: string;
-    role: 'student' | 'school_admin';
+    role: 'STUDENT' | 'SCHOOL_ADMIN';
 }

@@ -141,6 +141,55 @@ export function PartnerDashboard({ user }: PartnerDashboardProps) {
                     </div>
                 </div>
             </div>
+
+            {/* Recent Activity & Announcements */}
+            <div className="grid gap-8 lg:grid-cols-3">
+                {/* Recent Activity Feed */}
+                <div className="lg:col-span-2 bg-white/[0.03] backdrop-blur-md rounded-[2.5rem] border border-white/5 p-8">
+                    <h3 className="text-lg font-black text-snow uppercase tracking-widest mb-6">Activité Récente</h3>
+                    <div className="space-y-4">
+                        {[
+                            { time: "Il y a 2h", text: "Nouvelle inscription reçue pour le Permis B", dot: "bg-green-400" },
+                            { time: "Il y a 5h", text: "Paiement de 350 000 FCFA confirmé", dot: "bg-signal" },
+                            { time: "Hier", text: "Avis 5★ reçu de Marie D.", dot: "bg-purple-400" },
+                            { time: "Hier", text: "Leçon de conduite complétée avec succès", dot: "bg-blue-400" },
+                            { time: "Il y a 3j", text: "Nouvelle disponibilité ajoutée pour Lundi", dot: "bg-emerald-400" },
+                        ].map((activity, i) => (
+                            <div key={i} className="flex items-start gap-4 p-3 rounded-2xl hover:bg-white/5 transition-colors">
+                                <div className="mt-1.5 flex-shrink-0">
+                                    <div className={`h-2.5 w-2.5 rounded-full ${activity.dot}`} />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-sm text-snow">{activity.text}</p>
+                                    <p className="text-[10px] text-mist font-bold uppercase tracking-widest mt-1">{activity.time}</p>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Announcements */}
+                <div className="bg-white/[0.03] backdrop-blur-md rounded-[2.5rem] border border-white/5 p-8">
+                    <h3 className="text-lg font-black text-snow uppercase tracking-widest mb-6">Annonces</h3>
+                    <div className="space-y-4">
+                        <div className="p-4 rounded-2xl bg-white/5 border border-white/5">
+                            <p className="text-sm text-snow font-bold">Nouvelle fonctionnalité : Moniteurs</p>
+                            <p className="text-xs text-mist mt-2">Vous pourrez bientôt ajouter et gérer vos moniteurs directement depuis le tableau de bord.</p>
+                            <span className="text-[10px] text-mist/60 font-bold uppercase tracking-wider mt-2 block">Il y a 1 jour</span>
+                        </div>
+                        <div className="p-4 rounded-2xl bg-white/5 border border-white/5">
+                            <p className="text-sm text-snow font-bold">Rapports mensuels améliorés</p>
+                            <p className="text-xs text-mist mt-2">Les rapports de performance incluent désormais des graphiques détaillés et des comparaisons mensuelles.</p>
+                            <span className="text-[10px] text-mist/60 font-bold uppercase tracking-wider mt-2 block">Il y a 3 jours</span>
+                        </div>
+                        <div className="p-4 rounded-2xl bg-signal/5 border border-signal/10">
+                            <p className="text-sm text-signal font-bold">📢 Maintenance prévue</p>
+                            <p className="text-xs text-mist mt-2">Maintenance prévue le 15 février de 2h à 4h du matin.</p>
+                            <span className="text-[10px] text-mist/60 font-bold uppercase tracking-wider mt-2 block">Il y a 5 jours</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     );
 }

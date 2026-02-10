@@ -171,7 +171,7 @@ function RegisterForm() {
                 </div>
 
                 <p className="text-xs text-center text-mist/60 mt-4">
-                    En vous inscrivant, vous acceptez nos <Link href="#" className="underline text-mist hover:text-signal">Conditions d&apos;utilisation</Link> et notre <Link href="#" className="underline text-mist hover:text-signal">Politique de confidentialité</Link>.
+                    En vous inscrivant, vous acceptez nos <Link href="/contact" className="underline text-mist hover:text-signal">Conditions d&apos;utilisation</Link> et notre <Link href="/contact" className="underline text-mist hover:text-signal">Politique de confidentialité</Link>.
                 </p>
             </form>
         </AuthSplitLayout>

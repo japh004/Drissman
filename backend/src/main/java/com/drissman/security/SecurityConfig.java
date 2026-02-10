@@ -36,19 +36,22 @@ public class SecurityConfig {
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .addFilterAt(jwtAuthenticationFilter, SecurityWebFiltersOrder.AUTHENTICATION)
                 .authorizeExchange(auth -> auth
-                        // Public endpoints
+                        // Public endpoints — no auth required
                         .pathMatchers("/api/auth/**").permitAll()
+                        .pathMatchers("/api/health").permitAll()
                         .pathMatchers(HttpMethod.GET, "/api/schools/**").permitAll()
                         .pathMatchers(HttpMethod.GET, "/api/reviews/**").permitAll()
                         .pathMatchers(HttpMethod.GET, "/api/offers/**").permitAll()
-                        .pathMatchers("/api/health").permitAll()
-                        // Demo: allow partner and bookings endpoints without auth
-                        .pathMatchers("/api/partner/**").permitAll()
-                        .pathMatchers("/api/bookings/**").permitAll()
-                        .pathMatchers("/api/invoices/**").permitAll()
-                        .pathMatchers("/api/availabilities/**").permitAll()
-                        .pathMatchers("/api/users/**").permitAll()
-                        // Protected endpoints
+
+                        // Demo-mode endpoints — allow GET without auth for demo data
+                        .pathMatchers(HttpMethod.GET, "/api/partner/stats").permitAll()
+                        .pathMatchers(HttpMethod.GET, "/api/partner/bookings").permitAll()
+                        .pathMatchers(HttpMethod.GET, "/api/student/progress").permitAll()
+                        .pathMatchers(HttpMethod.GET, "/api/bookings").permitAll()
+                        .pathMatchers(HttpMethod.GET, "/api/bookings/school/**").permitAll()
+                        .pathMatchers(HttpMethod.GET, "/api/availabilities/**").permitAll()
+
+                        // All write operations and other endpoints require authentication
                         .anyExchange().authenticated())
                 .build();
     }

@@ -39,3 +39,11 @@ databaseChangeLog:
       file: db/changelog/changes/017-add-is-demo-column.yaml
   - include:
       file: db/changelog/changes/018-add-permit-type-to-offers.yaml
+  - include:
+      file: db/changelog/changes/019-create-monitors-table.yaml
+  - include:
+      file: db/changelog/changes/020-create-enrollments-table.yaml
+  - include:
+      file: db/changelog/changes/021-create-sessions-table.yaml
+  - include:
+      file: db/changelog/changes/022-add-enrollment-id-to-invoices.yaml

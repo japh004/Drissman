@@ -90,6 +90,7 @@ export function BookingModal({ isOpen, onClose, school, selectedOffer }: Booking
         setIsLoading(true);
 
         try {
+            console.log(`Payment simulation started with method: ${method} for booking: ${bookingId}`);
             // Simulation du délai de traitement du paiement
             await new Promise(resolve => setTimeout(resolve, 2000));
 

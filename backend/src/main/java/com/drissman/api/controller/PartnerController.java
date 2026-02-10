@@ -89,20 +89,7 @@ public class PartnerController {
                 .flatMap(user -> {
                     if (user.getSchoolId() == null)
                         return Mono.empty();
-                    return schoolService.findById(user.getSchoolId())
-                            .flatMap(schoolDto -> schoolService.save(com.drissman.domain.entity.School.builder()
-                                    .id(user.getSchoolId())
-                                    .name(request.getName() != null ? request.getName() : schoolDto.getName())
-                                    .description(request.getDescription() != null ? request.getDescription()
-                                            : schoolDto.getDescription())
-                                    .imageUrl(request.getImageUrl() != null ? request.getImageUrl()
-                                            : schoolDto.getImageUrl())
-                                    .address(schoolDto.getAddress())
-                                    .city(schoolDto.getCity())
-                                    .phone(schoolDto.getPhone())
-                                    .email(schoolDto.getEmail())
-                                    .rating(schoolDto.getRating())
-                                    .build()))
+                    return schoolService.update(user.getSchoolId(), request)
                             .then();
                 });
     }

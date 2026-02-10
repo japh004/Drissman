@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Data
@@ -19,6 +20,7 @@ public class BookingDto {
     private LocalDate date;
     private String time;
     private String status;
+    private LocalDateTime createdAt;
     private UserInfo user;
 
     @Data

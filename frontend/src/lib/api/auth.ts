@@ -1,33 +1,5 @@
 import api from './client';
-
-// Types
-export interface AuthUser {
-    id: string;
-    email: string;
-    firstName: string;
-    lastName: string;
-    role: 'STUDENT' | 'SCHOOL_ADMIN';
-    schoolId?: string;
-}
-
-export interface AuthResponse {
-    user: AuthUser;
-    token: string;
-}
-
-export interface RegisterPayload {
-    email: string;
-    password: string;
-    firstName: string;
-    lastName: string;
-    role?: 'STUDENT' | 'SCHOOL_ADMIN';
-    schoolName?: string;
-}
-
-export interface LoginPayload {
-    email: string;
-    password: string;
-}
+import type { User, AuthResponse, RegisterPayload, LoginPayload } from '@/types/auth';
 
 // Auth Service
 export const authService = {
@@ -56,7 +28,7 @@ export const authService = {
         }
     },
 
-    getCurrentUser(): AuthUser | null {
+    getCurrentUser(): User | null {
         if (typeof window === 'undefined') return null;
         const userStr = localStorage.getItem('user');
         return userStr ? JSON.parse(userStr) : null;

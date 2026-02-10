@@ -7,8 +7,7 @@ import com.drissman.domain.entity.Invoice;
 import com.drissman.domain.repository.BookingRepository;
 import com.drissman.domain.repository.InvoiceRepository;
 import com.drissman.domain.repository.OfferRepository;
-import com.drissman.domain.repository.SchoolRepository;
-import com.drissman.domain.repository.UserRepository;
+import com.drissman.service.mapper.BookingMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
@@ -23,11 +22,10 @@ import java.util.UUID;
 public class BookingService {
 
         private final BookingRepository bookingRepository;
-        private final SchoolRepository schoolRepository;
         private final OfferRepository offerRepository;
-        private final UserRepository userRepository;
         private final InvoiceService invoiceService;
         private final InvoiceRepository invoiceRepository;
+        private final BookingMapper bookingMapper;
 
         public Mono<BookingDto> create(UUID userId, CreateBookingRequest request) {
                 Booking booking = Booking.builder()
@@ -42,17 +40,17 @@ public class BookingService {
                 // Just save the booking - NO invoice created yet
                 // Invoice will be created when school confirms
                 return bookingRepository.save(booking)
-                                .flatMap(this::enrichWithDetails);
+                                .flatMap(bookingMapper::enrichWithDetails);
         }
 
         public Flux<BookingDto> findByUserId(UUID userId) {
                 return bookingRepository.findByUserId(userId)
-                                .flatMap(this::enrichWithDetails);
+                                .flatMap(bookingMapper::enrichWithDetails);
         }
 
         public Flux<BookingDto> findBySchoolId(UUID schoolId) {
                 return bookingRepository.findBySchoolId(schoolId)
-                                .flatMap(this::enrichWithDetails);
+                                .flatMap(bookingMapper::enrichWithDetails);
         }
 
         public Mono<BookingDto> updateStatus(UUID bookingId, Booking.BookingStatus status) {
@@ -76,39 +74,7 @@ public class BookingService {
                                         }
                                         return Mono.just(savedBooking);
                                 })
-                                .flatMap(this::enrichWithDetails);
+                                .flatMap(bookingMapper::enrichWithDetails);
         }
 
-        private Mono<BookingDto> enrichWithDetails(Booking booking) {
-                Mono<BookingDto.SchoolInfo> schoolInfo = schoolRepository.findById(booking.getSchoolId())
-                                .map(school -> BookingDto.SchoolInfo.builder()
-                                                .id(school.getId())
-                                                .name(school.getName())
-                                                .build());
-
-                Mono<BookingDto.OfferInfo> offerInfo = offerRepository.findById(booking.getOfferId())
-                                .map(offer -> BookingDto.OfferInfo.builder()
-                                                .id(offer.getId())
-                                                .name(offer.getName())
-                                                .price(offer.getPrice())
-                                                .build());
-
-                Mono<BookingDto.UserInfo> userInfo = userRepository.findById(booking.getUserId())
-                                .map(user -> BookingDto.UserInfo.builder()
-                                                .id(user.getId())
-                                                .name(user.getFirstName() + " " + user.getLastName())
-                                                .email(user.getEmail())
-                                                .build());
-
-                return Mono.zip(schoolInfo, offerInfo, userInfo)
-                                .map(tuple -> BookingDto.builder()
-                                                .id(booking.getId())
-                                                .school(tuple.getT1())
-                                                .offer(tuple.getT2())
-                                                .user(tuple.getT3())
-                                                .date(booking.getBookingDate())
-                                                .time(booking.getBookingTime())
-                                                .status(booking.getStatus().name())
-                                                .build());
-        }
 }

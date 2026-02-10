@@ -9,7 +9,7 @@ export interface Booking {
     };
     date: string;
     time?: string;
-    status: 'pending' | 'confirmed' | 'cancelled' | 'completed';
+    status: 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'COMPLETED';
     createdAt: string;
 }
 
@@ -23,8 +23,13 @@ export interface CreateBookingPayload {
 export interface Invoice {
     id: string;
     bookingId: string;
+    booking: {
+        schoolName: string;
+        offerName: string;
+    };
     amount: number;
-    status: 'pending' | 'paid' | 'overdue';
-    dueDate: string;
+    status: 'PENDING' | 'PAID' | 'FAILED' | 'REFUNDED' | 'OVERDUE';
+    paymentMethod?: 'MTN_MOMO' | 'ORANGE_MONEY' | 'CARD' | 'CASH';
+    paymentReference?: string;
     paidAt?: string;
 }

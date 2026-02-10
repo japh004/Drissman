@@ -1,22 +1,5 @@
 import api from './client';
-
-// Types
-export interface Availability {
-    id: string;
-    schoolId: string;
-    dayOfWeek: number; // 0 = Sunday, 1 = Monday, etc.
-    startTime: string; // "08:00"
-    endTime: string; // "17:00"
-    maxBookings: number;
-}
-
-export interface CreateAvailabilityPayload {
-    schoolId: string;
-    dayOfWeek: number;
-    startTime: string;
-    endTime: string;
-    maxBookings: number;
-}
+import type { Availability, CreateAvailabilityPayload } from '@/types/availability';
 
 // Days of week helper
 export const DAYS_OF_WEEK = [

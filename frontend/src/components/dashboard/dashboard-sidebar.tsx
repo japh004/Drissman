@@ -12,7 +12,9 @@ import {
     Menu,
     Tag,
     Clock,
-    School
+    School,
+    HelpCircle,
+    Gift
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -27,13 +29,16 @@ const partnerNavigation = [
     { name: "Disponibilités", href: "/dashboard/availabilities", icon: Clock },
     { name: "Planning", href: "/dashboard/planning", icon: Calendar },
     { name: "Factures", href: "/dashboard/invoices", icon: FileText },
+    { name: "Aide & Support", href: "/dashboard/help", icon: HelpCircle },
     { name: "Paramètres", href: "/dashboard/settings", icon: Settings },
 ];
 
 const studentNavigation = [
     { name: "Tableau de bord", href: "/dashboard", icon: LayoutDashboard },
     { name: "Mes Réservations", href: "/dashboard/bookings", icon: Calendar },
+    { name: "Récompenses", href: "/dashboard/rewards", icon: Gift },
     { name: "Mes Factures", href: "/dashboard/invoices", icon: FileText },
+    { name: "Aide & Support", href: "/dashboard/help", icon: HelpCircle },
     { name: "Paramètres", href: "/dashboard/settings", icon: Settings },
 ];
 

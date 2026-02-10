@@ -18,9 +18,9 @@ export function Footer() {
                             La première plateforme de comparaison et de réservation d&apos;auto-écoles au Cameroun. Passez votre permis en toute confiance.
                         </p>
                         <div className="flex space-x-4">
-                            <SocialLink href="#" icon={<Facebook className="h-5 w-5" />} />
-                            <SocialLink href="#" icon={<Instagram className="h-5 w-5" />} />
-                            <SocialLink href="#" icon={<Twitter className="h-5 w-5" />} />
+                            <SocialLink href="https://facebook.com/drissman" icon={<Facebook className="h-5 w-5" />} />
+                            <SocialLink href="https://instagram.com/drissman" icon={<Instagram className="h-5 w-5" />} />
+                            <SocialLink href="https://twitter.com/drissman" icon={<Twitter className="h-5 w-5" />} />
                         </div>
                     </div>
 
@@ -39,10 +39,10 @@ export function Footer() {
                     <div>
                         <h3 className="text-white font-bold text-lg mb-6">Informations</h3>
                         <ul className="space-y-4 text-sm">
-                            <li><FooterLink href="#">À propos de nous</FooterLink></li>
-                            <li><FooterLink href="#">Contact</FooterLink></li>
-                            <li><FooterLink href="#">Conditions Générales</FooterLink></li>
-                            <li><FooterLink href="#">Politique de Confidentialité</FooterLink></li>
+                            <li><FooterLink href="/">À propos de nous</FooterLink></li>
+                            <li><FooterLink href="/contact">Contact</FooterLink></li>
+                            <li><FooterLink href="/">Conditions Générales</FooterLink></li>
+                            <li><FooterLink href="/">Politique de Confidentialité</FooterLink></li>
                         </ul>
                     </div>
 

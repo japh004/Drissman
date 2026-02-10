@@ -1,27 +1,10 @@
 import api from './client';
-
-// Types
-export interface Invoice {
-    id: string;
-    bookingId: string;
-    booking: {
-        schoolName: string;
-        offerName: string;
-    };
-    amount: number;
-    status: 'PENDING' | 'PAID' | 'FAILED' | 'REFUNDED';
-    paymentMethod?: 'MTN_MOMO' | 'ORANGE_MONEY' | 'CARD' | 'CASH';
-    paymentReference?: string;
-    createdAt: string;
-    paidAt?: string;
-}
+import type { Invoice } from '@/types/booking';
 
 // Invoices Service
 export const invoicesService = {
-    async getMyInvoices(userId: string): Promise<Invoice[]> {
-        const { data, error } = await api.get<Invoice[]>('/invoices', {
-            'X-User-Id': userId
-        });
+    async getMyInvoices(): Promise<Invoice[]> {
+        const { data, error } = await api.get<Invoice[]>('/invoices/my');
         if (error) throw new Error(error);
         return data || [];
     },

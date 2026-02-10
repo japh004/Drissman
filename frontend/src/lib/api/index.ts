@@ -1,9 +1,16 @@
-// Export all API services
+// Centralized exports for all API services and types
 export { api } from './client';
-export { authService, type AuthUser, type AuthResponse } from './auth';
-export { schoolsService, offersService, type School, type Offer } from './schools';
-export { bookingsService, type Booking, type CreateBookingPayload } from './bookings';
-export { reviewsService, type Review, type CreateReviewPayload } from './reviews';
-export { invoicesService, type Invoice } from './invoices';
-export { availabilitiesService, DAYS_OF_WEEK, type Availability, type CreateAvailabilityPayload } from './availabilities';
-export { partnerService, type PartnerStats, type UpdateSchoolRequest } from './partners';
+export { authService } from './auth';
+export { schoolsService, offersService } from './schools';
+export { bookingsService } from './bookings';
+export { reviewsService } from './reviews';
+export { invoicesService } from './invoices';
+export { availabilitiesService, DAYS_OF_WEEK } from './availabilities';
+export { partnerService } from './partners';
+
+// Re-export all types from centralized types directory
+export * from '@/types/auth';
+export * from '@/types/school';
+export * from '@/types/booking';
+export * from '@/types/review';
+export * from '@/types/partner';

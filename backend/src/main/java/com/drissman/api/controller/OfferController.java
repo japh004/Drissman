@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.security.Principal;
 import java.util.UUID;
 
 @RestController
@@ -25,7 +26,12 @@ public class OfferController {
      */
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Mono<SchoolDto.OfferDto> create(@Valid @RequestBody CreateOfferRequest request) {
+    public Mono<SchoolDto.OfferDto> create(
+            Principal principal,
+            @Valid @RequestBody CreateOfferRequest request) {
+        if (principal == null) {
+            return Mono.error(new RuntimeException("Authentification requise pour créer une offre"));
+        }
         return offerService.create(request);
     }
 
@@ -50,8 +56,12 @@ public class OfferController {
      */
     @PatchMapping("/{id}")
     public Mono<SchoolDto.OfferDto> update(
+            Principal principal,
             @PathVariable UUID id,
             @RequestBody UpdateOfferRequest request) {
+        if (principal == null) {
+            return Mono.error(new RuntimeException("Authentification requise pour modifier une offre"));
+        }
         return offerService.update(id, request);
     }
 
@@ -60,7 +70,12 @@ public class OfferController {
      */
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public Mono<Void> delete(@PathVariable UUID id) {
+    public Mono<Void> delete(
+            Principal principal,
+            @PathVariable UUID id) {
+        if (principal == null) {
+            return Mono.error(new RuntimeException("Authentification requise pour supprimer une offre"));
+        }
         return offerService.delete(id);
     }
 }
