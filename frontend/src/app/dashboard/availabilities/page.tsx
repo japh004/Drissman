@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useAvailabilities } from "@/hooks";
 import { useAuth } from "@/hooks/useAuth";
-import { DAYS_OF_WEEK } from "@/lib/api";
+import { DAYS_OF_WEEK, Availability } from "@/lib/api";
 import {
     Clock,
     Plus,
@@ -204,7 +204,7 @@ export default function AvailabilitiesPage() {
                                 <p className="text-sm text-mist/60 italic">Aucun créneau défini</p>
                             ) : (
                                 <div className="space-y-2">
-                                    {daySlots.map((slot) => (
+                                    {daySlots.map((slot: Availability) => (
                                         <div
                                             key={slot.id}
                                             className="flex items-center justify-between p-3 bg-white/5 rounded-lg border border-white/5"

@@ -14,3 +14,4 @@ export * from '@/types/school';
 export * from '@/types/booking';
 export * from '@/types/review';
 export * from '@/types/partner';
+export * from '@/types/availability';
