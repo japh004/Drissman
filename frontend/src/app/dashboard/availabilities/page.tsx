@@ -1,4 +1,5 @@
 "use client";
+// Force fresh build to pick up TypeScript fixes
 
 import { useState } from "react";
 import { useAvailabilities } from "@/hooks";
