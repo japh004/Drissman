@@ -7,7 +7,7 @@ interface AuthContextType {
     user: AuthUser | null;
     loading: boolean;
     login: (email: string, password: string) => Promise<void>;
-    register: (email: string, password: string, firstName: string, lastName: string, role?: 'STUDENT' | 'SCHOOL_ADMIN' | 'VISITOR', schoolName?: string) => Promise<void>;
+    register: (email: string, password: string, firstName: string, lastName: string, role?: 'STUDENT' | 'SCHOOL_ADMIN' | 'MONITOR' | 'VISITOR', schoolName?: string) => Promise<void>;
     logout: () => void;
     isAuthenticated: boolean;
 }
@@ -40,7 +40,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         password: string,
         firstName: string,
         lastName: string,
-        role: 'STUDENT' | 'SCHOOL_ADMIN' | 'VISITOR' = 'STUDENT',
+        role: 'STUDENT' | 'SCHOOL_ADMIN' | 'MONITOR' | 'VISITOR' = 'STUDENT',
         schoolName?: string
     ) => {
         const response = await authService.register({

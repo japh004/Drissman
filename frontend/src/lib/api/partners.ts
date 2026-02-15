@@ -74,5 +74,19 @@ export const partnerService = {
         const { data, error } = await api.get<Enrollment[]>(`/partner/enrollments?schoolId=${schoolId}`);
         if (error) throw new Error(error);
         return data || [];
+    },
+
+    // Monitor Profile (for logged-in monitors)
+    async getMonitorProfile(): Promise<Monitor> {
+        const { data, error } = await api.get<Monitor>('/monitors/me');
+        if (error) throw new Error(error);
+        return data!;
+    },
+
+    // Sessions by Monitor
+    async getSessionsByMonitor(monitorId: string): Promise<Session[]> {
+        const { data, error } = await api.get<Session[]>(`/sessions/monitor/${monitorId}`);
+        if (error) throw new Error(error);
+        return data || [];
     }
 };

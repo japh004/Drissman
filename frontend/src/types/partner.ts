@@ -22,6 +22,7 @@ export interface Monitor {
     lastName: string;
     licenseNumber: string;
     phoneNumber?: string;
+    email?: string;
     status: MonitorStatus;
     createdAt: string;
 }
@@ -31,6 +32,7 @@ export interface CreateMonitorRequest {
     firstName: string;
     lastName: string;
     licenseNumber: string;
+    email: string;
     phoneNumber?: string;
     status?: MonitorStatus;
 }

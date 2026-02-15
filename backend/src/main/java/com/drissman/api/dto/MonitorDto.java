@@ -19,6 +19,7 @@ public class MonitorDto {
     private String lastName;
     private String licenseNumber;
     private String phoneNumber;
+    private String email;
     private String status;
     private LocalDateTime createdAt;
 }

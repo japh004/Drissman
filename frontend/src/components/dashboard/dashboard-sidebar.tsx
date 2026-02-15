@@ -57,11 +57,18 @@ const visitorNavigation = [
     { name: "Paramètres", href: "/dashboard/settings", icon: Settings },
 ];
 
+const monitorNavigation = [
+    { name: "Mon Planning", href: "/dashboard/monitor", icon: Calendar },
+    { name: "Aide & Support", href: "/dashboard/help", icon: HelpCircle },
+    { name: "Paramètres", href: "/dashboard/settings", icon: Settings },
+];
+
 export function DashboardSidebar() {
     const { user, logout } = useAuth();
     const isPartner = user?.role === 'SCHOOL_ADMIN';
     const isVisitor = user?.role === 'VISITOR';
-    const navigation = isPartner ? partnerNavigation : isVisitor ? visitorNavigation : studentNavigation;
+    const isMonitor = user?.role === 'MONITOR';
+    const navigation = isPartner ? partnerNavigation : isMonitor ? monitorNavigation : isVisitor ? visitorNavigation : studentNavigation;
 
     return (
         <>
@@ -114,7 +121,8 @@ export function MobileSidebar() {
     const { user, logout } = useAuth();
     const isPartner = user?.role === 'SCHOOL_ADMIN';
     const isVisitor = user?.role === 'VISITOR';
-    const navigation = isPartner ? partnerNavigation : isVisitor ? visitorNavigation : studentNavigation;
+    const isMonitor = user?.role === 'MONITOR';
+    const navigation = isPartner ? partnerNavigation : isMonitor ? monitorNavigation : isVisitor ? visitorNavigation : studentNavigation;
 
     return (
         <Sheet open={open} onOpenChange={setOpen}>

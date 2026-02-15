@@ -32,6 +32,7 @@ interface MonitorFormData {
     firstName: string;
     lastName: string;
     licenseNumber: string;
+    email: string;
     phoneNumber: string;
     status: MonitorStatus;
 }
@@ -40,6 +41,7 @@ const initialFormData: MonitorFormData = {
     firstName: "",
     lastName: "",
     licenseNumber: "",
+    email: "",
     phoneNumber: "",
     status: "ACTIVE"
 };
@@ -76,6 +78,7 @@ export default function MonitorsPage() {
             firstName: monitor.firstName,
             lastName: monitor.lastName,
             licenseNumber: monitor.licenseNumber,
+            email: monitor.email || "",
             phoneNumber: monitor.phoneNumber || "",
             status: monitor.status
         });
@@ -269,6 +272,21 @@ export default function MonitorsPage() {
                             required
                         />
                     </div>
+
+                    {!editingId && (
+                        <div className="space-y-2">
+                            <Label className="text-xs font-black uppercase tracking-widest text-mist ml-1">Email (compte moniteur)</Label>
+                            <Input
+                                type="email"
+                                value={formData.email}
+                                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                placeholder="moniteur@email.com"
+                                className="bg-white/5 border-white/10 rounded-xl py-6 focus:border-signal/50"
+                                required
+                            />
+                            <p className="text-[10px] text-mist/60 ml-1">Le mot de passe par défaut sera le n° de licence</p>
+                        </div>
+                    )}
 
                     <div className="space-y-2">
                         <Label className="text-xs font-black uppercase tracking-widest text-mist ml-1">Téléphone</Label>

@@ -53,3 +53,5 @@ databaseChangeLog:
       file: db/changelog/changes/024-create-lessons-tables.yaml
   - include:
       file: db/changelog/changes/025-lesson-school-model.yaml
+  - include:
+      file: db/changelog/changes/026-add-user-id-to-monitors.yaml

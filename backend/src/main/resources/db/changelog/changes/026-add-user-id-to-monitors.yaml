@@ -1,0 +1,13 @@
+databaseChangeLog:
+  - changeSet:
+      id: 026-add-user-id-to-monitors
+      author: drissman
+      changes:
+        - addColumn:
+            tableName: monitors
+            columns:
+              - column:
+                  name: user_id
+                  type: uuid
+                  constraints:
+                    nullable: true

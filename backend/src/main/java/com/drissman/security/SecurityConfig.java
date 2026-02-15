@@ -80,6 +80,7 @@ public class SecurityConfig {
                         .pathMatchers(HttpMethod.GET, "/api/partner/enrollments").permitAll()
                         .pathMatchers(HttpMethod.GET, "/api/student/progress").permitAll()
                         .pathMatchers(HttpMethod.GET, "/api/availabilities/**").permitAll()
+                        .pathMatchers(HttpMethod.GET, "/api/monitors/me").permitAll()
 
                         // All other endpoints require authentication
                         .anyExchange().authenticated())

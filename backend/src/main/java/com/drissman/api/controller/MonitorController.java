@@ -5,6 +5,7 @@ import com.drissman.api.dto.MonitorDto;
 import com.drissman.service.MonitorService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
@@ -16,6 +17,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/monitors")
 @RequiredArgsConstructor
+@Slf4j
 public class MonitorController {
 
     private final MonitorService monitorService;
@@ -23,6 +25,20 @@ public class MonitorController {
     @GetMapping("/school/{schoolId}")
     public Flux<MonitorDto> getBySchool(@PathVariable UUID schoolId) {
         return monitorService.findBySchoolId(schoolId);
+    }
+
+    /**
+     * GET /api/monitors/me - Returns the monitor profile for the currently
+     * authenticated user.
+     */
+    @GetMapping("/me")
+    public Mono<MonitorDto> getMyProfile(Principal principal) {
+        if (principal == null) {
+            log.info("Demo mode: no monitor profile");
+            return Mono.empty();
+        }
+        UUID userId = UUID.fromString(principal.getName());
+        return monitorService.findByUserId(userId);
     }
 
     @PostMapping

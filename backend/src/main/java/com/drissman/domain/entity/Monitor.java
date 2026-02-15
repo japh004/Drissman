@@ -40,6 +40,9 @@ public class Monitor {
     @Column("phone_number")
     private String phoneNumber;
 
+    @Column("user_id")
+    private UUID userId;
+
     private MonitorStatus status;
 
     @Column("created_at")
