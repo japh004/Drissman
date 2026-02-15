@@ -24,6 +24,7 @@ import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { TabNavigation } from "@/components/dashboard/tab-navigation";
 
 const DAYS = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
 const HOURS = Array.from({ length: 11 }, (_, i) => i + 8); // 8h à 18h
@@ -174,6 +175,11 @@ export default function PlanningPage() {
 
     return (
         <div className="space-y-6 animate-in fade-in duration-500">
+            <TabNavigation tabs={[
+                { label: "Planning", href: "/dashboard/planning" },
+                { label: "Historique", href: "/dashboard/sessions" },
+                { label: "Disponibilités", href: "/dashboard/availabilities" },
+            ]} />
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>

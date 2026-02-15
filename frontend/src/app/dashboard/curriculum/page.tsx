@@ -21,6 +21,7 @@ import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { TabNavigation } from "@/components/dashboard/tab-navigation";
 
 const CATEGORY_CONFIG = {
     CODE: { label: "Code", icon: BookOpen, color: "text-blue-400", bgColor: "bg-blue-500/10", borderColor: "border-blue-500/20" },
@@ -110,6 +111,11 @@ export default function CurriculumPage() {
 
     return (
         <div className="space-y-6 animate-in fade-in duration-500">
+            <TabNavigation tabs={[
+                { label: "Offres", href: "/dashboard/offers" },
+                { label: "Programme", href: "/dashboard/curriculum" },
+                { label: "Cours de Code", href: "/dashboard/theory" },
+            ]} />
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>

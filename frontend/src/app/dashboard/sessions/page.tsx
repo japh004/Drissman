@@ -20,6 +20,7 @@ import {
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { TabNavigation } from "@/components/dashboard/tab-navigation";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -112,6 +113,11 @@ export default function SessionsListPage() {
 
     return (
         <div className="space-y-6 animate-in fade-in duration-500">
+            <TabNavigation tabs={[
+                { label: "Planning", href: "/dashboard/planning" },
+                { label: "Historique", href: "/dashboard/sessions" },
+                { label: "Disponibilités", href: "/dashboard/availabilities" },
+            ]} />
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>

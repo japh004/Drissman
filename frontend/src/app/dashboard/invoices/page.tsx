@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { Invoice } from "@/lib/api";
+import { TabNavigation } from "@/components/dashboard/tab-navigation";
 
 const STATUS_CONFIG = {
     PENDING: {
@@ -224,6 +225,12 @@ export default function InvoicesPage() {
 
     return (
         <div className="p-6 lg:p-8 space-y-8">
+            {isSchoolAdmin && (
+                <TabNavigation tabs={[
+                    { label: "Inscriptions", href: "/dashboard/bookings" },
+                    { label: "Factures", href: "/dashboard/invoices" },
+                ]} />
+            )}
             {/* Header */}
             <div>
                 <h1 className="text-2xl font-bold text-snow mb-2">

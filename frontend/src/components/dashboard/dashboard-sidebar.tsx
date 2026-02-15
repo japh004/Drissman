@@ -27,16 +27,11 @@ import { QuickAddDialog } from "./quick-add-dialog";
 
 const partnerNavigation = [
     { name: "Vue d'ensemble", href: "/dashboard", icon: LayoutDashboard },
-    { name: "Inscriptions", href: "/dashboard/bookings", icon: Users },
-    { name: "Moniteurs", href: "/dashboard/monitors", icon: Users },
-    { name: "Offres", href: "/dashboard/offers", icon: Tag },
+    { name: "Inscriptions & Factures", href: "/dashboard/bookings", icon: Users },
     { name: "Mon Auto-école", href: "/dashboard/school", icon: School },
-    { name: "Disponibilités", href: "/dashboard/availabilities", icon: Clock },
-    { name: "Planning Conduite", href: "/dashboard/planning", icon: Calendar },
-    { name: "Historique Conduite", href: "/dashboard/sessions", icon: FileText },
-    { name: "Cours de Code", href: "/dashboard/theory", icon: FileText },
-    { name: "Programme", href: "/dashboard/curriculum", icon: BookOpen },
-    { name: "Factures", href: "/dashboard/invoices", icon: FileText },
+    { name: "Moniteurs", href: "/dashboard/monitors", icon: Users },
+    { name: "Formation", href: "/dashboard/offers", icon: Tag },
+    { name: "Planning", href: "/dashboard/planning", icon: Calendar },
     { name: "Aide & Support", href: "/dashboard/help", icon: HelpCircle },
     { name: "Paramètres", href: "/dashboard/settings", icon: Settings },
 ];

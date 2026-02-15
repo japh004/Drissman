@@ -20,6 +20,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Modal } from "@/components/ui/modal";
+import { TabNavigation } from "@/components/dashboard/tab-navigation";
 
 interface AvailabilityFormData {
     dayOfWeek: string;
@@ -162,6 +163,11 @@ export default function AvailabilitiesPage() {
 
     return (
         <div className="space-y-8">
+            <TabNavigation tabs={[
+                { label: "Planning", href: "/dashboard/planning" },
+                { label: "Historique", href: "/dashboard/sessions" },
+                { label: "Disponibilités", href: "/dashboard/availabilities" },
+            ]} />
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>

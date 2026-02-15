@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Check, X, Eye, Loader2 } from "lucide-react";
 import { usePartnerEnrollments, useMyEnrollments, useAuth } from "@/hooks";
+import { TabNavigation } from "@/components/dashboard/tab-navigation";
 import { formatPrice } from "@/lib/format";
 import { toast } from "sonner";
 import { enrollmentService } from "@/lib/api/enrollments";
@@ -123,6 +124,12 @@ function BookingsList({ bookings, loading, error, isSchoolAdmin, updateStatus }:
 
     return (
         <div className="space-y-6">
+            {isSchoolAdmin && (
+                <TabNavigation tabs={[
+                    { label: "Inscriptions", href: "/dashboard/bookings" },
+                    { label: "Factures", href: "/dashboard/invoices" },
+                ]} />
+            )}
             <div className="flex justify-between items-center">
                 <div>
                     <h2 className="text-2xl font-bold text-snow">

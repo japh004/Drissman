@@ -20,6 +20,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Modal } from "@/components/ui/modal";
+import { TabNavigation } from "@/components/dashboard/tab-navigation";
 
 interface OfferFormData {
     name: string;
@@ -178,6 +179,11 @@ export default function OffersPage() {
 
     return (
         <div className="space-y-8">
+            <TabNavigation tabs={[
+                { label: "Offres", href: "/dashboard/offers" },
+                { label: "Programme", href: "/dashboard/curriculum" },
+                { label: "Cours de Code", href: "/dashboard/theory" },
+            ]} />
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div>
