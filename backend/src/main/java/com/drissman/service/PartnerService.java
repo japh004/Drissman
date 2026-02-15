@@ -46,6 +46,13 @@ public class PartnerService {
                                                                 .hoursPurchased(enrollment.getHoursPurchased())
                                                                 .hoursConsumed(enrollment.getHoursConsumed())
                                                                 .status(enrollment.getStatus().name())
+                                                                .createdAt(enrollment.getCreatedAt() != null
+                                                                                ? enrollment.getCreatedAt().toString()
+                                                                                : null)
+                                                                .offerPrice(tuple.getT2().getPrice() != null
+                                                                                ? tuple.getT2().getPrice().longValue()
+                                                                                : 0L)
+                                                                .userEmail(tuple.getT1().getEmail())
                                                                 .build()));
         }
 

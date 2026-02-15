@@ -67,8 +67,11 @@ export interface Enrollment {
     schoolId: string;
     offerId: string;
     userName?: string;
+    userEmail?: string;
     offerName?: string;
+    offerPrice?: number;
     hoursPurchased: number;
     hoursConsumed: number;
-    status: 'ACTIVE' | 'COMPLETED' | 'CANCELLED';
+    status: 'ACTIVE' | 'COMPLETED' | 'CANCELLED' | 'PENDING' | 'SUSPENDED';
+    createdAt?: string;
 }

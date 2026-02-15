@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
-import { usePartnerBookings, useAuth, useMonitors, useSessions } from "@/hooks";
+import { useAuth, useMonitors, useSessions } from "@/hooks";
 import { partnerService } from "@/lib/api/partners";
 import { Enrollment, Monitor, Session, CreateSessionRequest, SessionStatus } from "@/types/partner";
 import {
@@ -40,7 +40,7 @@ export default function PlanningPage() {
     const { user } = useAuth();
     const schoolId = user?.schoolId || "";
 
-    const { bookings, loading: loadingBookings, error: errorBookings, refetch: refetchBookings } = usePartnerBookings();
+
     const { sessions, loading: loadingSessions, error: errorSessions, refetch: refetchSessions, createSession, updateStatus } = useSessions(schoolId);
     const { monitors } = useMonitors(schoolId);
 
@@ -88,38 +88,23 @@ export default function PlanningPage() {
         return { weekStart: start, weekEnd: end, weekDates: dates };
     }, [currentWeekOffset]);
 
-    // Combined items for the calendar (bookings + sessions)
+    // Calendar items (sessions only)
     const calendarItems = useMemo(() => {
-        const weekSessions = sessions.filter(s => {
+        return sessions.filter(s => {
             const d = new Date(s.date);
             return d >= weekStart && d <= weekEnd;
         });
-        const weekBookings = bookings.filter(b => {
-            const d = new Date(b.date);
-            return d >= weekStart && d <= weekEnd;
-        });
-
-        return { sessions: weekSessions, bookings: weekBookings };
-    }, [sessions, bookings, weekStart, weekEnd]);
+    }, [sessions, weekStart, weekEnd]);
 
     const getItemAt = (dayIndex: number, hour: number) => {
         const targetDate = weekDates[dayIndex];
         const dateStr = targetDate.toISOString().split('T')[0];
 
-        // Check sessions first (manual planning)
-        const session = calendarItems.sessions.find(s => {
+        // Check sessions
+        const session = calendarItems.find(s => {
             return s.date === dateStr && parseInt(s.startTime.split(':')[0]) === hour;
         });
         if (session) return { type: 'session', data: session };
-
-        // Check bookings (student bookings)
-        const booking = calendarItems.bookings.find(b => {
-            const d = new Date(b.date);
-            if (d.toISOString().split('T')[0] !== dateStr) return false;
-            const h = b.time ? parseInt(b.time.split(':')[0]) : d.getHours();
-            return h === hour;
-        });
-        if (booking) return { type: 'booking', data: booking };
 
         return null;
     };
@@ -178,7 +163,7 @@ export default function PlanningPage() {
         return `${startStr} - ${endStr}`;
     };
 
-    if (loadingBookings || loadingSessions) {
+    if (loadingSessions) {
         return (
             <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
                 <Loader2 className="h-12 w-12 text-signal animate-spin" />
@@ -226,8 +211,8 @@ export default function PlanningPage() {
                                     <th key={day} className="p-4 text-center min-w-[120px]">
                                         <span className="text-[10px] font-black text-mist/50 uppercase tracking-[0.2em] block mb-1">{day}</span>
                                         <div className={`text-2xl font-black inline-flex items-center justify-center w-10 h-10 rounded-2xl ${weekDates[index].toDateString() === new Date().toDateString()
-                                                ? 'bg-signal text-asphalt'
-                                                : 'text-snow'
+                                            ? 'bg-signal text-asphalt'
+                                            : 'text-snow'
                                             }`}>
                                             {weekDates[index].getDate()}
                                         </div>
@@ -248,10 +233,10 @@ export default function PlanningPage() {
                                                 <div
                                                     onClick={() => handleSlotClick(dayIndex, hour)}
                                                     className={`h-full w-full rounded-2xl transition-all duration-300 cursor-pointer overflow-hidden p-3 flex flex-col justify-between ${item
-                                                            ? item.type === 'session'
-                                                                ? STATUS_CONFIG[item.data.status]?.color || 'bg-white/5'
-                                                                : 'bg-white/10 border border-white/10'
-                                                            : 'hover:bg-white/[0.03] border border-dashed border-transparent hover:border-white/10 flex items-center justify-center'
+                                                        ? item.type === 'session'
+                                                            ? STATUS_CONFIG[item.data.status]?.color || 'bg-white/5'
+                                                            : 'bg-white/10 border border-white/10'
+                                                        : 'hover:bg-white/[0.03] border border-dashed border-transparent hover:border-white/10 flex items-center justify-center'
                                                         }`}
                                                 >
                                                     {item ? (

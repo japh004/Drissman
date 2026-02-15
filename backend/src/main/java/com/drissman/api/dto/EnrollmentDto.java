@@ -21,4 +21,7 @@ public class EnrollmentDto {
     private int hoursPurchased;
     private int hoursConsumed;
     private String status;
+    private String createdAt;
+    private Long offerPrice;
+    private String userEmail;
 }
