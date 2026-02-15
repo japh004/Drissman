@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Search, School, Star, ArrowRight, Eye, UserPlus } from "lucide-react";
+import { Search, School, Star, ArrowRight, Eye, UserPlus, Building2 } from "lucide-react";
 
 interface VisitorDashboardProps {
     user: {
@@ -31,8 +31,8 @@ export function VisitorDashboard({ user }: VisitorDashboardProps) {
                     </div>
                     <p className="text-mist max-w-2xl">
                         En tant que visiteur, vous pouvez découvrir nos auto-écoles partenaires,
-                        comparer les offres et lire les avis. Pour réserver des leçons,
-                        passez à un compte Candidat !
+                        comparer les offres et lire les avis. Inscrivez-vous en tant que
+                        candidat ou créez votre propre auto-école !
                     </p>
                 </div>
             </div>
@@ -97,30 +97,56 @@ export function VisitorDashboard({ user }: VisitorDashboardProps) {
                 </Link>
             </div>
 
-            {/* Upgrade CTA */}
-            <div className="rounded-2xl bg-gradient-to-r from-signal/10 via-signal/5 to-transparent border border-signal/20 p-8">
-                <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+            {/* Dual Conversion CTAs */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* CTA: Devenir Candidat */}
+                <div className="rounded-2xl bg-gradient-to-r from-signal/10 via-signal/5 to-transparent border border-signal/20 p-8">
                     <div className="flex items-start gap-4">
                         <div className="h-14 w-14 rounded-xl bg-signal/10 border border-signal/20 flex items-center justify-center flex-shrink-0">
                             <UserPlus className="h-7 w-7 text-signal" />
                         </div>
                         <div>
                             <h2 className="text-xl font-bold text-snow mb-1">
-                                Prêt à commencer votre formation ?
+                                Vous êtes candidat ?
                             </h2>
-                            <p className="text-mist text-sm max-w-lg">
-                                Passez à un compte Candidat pour réserver des leçons de conduite,
-                                suivre votre progression et obtenir votre permis plus rapidement.
+                            <p className="text-mist text-sm mb-6">
+                                Achetez un pack de formation pour réserver des leçons de conduite,
+                                suivre votre progression et obtenir votre permis.
                             </p>
+                            <Link
+                                href="/"
+                                className="inline-flex items-center gap-2 px-6 py-3 bg-signal hover:bg-signal/90 text-asphalt font-bold rounded-xl shadow-[0_0_20px_rgba(255,193,7,0.3)] transition-all text-sm whitespace-nowrap"
+                            >
+                                <UserPlus className="h-4 w-4" />
+                                Acheter une formation
+                            </Link>
                         </div>
                     </div>
-                    <Link
-                        href="/dashboard/settings"
-                        className="inline-flex items-center gap-2 px-6 py-3 bg-signal hover:bg-signal/90 text-asphalt font-bold rounded-xl shadow-[0_0_20px_rgba(255,193,7,0.3)] transition-all text-sm whitespace-nowrap"
-                    >
-                        <UserPlus className="h-4 w-4" />
-                        Passer au compte Candidat
-                    </Link>
+                </div>
+
+                {/* CTA: Créer son Auto-École */}
+                <div className="rounded-2xl bg-gradient-to-r from-emerald-500/10 via-emerald-500/5 to-transparent border border-emerald-500/20 p-8">
+                    <div className="flex items-start gap-4">
+                        <div className="h-14 w-14 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center flex-shrink-0">
+                            <Building2 className="h-7 w-7 text-emerald-400" />
+                        </div>
+                        <div>
+                            <h2 className="text-xl font-bold text-snow mb-1">
+                                Vous êtes une auto-école ?
+                            </h2>
+                            <p className="text-mist text-sm mb-6">
+                                Créez votre auto-école sur Drissman pour digitaliser votre activité,
+                                gérer vos offres et votre personnel.
+                            </p>
+                            <Link
+                                href="/register?plan=partner"
+                                className="inline-flex items-center gap-2 px-6 py-3 bg-emerald-500 hover:bg-emerald-500/90 text-white font-bold rounded-xl shadow-[0_0_20px_rgba(16,185,129,0.3)] transition-all text-sm whitespace-nowrap"
+                            >
+                                <Building2 className="h-4 w-4" />
+                                Créer mon auto-école
+                            </Link>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
