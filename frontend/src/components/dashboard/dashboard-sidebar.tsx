@@ -27,7 +27,7 @@ import { QuickAddDialog } from "./quick-add-dialog";
 
 const partnerNavigation = [
     { name: "Vue d'ensemble", href: "/dashboard", icon: LayoutDashboard },
-    { name: "Réservations", href: "/dashboard/bookings", icon: Users },
+    { name: "Inscriptions", href: "/dashboard/bookings", icon: Users },
     { name: "Moniteurs", href: "/dashboard/monitors", icon: Users },
     { name: "Offres", href: "/dashboard/offers", icon: Tag },
     { name: "Mon Auto-école", href: "/dashboard/school", icon: School },
@@ -43,7 +43,7 @@ const partnerNavigation = [
 
 const studentNavigation = [
     { name: "Tableau de bord", href: "/dashboard", icon: LayoutDashboard },
-    { name: "Mes Réservations", href: "/dashboard/bookings", icon: Calendar },
+    { name: "Mes Inscriptions", href: "/dashboard/bookings", icon: Calendar },
     { name: "Récompenses", href: "/dashboard/rewards", icon: Gift },
     { name: "Mes Factures", href: "/dashboard/invoices", icon: FileText },
     { name: "Aide & Support", href: "/dashboard/help", icon: HelpCircle },

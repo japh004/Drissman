@@ -106,7 +106,7 @@ export default function InvoicesPage() {
 <body>
     <div class="header">
         <h1>DRISSMAN</h1>
-        <p>Facture de réservation</p>
+        <p>Facture d'inscription</p>
     </div>
     
     <div class="invoice-info">
@@ -151,7 +151,7 @@ export default function InvoicesPage() {
     
     <div class="footer">
         <p>Merci pour votre confiance !</p>
-        <p>DRISSMAN - Votre plateforme de réservation d'auto-école</p>
+        <p>DRISSMAN - Votre plateforme d'inscription aux auto-écoles</p>
     </div>
 </body>
 </html>
@@ -213,8 +213,8 @@ export default function InvoicesPage() {
                 <EmptyState
                     title="Aucune facture"
                     description={isSchoolAdmin
-                        ? "Les factures des réservations confirmées apparaîtront ici."
-                        : "Vos factures apparaîtront ici après votre première réservation."}
+                        ? "Les factures des inscriptions confirmées apparaîtront ici."
+                        : "Vos factures apparaîtront ici après votre première inscription."}
                     actionLabel={isSchoolAdmin ? undefined : "Rechercher une auto-école"}
                     actionHref={isSchoolAdmin ? undefined : "/search"}
                 />

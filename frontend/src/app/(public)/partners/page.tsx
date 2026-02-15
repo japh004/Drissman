@@ -31,7 +31,7 @@ export default function PartnersPage() {
         },
         {
             icon: <CheckCircle className="h-6 w-6 text-signal" />,
-            title: "Réservations en ligne",
+            title: "Inscriptions en ligne",
             desc: "Fini les appels manqués. Les élèves peuvent réserver et payer leurs forfaits directement en ligne, 24/7."
         },
         {

@@ -43,7 +43,7 @@ const faqCategories = [
             },
             {
                 question: "Comment ajouter un moniteur à mon école ?",
-                answer: "La gestion des moniteurs sera disponible dans une prochaine mise à jour. Pour l'instant, toutes les réservations sont associées directement à l'auto-école.",
+                answer: "La gestion des moniteurs sera disponible dans une prochaine mise à jour. Pour l'instant, toutes les inscriptions sont associées directement à l'auto-école.",
             },
         ],
     },
@@ -59,8 +59,8 @@ const faqCategories = [
                 answer: "Votre tableau de bord affiche votre progression pour le code de la route et la conduite, avec le pourcentage d'avancement et les prochaines échéances.",
             },
             {
-                question: "Comment annuler une réservation ?",
-                answer: "Rendez-vous dans 'Mes Réservations', sélectionnez la réservation à annuler et cliquez sur 'Annuler'. Attention, une annulation tardive peut entraîner des frais.",
+                question: "Comment annuler une inscription ?",
+                answer: "Rendez-vous dans 'Mes Inscriptions', sélectionnez l'inscription à annuler et cliquez sur 'Annuler'. Attention, une annulation tardive peut entraîner des frais.",
             },
         ],
     },

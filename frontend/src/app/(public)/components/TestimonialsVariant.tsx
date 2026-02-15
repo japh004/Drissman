@@ -28,7 +28,7 @@ const testimonials = [
     },
     {
         id: 2,
-        quote: "La réservation en ligne est ultra simple. Plus besoin d'appeler 10 auto-écoles pour comparer les prix. Tout est transparent et je peux payer via Orange Money.",
+        quote: "L'inscription en ligne est ultra simple. Plus besoin d'appeler 10 auto-écoles pour comparer les prix. Tout est transparent et je peux payer via Orange Money.",
         name: "Kevin T.",
         role: "Développeur, Douala",
         rating: 5,

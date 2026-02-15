@@ -85,7 +85,7 @@ export function StudentDashboard() {
                 {/* Recent Bookings (2/3) */}
                 <div className="lg:col-span-2 bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10 p-6">
                     <div className="flex items-center justify-between mb-6">
-                        <h3 className="text-lg font-bold text-snow">Mes Réservations Récentes</h3>
+                        <h3 className="text-lg font-bold text-snow">Mes Inscriptions Récentes</h3>
                         <Link href="/dashboard/bookings" className="text-sm text-signal hover:underline">Voir tout</Link>
                     </div>
 
@@ -123,7 +123,7 @@ export function StudentDashboard() {
                         </div>
                     ) : (
                         <div className="text-center py-12 bg-white/5 rounded-xl border border-dashed border-white/10">
-                            <p className="text-mist mb-4">Vous n&apos;avez pas encore de réservation.</p>
+                            <p className="text-mist mb-4">Vous n&apos;avez pas encore d&apos;inscription.</p>
                             <Link href="/search" className="text-signal font-bold hover:underline">
                                 Explorer les auto-écoles
                             </Link>

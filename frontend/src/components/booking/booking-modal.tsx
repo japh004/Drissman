@@ -51,7 +51,7 @@ export function BookingModal({ isOpen, onClose, school, selectedOffer }: Booking
 
     const handleNext = async () => {
         if (!isAuthenticated) {
-            toast.error("Veuillez vous connecter pour continuer la réservation");
+            toast.error("Veuillez vous connecter pour continuer l'inscription");
             return;
         }
 
@@ -80,7 +80,7 @@ export function BookingModal({ isOpen, onClose, school, selectedOffer }: Booking
             setBookingId(booking.id);
             setStep("PAYMENT");
         } catch (error) {
-            toast.error("Échec de la création de la réservation. Veuillez réessayer.");
+            toast.error("Échec de la création de l'inscription. Veuillez réessayer.");
         } finally {
             setIsLoading(false);
         }
@@ -151,7 +151,7 @@ export function BookingModal({ isOpen, onClose, school, selectedOffer }: Booking
                     {!isAuthenticated && (
                         <div className="bg-amber-50 p-3 rounded-lg border border-amber-200 mb-4">
                             <p className="text-sm text-amber-800">
-                                💡 <strong>Conseil:</strong> Connectez-vous pour suivre votre réservation
+                                💡 <strong>Conseil:</strong> Connectez-vous pour suivre votre inscription
                             </p>
                         </div>
                     )}

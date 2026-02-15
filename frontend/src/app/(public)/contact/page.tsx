@@ -165,7 +165,7 @@ export default function ContactPage() {
                                         >
                                             <option value="General" className="bg-charcoal text-white">Demande générale</option>
                                             <option value="Partner" className="bg-charcoal text-white">Devenir partenaire</option>
-                                            <option value="Booking" className="bg-charcoal text-white">Problème de réservation</option>
+                                            <option value="Booking" className="bg-charcoal text-white">Problème d&apos;inscription</option>
                                             <option value="Code" className="bg-charcoal text-white">Accès au code de la route</option>
                                         </select>
                                     </div>

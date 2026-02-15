@@ -71,10 +71,10 @@ export function ReviewForm({ schoolId, onSubmit, isAuthenticated, userId }: Revi
             // Check for specific error types from backend
             if (errorMessage.includes("already") || errorMessage.includes("déjà")) {
                 toast.error("Vous avez déjà laissé un avis pour cette auto-école");
-            } else if (errorMessage.toLowerCase().includes("réservation") ||
+            } else if (errorMessage.toLowerCase().includes("inscription") ||
                 errorMessage.toLowerCase().includes("booking") ||
                 errorMessage.toLowerCase().includes("confirmée")) {
-                toast.error("Vous devez avoir une réservation confirmée pour laisser un avis");
+                toast.error("Vous devez avoir une inscription confirmée pour laisser un avis");
             } else if (errorMessage.includes("400")) {
                 toast.error("Données invalides. Veuillez vérifier votre saisie.");
             } else if (errorMessage.includes("401") || errorMessage.includes("403")) {

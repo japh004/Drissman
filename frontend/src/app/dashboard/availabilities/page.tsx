@@ -166,7 +166,7 @@ export default function AvailabilitiesPage() {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-2xl font-bold text-snow mb-2">Disponibilités</h1>
-                    <p className="text-mist">Définissez vos créneaux horaires pour les réservations.</p>
+                    <p className="text-mist">Définissez vos créneaux horaires pour les inscriptions.</p>
                 </div>
                 <Button onClick={() => handleOpenCreate()} className="flex items-center gap-2">
                     <Plus className="h-4 w-4" />
@@ -297,7 +297,7 @@ export default function AvailabilitiesPage() {
                     </div>
 
                     <div className="space-y-1">
-                        <Label htmlFor="maxBookings">Réservations max. par créneau</Label>
+                        <Label htmlFor="maxBookings">Inscriptions max. par créneau</Label>
                         <Input
                             id="maxBookings"
                             type="number"

@@ -103,7 +103,7 @@ function BookingsList({ bookings, loading, error, isSchoolAdmin, updateStatus }:
         if (!updateStatus) return;
         try {
             await updateStatus(id, "ACTIVE"); // Enrollment status is ACTIVE, not CONFIRMED
-            toast.success("Réservation confirmée !");
+            toast.success("Inscription confirmée !");
         } catch (err) {
             toast.error("Erreur confirmation");
         }
@@ -113,7 +113,7 @@ function BookingsList({ bookings, loading, error, isSchoolAdmin, updateStatus }:
         if (!updateStatus) return;
         try {
             await updateStatus(id, "CANCELLED"); // Enrollment status CANCELLED
-            toast.success("Réservation refusée.");
+            toast.success("Inscription refusée.");
         } catch (err) {
             toast.error("Erreur refus");
         }

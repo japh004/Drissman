@@ -15,7 +15,7 @@ export function Footer() {
                             <span className="text-xl font-bold tracking-tight text-white">Drissman</span>
                         </Link>
                         <p className="text-gray-400 text-sm mb-6 leading-relaxed">
-                            La première plateforme de comparaison et de réservation d&apos;auto-écoles au Cameroun. Passez votre permis en toute confiance.
+                            La première plateforme de comparaison et d&apos;inscription aux auto-écoles au Cameroun. Passez votre permis en toute confiance.
                         </p>
                         <div className="flex space-x-4">
                             <SocialLink href="https://facebook.com/drissman" icon={<Facebook className="h-5 w-5" />} />

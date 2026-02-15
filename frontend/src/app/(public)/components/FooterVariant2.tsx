@@ -69,7 +69,7 @@ export default function FooterVariant2() {
                             </span>
                         </Link>
                         <p className="text-mist/80 text-sm mb-6 leading-relaxed">
-                            La première plateforme de comparaison et de réservation d&apos;auto-écoles au Cameroun. Passez votre permis en toute confiance.
+                            La première plateforme de comparaison et d&apos;inscription aux auto-écoles au Cameroun. Passez votre permis en toute confiance.
                         </p>
                         <div className="flex space-x-2">
                             <SocialLink href="#" icon={<Facebook className="h-4 w-4" />} />

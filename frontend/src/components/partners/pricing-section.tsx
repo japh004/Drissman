@@ -22,7 +22,7 @@ export function PricingSection() {
                         <div className="mb-8">
                             <span className="text-4xl font-extrabold text-snow">0 FCFA</span>
                             <span className="text-mist"> / mois</span>
-                            <p className="text-sm text-mist mt-2">+ 10% par réservation confirmée</p>
+                            <p className="text-sm text-mist mt-2">+ 10% par inscription confirmée</p>
                         </div>
 
                         <ul className="space-y-4 mb-8 flex-1">
@@ -56,7 +56,7 @@ export function PricingSection() {
                             <span className="text-4xl font-extrabold text-snow">25.000</span>
                             <span className="text-mist font-medium"> FCFA</span>
                             <span className="text-mist/60 text-sm"> / mois</span>
-                            <p className="text-sm text-green-400 font-medium mt-2">0% de commission sur les réservations</p>
+                            <p className="text-sm text-green-400 font-medium mt-2">0% de commission sur les inscriptions</p>
                         </div>
 
                         <ul className="space-y-4 mb-8 flex-1">
