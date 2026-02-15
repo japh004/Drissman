@@ -24,9 +24,6 @@ public class CreateMonitorRequest {
     @NotBlank(message = "Le numéro de licence est obligatoire")
     private String licenseNumber;
 
-    @NotBlank(message = "L'email est obligatoire")
-    private String email;
-
     private String phoneNumber;
     private String status; // ACTIVE, INACTIVE, ON_LEAVE
 }

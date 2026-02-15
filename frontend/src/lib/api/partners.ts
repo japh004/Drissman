@@ -28,12 +28,6 @@ export const partnerService = {
         return data || [];
     },
 
-    async getMonitorProfile(): Promise<Monitor> {
-        const { data, error } = await api.get<Monitor>('/monitors/me');
-        if (error) throw new Error(error);
-        return data!;
-    },
-
     async createMonitor(payload: CreateMonitorRequest): Promise<Monitor> {
         const { data, error } = await api.post<Monitor>('/monitors', payload);
         if (error) throw new Error(error);
@@ -54,12 +48,6 @@ export const partnerService = {
     // Sessions (Lessons)
     async getSessions(schoolId: string): Promise<Session[]> {
         const { data, error } = await api.get<Session[]>(`/sessions/school/${schoolId}`);
-        if (error) throw new Error(error);
-        return data || [];
-    },
-
-    async getSessionsByMonitor(monitorId: string): Promise<Session[]> {
-        const { data, error } = await api.get<Session[]>(`/sessions/monitor/${monitorId}`);
         if (error) throw new Error(error);
         return data || [];
     },

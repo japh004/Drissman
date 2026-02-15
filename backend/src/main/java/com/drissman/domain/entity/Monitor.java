@@ -28,9 +28,6 @@ public class Monitor {
     @Column("school_id")
     private UUID schoolId;
 
-    @Column("user_id")
-    private UUID userId;
-
     @Column("first_name")
     private String firstName;
 

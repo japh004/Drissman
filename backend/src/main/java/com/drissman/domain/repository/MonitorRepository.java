@@ -13,7 +13,5 @@ public interface MonitorRepository extends ReactiveCrudRepository<Monitor, UUID>
 
     Flux<Monitor> findBySchoolIdAndStatus(UUID schoolId, Monitor.MonitorStatus status);
 
-    Mono<Monitor> findByUserId(UUID userId);
-
     Mono<Boolean> existsByLicenseNumber(String licenseNumber);
 }

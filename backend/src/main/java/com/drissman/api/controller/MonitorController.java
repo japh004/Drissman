@@ -25,14 +25,6 @@ public class MonitorController {
         return monitorService.findBySchoolId(schoolId);
     }
 
-    @GetMapping("/me")
-    public Mono<MonitorDto> getMe(Principal principal) {
-        if (principal == null) {
-            return Mono.error(new RuntimeException("Authentification requise"));
-        }
-        return monitorService.getMyProfile(principal.getName());
-    }
-
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public Mono<MonitorDto> create(

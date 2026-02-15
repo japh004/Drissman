@@ -52,3 +52,8 @@ yarn-error.log*
 .project
 bin/
 obj/
+
+extract_diagrams.py
+extract_text.py
+extracted_diagrams/
+extracted_text/

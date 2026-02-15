@@ -70,18 +70,13 @@ class ApiClient {
                 return { error: errorMessage };
             }
 
-            const text = await response.text();
-            if (!text || text.trim().length === 0) {
+            // Handle 204 No Content
+            if (response.status === 204) {
                 return { data: undefined as T };
             }
 
-            try {
-                const data = JSON.parse(text);
-                return { data };
-            } catch (e) {
-                console.error(`[ApiClient] Failed to parse JSON on ${url}:`, text);
-                return { error: 'Invalid JSON response from server' };
-            }
+            const data = await response.json();
+            return { data };
         } catch (error) {
             return {
                 error: error instanceof Error ? error.message : 'Network error'
