@@ -124,6 +124,37 @@ public class SessionService {
                 });
     }
 
+    @Transactional
+    public Mono<SessionDto> updateSession(UUID id, CreateSessionRequest request) {
+        return sessionRepository.findById(id)
+                .switchIfEmpty(Mono.error(new RuntimeException("Session not found")))
+                .flatMap(session -> {
+                    if (request.getMonitorId() != null)
+                        session.setMonitorId(request.getMonitorId());
+                    if (request.getDate() != null)
+                        session.setDate(request.getDate());
+                    if (request.getStartTime() != null)
+                        session.setStartTime(request.getStartTime());
+                    if (request.getEndTime() != null)
+                        session.setEndTime(request.getEndTime());
+                    if (request.getMeetingPoint() != null)
+                        session.setMeetingPoint(request.getMeetingPoint());
+                    return sessionRepository.save(session);
+                })
+                .flatMap(this::enrichSession);
+    }
+
+    @Transactional
+    public Mono<SessionDto> addPedagogicalNotes(UUID id, String notes) {
+        return sessionRepository.findById(id)
+                .switchIfEmpty(Mono.error(new RuntimeException("Session not found")))
+                .flatMap(session -> {
+                    session.setPedagogicalNotes(notes);
+                    return sessionRepository.save(session);
+                })
+                .flatMap(this::enrichSession);
+    }
+
     private Mono<SessionDto> enrichSession(Session session) {
         return Mono.zip(
                 enrollmentRepository.findById(session.getEnrollmentId()),

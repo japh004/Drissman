@@ -7,6 +7,8 @@ export { reviewsService } from './reviews';
 export { invoicesService } from './invoices';
 export { availabilitiesService, DAYS_OF_WEEK } from './availabilities';
 export { partnerService } from './partners';
+export * from './lessons';
+export * from './modules';
 
 // Re-export all types from centralized types directory
 export * from '@/types/auth';
@@ -15,3 +17,5 @@ export * from '@/types/booking';
 export * from '@/types/review';
 export * from '@/types/partner';
 export * from '@/types/availability';
+export * from '@/types/lesson';
+export * from '@/types/module';

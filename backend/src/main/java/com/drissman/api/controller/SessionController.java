@@ -12,6 +12,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.security.Principal;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -42,6 +43,17 @@ public class SessionController {
         return sessionService.create(request);
     }
 
+    @PutMapping("/{id}")
+    public Mono<SessionDto> update(
+            Principal principal,
+            @PathVariable UUID id,
+            @Valid @RequestBody CreateSessionRequest request) {
+        if (principal == null) {
+            return Mono.error(new RuntimeException("Authentification requise"));
+        }
+        return sessionService.updateSession(id, request);
+    }
+
     @PatchMapping("/{id}/status")
     public Mono<SessionDto> updateStatus(
             Principal principal,
@@ -51,6 +63,18 @@ public class SessionController {
             return Mono.error(new RuntimeException("Authentification requise"));
         }
         return sessionService.updateStatus(id, status);
+    }
+
+    @PatchMapping("/{id}/notes")
+    public Mono<SessionDto> addNotes(
+            Principal principal,
+            @PathVariable UUID id,
+            @RequestBody Map<String, String> body) {
+        if (principal == null) {
+            return Mono.error(new RuntimeException("Authentification requise"));
+        }
+        String notes = body.getOrDefault("notes", "");
+        return sessionService.addPedagogicalNotes(id, notes);
     }
 
     @DeleteMapping("/{id}")

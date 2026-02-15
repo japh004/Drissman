@@ -27,7 +27,7 @@ public class SchoolService {
                                 : schoolRepository.findAll();
 
                 return schools.flatMap(school -> {
-                        SchoolDto dto = toDto(school);
+                        final SchoolDto dto = toDto(school);
                         return offerRepository.findBySchoolId(school.getId())
                                         .collectList()
                                         .flatMap(offers -> {
@@ -66,22 +66,24 @@ public class SchoolService {
                         return Mono.empty();
                 return schoolRepository.findById(id)
                                 .flatMap(school -> {
-                                        if (school == null) return Mono.empty();
+                                        if (school == null)
+                                                return Mono.empty();
+                                        final SchoolDto dto = toDto(school);
                                         return offerRepository.findBySchoolId(school.getId())
-                                                .map(offer -> SchoolDto.OfferDto.builder()
-                                                                .id(offer.getId())
-                                                                .name(offer.getName())
-                                                                .description(offer.getDescription())
-                                                                .price(offer.getPrice())
-                                                                .hours(offer.getHours())
-                                                                .permitType(offer.getPermitType())
-                                                                .build())
-                                                .collectList()
-                                                .map(offers -> {
-                                                        SchoolDto dto = toDto(school);
-                                                        dto.setOffers(offers);
-                                                        return dto;
-                                                }));
+                                                        .map(offer -> SchoolDto.OfferDto.builder()
+                                                                        .id(offer.getId())
+                                                                        .name(offer.getName())
+                                                                        .description(offer.getDescription())
+                                                                        .price(offer.getPrice())
+                                                                        .hours(offer.getHours())
+                                                                        .permitType(offer.getPermitType())
+                                                                        .build())
+                                                        .collectList()
+                                                        .map(offers -> {
+                                                                dto.setOffers(offers);
+                                                                return dto;
+                                                        });
+                                });
         }
 
         public Mono<SchoolDto> update(UUID id, UpdateSchoolRequest request) {

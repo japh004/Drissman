@@ -11,6 +11,7 @@ import com.drissman.security.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Mono;
 
@@ -30,12 +31,13 @@ public class AuthService {
                         return Mono.error(new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email already exists"));
                     }
 
-                    User.Role userRole;
+                    User.Role roleTemp;
                     try {
-                        userRole = User.Role.valueOf(request.getRole().toUpperCase());
+                        roleTemp = User.Role.valueOf(request.getRole().toUpperCase());
                     } catch (IllegalArgumentException | NullPointerException e) {
-                        userRole = User.Role.STUDENT; // Fallback to STUDENT if role is invalid or not yet in enum
+                        roleTemp = User.Role.STUDENT; // Fallback to STUDENT if role is invalid or not yet in enum
                     }
+                    final User.Role userRole = roleTemp;
 
                     if (userRole == User.Role.SCHOOL_ADMIN) {
                         School school = School.builder()

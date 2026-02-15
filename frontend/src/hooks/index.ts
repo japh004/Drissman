@@ -1,6 +1,7 @@
 // Export all hooks
 export { useSchools, useSchool } from './useSchools';
 export { AuthProvider, useAuth } from './useAuth';
+export * from './useLessons';
 export { useBookings } from './useBookings';
 export { useReviews } from './useReviews';
 export { useInvoices } from './useInvoices';
@@ -12,4 +13,5 @@ export { useStudentProgress } from './useStudentProgress';
 export { useProfile } from './useProfile';
 export { useMonitors } from './useMonitors';
 export { useSessions } from './useSessions';
+export { useModules } from './useModules';
 

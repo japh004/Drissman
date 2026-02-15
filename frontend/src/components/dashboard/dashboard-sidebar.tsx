@@ -16,12 +16,14 @@ import {
     HelpCircle,
     Gift,
     Eye,
-    Search
+    Search,
+    BookOpen
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useState } from "react";
 import { useAuth } from "@/hooks";
+import { QuickAddDialog } from "./quick-add-dialog";
 
 const partnerNavigation = [
     { name: "Vue d'ensemble", href: "/dashboard", icon: LayoutDashboard },
@@ -30,7 +32,10 @@ const partnerNavigation = [
     { name: "Offres", href: "/dashboard/offers", icon: Tag },
     { name: "Mon Auto-école", href: "/dashboard/school", icon: School },
     { name: "Disponibilités", href: "/dashboard/availabilities", icon: Clock },
-    { name: "Planning", href: "/dashboard/planning", icon: Calendar },
+    { name: "Planning Conduite", href: "/dashboard/planning", icon: Calendar },
+    { name: "Historique Conduite", href: "/dashboard/sessions", icon: FileText },
+    { name: "Cours de Code", href: "/dashboard/theory", icon: FileText },
+    { name: "Programme", href: "/dashboard/curriculum", icon: BookOpen },
     { name: "Factures", href: "/dashboard/invoices", icon: FileText },
     { name: "Aide & Support", href: "/dashboard/help", icon: HelpCircle },
     { name: "Paramètres", href: "/dashboard/settings", icon: Settings },
@@ -77,6 +82,7 @@ export function DashboardSidebar() {
                 </div>
 
                 <nav className="flex-1 px-4 space-y-1">
+                    {isPartner && <QuickAddDialog />}
                     <NavLinks navigation={navigation} />
                 </nav>
 
@@ -129,6 +135,7 @@ export function MobileSidebar() {
                     </div>
                 </div>
                 <nav className="px-4 space-y-1">
+                    {isPartner && <div className="mb-4"><QuickAddDialog /></div>}
                     <NavLinks navigation={navigation} onClick={() => setOpen(false)} />
                 </nav>
                 <div className="absolute bottom-4 left-4 right-4 space-y-2">
