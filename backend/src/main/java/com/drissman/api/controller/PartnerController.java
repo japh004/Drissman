@@ -1,6 +1,6 @@
 package com.drissman.api.controller;
 
-import com.drissman.api.dto.BookingDto;
+import com.drissman.api.dto.EnrollmentDto;
 import com.drissman.api.dto.PartnerStatsDto;
 import com.drissman.api.dto.UpdateSchoolRequest;
 import com.drissman.domain.repository.UserRepository;
@@ -60,22 +60,19 @@ public class PartnerController {
                 .switchIfEmpty(Mono.error(new RuntimeException("Utilisateur non trouvé")));
     }
 
-    @GetMapping("/bookings")
-    public Flux<BookingDto> getBookings(Principal principal) {
-        // Demo mode: return empty list if no authenticated user
+    @GetMapping("/enrollments")
+    public Flux<EnrollmentDto> getEnrollments(Principal principal) {
         if (principal == null) {
-            log.info("Demo mode: returning empty bookings");
+            log.info("Demo mode: returning empty enrollments");
             return Flux.empty();
         }
 
         UUID userId = UUID.fromString(principal.getName());
-
         return userRepository.findById(userId)
                 .flatMapMany(user -> {
-                    if (user.getSchoolId() == null) {
+                    if (user.getSchoolId() == null)
                         return Flux.empty();
-                    }
-                    return partnerService.getBookings(user.getSchoolId());
+                    return partnerService.getEnrollments(user.getSchoolId());
                 });
     }
 
@@ -91,20 +88,6 @@ public class PartnerController {
                         return Mono.empty();
                     return schoolService.update(user.getSchoolId(), request)
                             .then();
-                });
-    }
-
-    @GetMapping("/enrollments")
-    public Flux<com.drissman.api.dto.EnrollmentDto> getEnrollments(Principal principal) {
-        if (principal == null)
-            return Flux.empty();
-
-        UUID userId = UUID.fromString(principal.getName());
-        return userRepository.findById(userId)
-                .flatMapMany(user -> {
-                    if (user.getSchoolId() == null)
-                        return Flux.empty();
-                    return partnerService.getEnrollments(user.getSchoolId());
                 });
     }
 }

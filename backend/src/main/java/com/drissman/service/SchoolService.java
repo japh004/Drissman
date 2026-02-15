@@ -11,6 +11,7 @@ import reactor.core.publisher.Mono;
 
 import com.drissman.api.dto.UpdateSchoolRequest;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 
@@ -20,6 +21,9 @@ public class SchoolService {
 
         private final SchoolRepository schoolRepository;
         private final OfferRepository offerRepository;
+
+        /** Earth radius in km for Haversine formula */
+        private static final double EARTH_RADIUS_KM = 6371.0;
 
         public Flux<SchoolDto> findAll(String city) {
                 Flux<School> schools = (city != null && !city.isBlank())
@@ -59,6 +63,49 @@ public class SchoolService {
                                                 return Mono.just(dto);
                                         });
                 });
+        }
+
+        /**
+         * Search schools near a given GPS coordinate using Haversine formula.
+         * Returns schools sorted by distance (closest first).
+         */
+        public Flux<SchoolDto> findNearby(double lat, double lng, double radiusKm) {
+                return schoolRepository.findAll()
+                                .filter(school -> school.getLatitude() != null && school.getLongitude() != null)
+                                .filter(school -> haversineDistance(lat, lng, school.getLatitude(),
+                                                school.getLongitude()) <= radiusKm)
+                                .collectSortedList(Comparator.comparingDouble(
+                                                school -> haversineDistance(lat, lng, school.getLatitude(),
+                                                                school.getLongitude())))
+                                .flatMapMany(Flux::fromIterable)
+                                .flatMap(school -> {
+                                        final SchoolDto dto = toDto(school);
+                                        return offerRepository.findBySchoolId(school.getId())
+                                                        .collectList()
+                                                        .map(offers -> {
+                                                                Integer minPrice = offers.stream()
+                                                                                .map(com.drissman.domain.entity.Offer::getPrice)
+                                                                                .min(Comparator.naturalOrder())
+                                                                                .orElse(150000);
+                                                                dto.setMinPrice(minPrice);
+
+                                                                List<SchoolDto.OfferDto> offerDtos = offers.stream()
+                                                                                .map(offer -> SchoolDto.OfferDto
+                                                                                                .builder()
+                                                                                                .id(offer.getId())
+                                                                                                .name(offer.getName())
+                                                                                                .description(offer
+                                                                                                                .getDescription())
+                                                                                                .price(offer.getPrice())
+                                                                                                .hours(offer.getHours())
+                                                                                                .permitType(offer
+                                                                                                                .getPermitType())
+                                                                                                .build())
+                                                                                .toList();
+                                                                dto.setOffers(offerDtos);
+                                                                return dto;
+                                                        });
+                                });
         }
 
         public Mono<SchoolDto> findById(UUID id) {
@@ -105,6 +152,21 @@ public class SchoolService {
                 return schoolRepository.save(school);
         }
 
+        /**
+         * Calculate distance between two GPS points using the Haversine formula.
+         * 
+         * @return distance in kilometers
+         */
+        static double haversineDistance(double lat1, double lon1, double lat2, double lon2) {
+                double dLat = Math.toRadians(lat2 - lat1);
+                double dLon = Math.toRadians(lon2 - lon1);
+                double a = Math.sin(dLat / 2) * Math.sin(dLat / 2)
+                                + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
+                                                * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+                double c = 2 * Math.asin(Math.sqrt(a));
+                return EARTH_RADIUS_KM * c;
+        }
+
         private SchoolDto toDto(School school) {
                 return SchoolDto.builder()
                                 .id(school.getId())
@@ -116,6 +178,8 @@ public class SchoolService {
                                 .email(school.getEmail())
                                 .rating(school.getRating())
                                 .imageUrl(school.getImageUrl())
+                                .latitude(school.getLatitude())
+                                .longitude(school.getLongitude())
                                 .build();
         }
 }

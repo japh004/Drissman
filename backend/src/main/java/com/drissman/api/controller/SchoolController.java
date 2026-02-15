@@ -22,6 +22,18 @@ public class SchoolController {
         return schoolService.findAll(city);
     }
 
+    /**
+     * Search schools near a GPS coordinate (Haversine formula).
+     * Example: GET /api/schools/nearby?lat=4.05&lng=9.7&radius=10
+     */
+    @GetMapping("/nearby")
+    public Flux<SchoolDto> getNearby(
+            @RequestParam double lat,
+            @RequestParam double lng,
+            @RequestParam(defaultValue = "10") double radius) {
+        return schoolService.findNearby(lat, lng, radius);
+    }
+
     @GetMapping("/{id}")
     public Mono<ResponseEntity<SchoolDto>> getById(@PathVariable UUID id) {
         return schoolService.findById(id)

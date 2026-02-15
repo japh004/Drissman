@@ -14,8 +14,8 @@ import java.util.UUID;
 @AllArgsConstructor
 public class InvoiceDto {
     private UUID id;
-    private UUID bookingId;
-    private BookingInfo booking;
+    private UUID enrollmentId;
+    private EnrollmentInfo enrollment;
     private Integer amount;
     private String status;
     private String paymentMethod;
@@ -27,8 +27,10 @@ public class InvoiceDto {
     @Builder
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class BookingInfo {
+    public static class EnrollmentInfo {
         private String schoolName;
         private String offerName;
+        private String studentName;
+        private Integer hoursPurchased;
     }
 }

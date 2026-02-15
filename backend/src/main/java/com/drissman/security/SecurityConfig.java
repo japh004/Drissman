@@ -77,10 +77,8 @@ public class SecurityConfig {
 
                         // Demo-mode endpoints
                         .pathMatchers(HttpMethod.GET, "/api/partner/stats").permitAll()
-                        .pathMatchers(HttpMethod.GET, "/api/partner/bookings").permitAll()
+                        .pathMatchers(HttpMethod.GET, "/api/partner/enrollments").permitAll()
                         .pathMatchers(HttpMethod.GET, "/api/student/progress").permitAll()
-                        .pathMatchers(HttpMethod.GET, "/api/bookings").permitAll()
-                        .pathMatchers(HttpMethod.GET, "/api/bookings/school/**").permitAll()
                         .pathMatchers(HttpMethod.GET, "/api/availabilities/**").permitAll()
 
                         // All other endpoints require authentication

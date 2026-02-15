@@ -8,6 +8,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
+import java.time.LocalTime;
 import java.util.UUID;
 
 @Data
@@ -27,10 +28,10 @@ public class Availability {
     private Integer dayOfWeek; // 1=Monday, 7=Sunday
 
     @Column("start_time")
-    private String startTime; // "08:00"
+    private LocalTime startTime;
 
     @Column("end_time")
-    private String endTime; // "18:00"
+    private LocalTime endTime;
 
     @Column("max_bookings")
     private Integer maxBookings;

@@ -39,6 +39,10 @@ public class School {
     @Column("image_url")
     private String imageUrl;
 
+    private Double latitude;
+
+    private Double longitude;
+
     @Column("is_demo")
     @Builder.Default
     private Boolean isDemo = false;

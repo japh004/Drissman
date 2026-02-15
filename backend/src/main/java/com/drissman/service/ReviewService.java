@@ -2,9 +2,9 @@ package com.drissman.service;
 
 import com.drissman.api.dto.CreateReviewRequest;
 import com.drissman.api.dto.ReviewDto;
-import com.drissman.domain.entity.Booking;
+import com.drissman.domain.entity.Enrollment;
 import com.drissman.domain.entity.Review;
-import com.drissman.domain.repository.BookingRepository;
+import com.drissman.domain.repository.EnrollmentRepository;
 import com.drissman.domain.repository.ReviewRepository;
 import com.drissman.domain.repository.SchoolRepository;
 import com.drissman.domain.repository.UserRepository;
@@ -25,28 +25,30 @@ public class ReviewService {
         private final ReviewRepository reviewRepository;
         private final UserRepository userRepository;
         private final SchoolRepository schoolRepository;
-        private final BookingRepository bookingRepository;
+        private final EnrollmentRepository enrollmentRepository;
 
         public Mono<ReviewDto> create(UUID userId, CreateReviewRequest request) {
                 log.info("Creating review for user {} and school {}. Rating: {}", userId, request.getSchoolId(),
                                 request.getRating());
 
-                // 1. Verify user has a confirmed or completed booking with this school
-                return bookingRepository.findByUserId(userId)
+                // 1. Verify user has an active/completed enrollment with this school
+                return enrollmentRepository.findByUserId(userId)
                                 .collectList()
-                                .flatMap(bookings -> {
-                                        log.info("Found {} bookings for user {}", bookings.size(), userId);
+                                .flatMap(enrollments -> {
+                                        log.info("Found {} enrollments for user {}", enrollments.size(), userId);
 
-                                        boolean hasValidBooking = bookings.stream().anyMatch(booking -> booking
-                                                        .getSchoolId().equals(request.getSchoolId()) &&
-                                                        (booking.getStatus() == Booking.BookingStatus.CONFIRMED ||
-                                                                        booking.getStatus() == Booking.BookingStatus.COMPLETED));
+                                        boolean hasValidEnrollment = enrollments.stream()
+                                                        .anyMatch(enrollment -> enrollment.getSchoolId()
+                                                                        .equals(request.getSchoolId()) &&
+                                                                        (enrollment.getStatus() == Enrollment.EnrollmentStatus.ACTIVE
+                                                                                        ||
+                                                                                        enrollment.getStatus() == Enrollment.EnrollmentStatus.COMPLETED));
 
-                                        if (!hasValidBooking) {
-                                                log.warn("Review rejected: No confirmed/completed booking found for user {} and school {}",
+                                        if (!hasValidEnrollment) {
+                                                log.warn("Review rejected: No active/completed enrollment found for user {} and school {}",
                                                                 userId, request.getSchoolId());
                                                 return Mono.error(new RuntimeException(
-                                                                "Vous devez avoir une réservation confirmée pour laisser un avis."));
+                                                                "Vous devez avoir une inscription active pour laisser un avis."));
                                         }
 
                                         // 2. Check if user already reviewed this school

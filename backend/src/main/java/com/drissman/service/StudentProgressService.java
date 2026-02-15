@@ -1,9 +1,10 @@
 package com.drissman.service;
 
 import com.drissman.api.dto.StudentProgressDto;
-import com.drissman.domain.entity.Booking;
-import com.drissman.domain.repository.BookingRepository;
-import com.drissman.domain.repository.OfferRepository;
+import com.drissman.domain.entity.Enrollment;
+import com.drissman.domain.entity.Session;
+import com.drissman.domain.repository.EnrollmentRepository;
+import com.drissman.domain.repository.SessionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
@@ -15,55 +16,72 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class StudentProgressService {
 
-    private final BookingRepository bookingRepository;
+        private final EnrollmentRepository enrollmentRepository;
+        private final SessionRepository sessionRepository;
 
-    public Mono<StudentProgressDto> getProgress(UUID userId) {
-        return bookingRepository.findByUserId(userId)
-                .collectList()
-                .flatMap(bookings -> {
-                    // Calculate Code de la Route progress
-                    // Assume code-related bookings contain "Code" in the offer name
-                    int codeExams = (int) bookings.stream()
-                            .filter(b -> b.getStatus() == Booking.BookingStatus.COMPLETED ||
-                                    b.getStatus() == Booking.BookingStatus.CONFIRMED)
-                            .count();
-                    int codeTotalExams = 20; // Target: 20 mock exams
-                    int codeProgress = Math.min((codeExams * 100) / Math.max(codeTotalExams, 1), 100);
+        public Mono<StudentProgressDto> getProgress(UUID userId) {
+                return enrollmentRepository.findByUserId(userId)
+                                .collectList()
+                                .flatMap(enrollments -> {
+                                        if (enrollments.isEmpty()) {
+                                                return Mono.just(StudentProgressDto.builder()
+                                                                .codeProgress(0)
+                                                                .codeExamsCompleted(0)
+                                                                .codeTotalExams(20)
+                                                                .conduiteProgress(0)
+                                                                .conduiteHoursCompleted(0)
+                                                                .conduiteTotalHours(20)
+                                                                .nextExamDate("Non planifié")
+                                                                .build());
+                                        }
 
-                    // Calculate Conduite progress based on completed driving hours
-                    // For now, we'll estimate based on confirmed bookings
-                    int conduiteHours = (int) bookings.stream()
-                            .filter(b -> b.getStatus() == Booking.BookingStatus.COMPLETED)
-                            .count() * 2; // Estimate 2h per booking
-                    int conduiteTotalHours = 20; // Standard 20h package
-                    int conduiteProgress = Math.min((conduiteHours * 100) / Math.max(conduiteTotalHours, 1), 100);
+                                        // Aggregate hours across all active enrollments
+                                        int totalHoursConsumed = enrollments.stream()
+                                                        .filter(e -> e.getStatus() == Enrollment.EnrollmentStatus.ACTIVE
+                                                                        || e.getStatus() == Enrollment.EnrollmentStatus.COMPLETED)
+                                                        .mapToInt(Enrollment::getHoursConsumed)
+                                                        .sum();
 
-                    // Find next scheduled lesson/exam
-                    String nextExamDate = "Non planifié";
-                    String nextExamType = null;
+                                        int totalHoursPurchased = enrollments.stream()
+                                                        .filter(e -> e.getStatus() == Enrollment.EnrollmentStatus.ACTIVE
+                                                                        || e.getStatus() == Enrollment.EnrollmentStatus.COMPLETED)
+                                                        .mapToInt(Enrollment::getHoursPurchased)
+                                                        .sum();
 
-                    var upcomingBooking = bookings.stream()
-                            .filter(b -> b.getBookingDate() != null &&
-                                    b.getBookingDate().isAfter(LocalDate.now().minusDays(1)) &&
-                                    (b.getStatus() == Booking.BookingStatus.PENDING ||
-                                            b.getStatus() == Booking.BookingStatus.CONFIRMED))
-                            .findFirst();
+                                        int conduiteTotalHours = Math.max(totalHoursPurchased, 20);
+                                        int conduiteProgress = Math.min(
+                                                        (totalHoursConsumed * 100) / Math.max(conduiteTotalHours, 1),
+                                                        100);
 
-                    if (upcomingBooking.isPresent()) {
-                        nextExamDate = upcomingBooking.get().getBookingDate().toString();
-                        nextExamType = "CONDUITE";
-                    }
+                                        // Code de la route progress (estimated, based on completed sessions)
+                                        int codeExams = Math.min(totalHoursConsumed / 2, 20);
+                                        int codeProgress = Math.min((codeExams * 100) / 20, 100);
 
-                    return Mono.just(StudentProgressDto.builder()
-                            .codeProgress(codeProgress)
-                            .codeExamsCompleted(codeExams)
-                            .codeTotalExams(codeTotalExams)
-                            .conduiteProgress(conduiteProgress)
-                            .conduiteHoursCompleted(conduiteHours)
-                            .conduiteTotalHours(conduiteTotalHours)
-                            .nextExamDate(nextExamDate)
-                            .nextExamType(nextExamType)
-                            .build());
-                });
-    }
+                                        // Find next scheduled session across all enrollments
+                                        return sessionRepository.findByEnrollmentIdAndStatus(
+                                                        enrollments.get(0).getId(), Session.SessionStatus.SCHEDULED)
+                                                        .filter(s -> s.getDate() != null
+                                                                        && !s.getDate().isBefore(LocalDate.now()))
+                                                        .next()
+                                                        .map(nextSession -> StudentProgressDto.builder()
+                                                                        .codeProgress(codeProgress)
+                                                                        .codeExamsCompleted(codeExams)
+                                                                        .codeTotalExams(20)
+                                                                        .conduiteProgress(conduiteProgress)
+                                                                        .conduiteHoursCompleted(totalHoursConsumed)
+                                                                        .conduiteTotalHours(conduiteTotalHours)
+                                                                        .nextExamDate(nextSession.getDate().toString())
+                                                                        .nextExamType("CONDUITE")
+                                                                        .build())
+                                                        .defaultIfEmpty(StudentProgressDto.builder()
+                                                                        .codeProgress(codeProgress)
+                                                                        .codeExamsCompleted(codeExams)
+                                                                        .codeTotalExams(20)
+                                                                        .conduiteProgress(conduiteProgress)
+                                                                        .conduiteHoursCompleted(totalHoursConsumed)
+                                                                        .conduiteTotalHours(conduiteTotalHours)
+                                                                        .nextExamDate("Non planifié")
+                                                                        .build());
+                                });
+        }
 }

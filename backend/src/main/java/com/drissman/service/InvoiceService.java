@@ -1,7 +1,7 @@
 package com.drissman.service;
 
 import com.drissman.api.dto.InvoiceDto;
-import com.drissman.domain.entity.Booking;
+import com.drissman.domain.entity.Enrollment;
 import com.drissman.domain.entity.Invoice;
 import com.drissman.domain.repository.*;
 import lombok.RequiredArgsConstructor;
@@ -17,17 +17,18 @@ import java.util.UUID;
 public class InvoiceService {
 
         private final InvoiceRepository invoiceRepository;
-        private final BookingRepository bookingRepository;
+        private final EnrollmentRepository enrollmentRepository;
         private final SchoolRepository schoolRepository;
         private final OfferRepository offerRepository;
+        private final UserRepository userRepository;
 
         /**
-         * Create invoice when booking is created
+         * Create invoice for an Enrollment (UML: Inscription → Facture)
          */
-        public Mono<Invoice> createForBooking(Booking booking, Integer amount) {
+        public Mono<Invoice> createForEnrollment(Enrollment enrollment, Integer amount) {
                 Invoice invoice = Invoice.builder()
-                                .bookingId(booking.getId())
-                                .userId(booking.getUserId())
+                                .enrollmentId(enrollment.getId())
+                                .userId(enrollment.getUserId())
                                 .amount(amount)
                                 .status(Invoice.InvoiceStatus.PENDING)
                                 .build();
@@ -37,19 +38,18 @@ public class InvoiceService {
 
         public Flux<InvoiceDto> findByUserId(UUID userId) {
                 return invoiceRepository.findByUserId(userId)
-                                .flatMap(this::enrichWithBookingInfo);
+                                .flatMap(this::enrichWithEnrollmentInfo);
         }
 
         public Flux<InvoiceDto> findBySchoolId(UUID schoolId) {
-                // Get all bookings for this school, then find their invoices
-                return bookingRepository.findBySchoolId(schoolId)
-                                .flatMap(booking -> invoiceRepository.findByBookingId(booking.getId()))
-                                .flatMap(this::enrichWithBookingInfo);
+                return enrollmentRepository.findBySchoolId(schoolId)
+                                .flatMap(enrollment -> invoiceRepository.findByEnrollmentId(enrollment.getId()))
+                                .flatMap(this::enrichWithEnrollmentInfo);
         }
 
         public Mono<InvoiceDto> findById(UUID id) {
                 return invoiceRepository.findById(id)
-                                .flatMap(this::enrichWithBookingInfo);
+                                .flatMap(this::enrichWithEnrollmentInfo);
         }
 
         public Mono<InvoiceDto> markAsPaid(UUID invoiceId, Invoice.PaymentMethod paymentMethod, String reference) {
@@ -62,44 +62,63 @@ public class InvoiceService {
                                         return invoiceRepository.save(invoice);
                                 })
                                 .flatMap(invoice -> {
-                                        // Update booking status to CONFIRMED
-                                        return bookingRepository.findById(invoice.getBookingId())
-                                                        .flatMap(booking -> {
-                                                                booking.setStatus(Booking.BookingStatus.CONFIRMED);
-                                                                return bookingRepository.save(booking);
-                                                        })
-                                                        .thenReturn(invoice);
+                                        // Activate the enrollment when payment is confirmed
+                                        if (invoice.getEnrollmentId() != null) {
+                                                return enrollmentRepository.findById(invoice.getEnrollmentId())
+                                                                .flatMap(enrollment -> {
+                                                                        enrollment.setStatus(
+                                                                                        Enrollment.EnrollmentStatus.ACTIVE);
+                                                                        return enrollmentRepository.save(enrollment);
+                                                                })
+                                                                .thenReturn(invoice);
+                                        }
+                                        return Mono.just(invoice);
                                 })
-                                .flatMap(this::enrichWithBookingInfo);
+                                .flatMap(this::enrichWithEnrollmentInfo);
         }
 
-        private Mono<InvoiceDto> enrichWithBookingInfo(Invoice invoice) {
-                return bookingRepository.findById(invoice.getBookingId())
-                                .flatMap(booking -> Mono.zip(
-                                                schoolRepository.findById(booking.getSchoolId()),
-                                                offerRepository.findById(booking.getOfferId())).map(
-                                                                tuple -> InvoiceDto.builder()
-                                                                                .id(invoice.getId())
-                                                                                .bookingId(invoice.getBookingId())
-                                                                                .booking(InvoiceDto.BookingInfo
-                                                                                                .builder()
-                                                                                                .schoolName(tuple
-                                                                                                                .getT1()
-                                                                                                                .getName())
-                                                                                                .offerName(tuple.getT2()
-                                                                                                                .getName())
-                                                                                                .build())
-                                                                                .amount(invoice.getAmount())
-                                                                                .status(invoice.getStatus().name())
-                                                                                .paymentMethod(
-                                                                                                invoice.getPaymentMethod() != null
-                                                                                                                ? invoice.getPaymentMethod()
-                                                                                                                                .name()
-                                                                                                                : null)
-                                                                                .paymentReference(invoice
-                                                                                                .getPaymentReference())
-                                                                                .createdAt(invoice.getCreatedAt())
-                                                                                .paidAt(invoice.getPaidAt())
-                                                                                .build()));
+        private Mono<InvoiceDto> enrichWithEnrollmentInfo(Invoice invoice) {
+                if (invoice.getEnrollmentId() == null) {
+                        return Mono.just(InvoiceDto.builder()
+                                        .id(invoice.getId())
+                                        .enrollmentId(null)
+                                        .amount(invoice.getAmount())
+                                        .status(invoice.getStatus().name())
+                                        .paymentMethod(invoice.getPaymentMethod() != null
+                                                        ? invoice.getPaymentMethod().name()
+                                                        : null)
+                                        .paymentReference(invoice.getPaymentReference())
+                                        .createdAt(invoice.getCreatedAt())
+                                        .paidAt(invoice.getPaidAt())
+                                        .build());
+                }
+
+                return enrollmentRepository.findById(invoice.getEnrollmentId())
+                                .flatMap(enrollment -> Mono.zip(
+                                                schoolRepository.findById(enrollment.getSchoolId()),
+                                                offerRepository.findById(enrollment.getOfferId()),
+                                                userRepository.findById(enrollment.getUserId()))
+                                                .map(tuple -> InvoiceDto.builder()
+                                                                .id(invoice.getId())
+                                                                .enrollmentId(invoice.getEnrollmentId())
+                                                                .enrollment(InvoiceDto.EnrollmentInfo.builder()
+                                                                                .schoolName(tuple.getT1().getName())
+                                                                                .offerName(tuple.getT2().getName())
+                                                                                .studentName(tuple.getT3()
+                                                                                                .getFirstName() + " "
+                                                                                                + tuple.getT3()
+                                                                                                                .getLastName())
+                                                                                .hoursPurchased(enrollment
+                                                                                                .getHoursPurchased())
+                                                                                .build())
+                                                                .amount(invoice.getAmount())
+                                                                .status(invoice.getStatus().name())
+                                                                .paymentMethod(invoice.getPaymentMethod() != null
+                                                                                ? invoice.getPaymentMethod().name()
+                                                                                : null)
+                                                                .paymentReference(invoice.getPaymentReference())
+                                                                .createdAt(invoice.getCreatedAt())
+                                                                .paidAt(invoice.getPaidAt())
+                                                                .build()));
         }
 }

@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalTime;
 import java.util.UUID;
 
 @Data
@@ -16,8 +17,8 @@ public class AvailabilityDto {
     private UUID schoolId;
     private Integer dayOfWeek;
     private String dayName; // "Lundi", "Mardi", etc.
-    private String startTime;
-    private String endTime;
+    private LocalTime startTime;
+    private LocalTime endTime;
     private Integer maxBookings;
 
     private static final String[] DAYS = {

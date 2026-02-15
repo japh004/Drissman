@@ -2,10 +2,10 @@ package com.drissman.api.dto;
 
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
+import java.time.LocalTime;
 import java.util.UUID;
 
 @Data
@@ -18,11 +18,11 @@ public class CreateAvailabilityRequest {
     @Max(7)
     private Integer dayOfWeek; // 1=Monday, 7=Sunday
 
-    @NotBlank
-    private String startTime; // "08:00"
+    @NotNull
+    private LocalTime startTime;
 
-    @NotBlank
-    private String endTime; // "18:00"
+    @NotNull
+    private LocalTime endTime;
 
     @Min(1)
     private Integer maxBookings = 1;

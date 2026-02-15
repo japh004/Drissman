@@ -1,0 +1,26 @@
+databaseChangeLog:
+  - changeSet:
+      id: 026-add-geolocation-to-schools
+      author: drissman
+      changes:
+        - addColumn:
+            tableName: schools
+            columns:
+              - column:
+                  name: latitude
+                  type: DOUBLE PRECISION
+              - column:
+                  name: longitude
+                  type: DOUBLE PRECISION
+
+  - changeSet:
+      id: 026-convert-availability-times
+      author: drissman
+      changes:
+        # Convert start_time from VARCHAR to TIME
+        - sql: >
+            ALTER TABLE availabilities
+            ALTER COLUMN start_time TYPE TIME USING start_time::TIME
+        - sql: >
+            ALTER TABLE availabilities
+            ALTER COLUMN end_time TYPE TIME USING end_time::TIME

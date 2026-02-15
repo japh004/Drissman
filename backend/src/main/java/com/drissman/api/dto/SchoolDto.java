@@ -23,6 +23,8 @@ public class SchoolDto {
     private String email;
     private BigDecimal rating;
     private String imageUrl;
+    private Double latitude;
+    private Double longitude;
     private Integer minPrice;
     private List<OfferDto> offers;
 
