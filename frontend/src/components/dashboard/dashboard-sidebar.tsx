@@ -84,7 +84,7 @@ export function DashboardSidebar() {
                         </span>
                     </div>
                     <p className="text-xs text-mist mt-2 font-bold uppercase tracking-wider">
-                        {isPartner ? "Espace Auto-École" : isVisitor ? "Espace Visiteur" : "Espace Candidat"}
+                        {isPartner ? "Espace Auto-École" : isMonitor ? "Espace Moniteur" : isVisitor ? "Espace Visiteur" : "Espace Candidat"}
                     </p>
                 </div>
 

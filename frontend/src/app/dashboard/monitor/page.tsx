@@ -110,7 +110,7 @@ export default function MonitorDashboardPage() {
                                     </div>
                                     <div className="flex items-center gap-2 text-mist">
                                         <User className="h-4 w-4" />
-                                        <span>Élève : {session.studentName || 'Non assigné'}</span>
+                                        <span>Élève Conducteur : {session.studentName || 'Non assigné'}</span>
                                     </div>
                                     {session.meetingPoint && (
                                         <div className="flex items-center gap-2 text-mist text-sm">
