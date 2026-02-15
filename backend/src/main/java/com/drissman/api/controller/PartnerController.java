@@ -6,6 +6,7 @@ import com.drissman.api.dto.UpdateSchoolRequest;
 import com.drissman.domain.repository.UserRepository;
 import com.drissman.service.PartnerService;
 import com.drissman.service.SchoolService;
+import com.drissman.service.EnrollmentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
@@ -24,6 +25,7 @@ public class PartnerController {
     private final PartnerService partnerService;
     private final SchoolService schoolService;
     private final UserRepository userRepository;
+    private final EnrollmentService enrollmentService;
 
     @GetMapping("/stats")
     public Mono<PartnerStatsDto> getStats(Principal principal) {
@@ -72,7 +74,7 @@ public class PartnerController {
                 .flatMapMany(user -> {
                     if (user.getSchoolId() == null)
                         return Flux.empty();
-                    return partnerService.getEnrollments(user.getSchoolId());
+                    return enrollmentService.getSchoolEnrollments(user.getSchoolId());
                 });
     }
 
@@ -89,5 +91,16 @@ public class PartnerController {
                     return schoolService.update(user.getSchoolId(), request)
                             .then();
                 });
+    }
+
+    @PatchMapping("/enrollments/{id}/status")
+    public Mono<EnrollmentDto> updateStatus(
+            Principal principal,
+            @PathVariable UUID id,
+            @RequestParam String status) {
+        if (principal == null)
+            return Mono.error(new RuntimeException("Authentification requise"));
+
+        return enrollmentService.updateStatus(id, status);
     }
 }
