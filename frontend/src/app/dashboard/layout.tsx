@@ -34,7 +34,7 @@ export default function DashboardLayout({
                                 {user?.firstName} {user?.lastName}
                             </div>
                             <div className="text-xs text-mist">
-                                {user?.role === 'SCHOOL_ADMIN' ? "Gestionnaire Auto-École" : user?.role === 'VISITOR' ? "Visiteur" : "Élève Conducteur"}
+                                {user?.role === 'SCHOOL_ADMIN' ? "Gestionnaire Auto-École" : user?.role === 'MONITOR' ? "Moniteur" : user?.role === 'VISITOR' ? "Visiteur" : "Candidat"}
                             </div>
                         </div>
                         <div className="h-9 w-9 bg-signal/10 rounded-full flex items-center justify-center text-signal font-bold border border-signal/20">
