@@ -20,6 +20,7 @@ export interface Monitor {
     schoolId: string;
     firstName: string;
     lastName: string;
+    email?: string;
     licenseNumber: string;
     phoneNumber?: string;
     status: MonitorStatus;
@@ -30,6 +31,7 @@ export interface CreateMonitorRequest {
     schoolId: string;
     firstName: string;
     lastName: string;
+    email: string;
     licenseNumber: string;
     phoneNumber?: string;
     status?: MonitorStatus;

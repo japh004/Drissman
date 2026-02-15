@@ -31,6 +31,7 @@ const STATUS_LABELS: Record<MonitorStatus, { label: string, color: string }> = {
 interface MonitorFormData {
     firstName: string;
     lastName: string;
+    email: string;
     licenseNumber: string;
     phoneNumber: string;
     status: MonitorStatus;
@@ -39,6 +40,7 @@ interface MonitorFormData {
 const initialFormData: MonitorFormData = {
     firstName: "",
     lastName: "",
+    email: "",
     licenseNumber: "",
     phoneNumber: "",
     status: "ACTIVE"
@@ -75,6 +77,7 @@ export default function MonitorsPage() {
         setFormData({
             firstName: monitor.firstName,
             lastName: monitor.lastName,
+            email: monitor.email || "",
             licenseNumber: monitor.licenseNumber,
             phoneNumber: monitor.phoneNumber || "",
             status: monitor.status
@@ -257,6 +260,18 @@ export default function MonitorsPage() {
                                 required
                             />
                         </div>
+                    </div>
+
+                    <div className="space-y-2">
+                        <Label className="text-xs font-black uppercase tracking-widest text-mist ml-1">Email</Label>
+                        <Input
+                            type="email"
+                            value={formData.email}
+                            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                            placeholder="moniteur@example.com"
+                            className="bg-white/5 border-white/10 rounded-xl py-6 focus:border-signal/50"
+                            required
+                        />
                     </div>
 
                     <div className="space-y-2">
