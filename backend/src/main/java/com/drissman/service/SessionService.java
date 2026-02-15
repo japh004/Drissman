@@ -45,7 +45,6 @@ public class SessionService {
                 .flatMap(enrollment -> {
                     // Check if student has enough hours remaining
                     int remainingHours = enrollment.getHoursPurchased() - enrollment.getHoursConsumed();
-                    // Duration calculation (simple for now: end - start)
                     int duration = (int) java.time.Duration.between(request.getStartTime(), request.getEndTime())
                             .toHours();
 
@@ -53,6 +52,9 @@ public class SessionService {
                         return Mono.error(new RuntimeException("Heures insuffisantes pour planifier ce cours ("
                                 + duration + "h requises, " + remainingHours + "h restantes)"));
                     }
+
+                    // Debit hours immediately upon reservation
+                    enrollment.setHoursConsumed(enrollment.getHoursConsumed() + duration);
 
                     Session session = Session.builder()
                             .enrollmentId(request.getEnrollmentId())
@@ -66,7 +68,8 @@ public class SessionService {
                             .createdAt(LocalDateTime.now())
                             .build();
 
-                    return sessionRepository.save(session);
+                    return enrollmentRepository.save(enrollment)
+                            .then(sessionRepository.save(session));
                 })
                 .flatMap(this::enrichSession);
     }
@@ -76,27 +79,44 @@ public class SessionService {
         return sessionRepository.findById(id)
                 .flatMap(session -> {
                     Session.SessionStatus oldStatus = session.getStatus();
-                    session.setStatus(status);
 
+                    // If we move TO CANCELLED or NO_SHOW from an active state, credit back the
+                    // hours
+                    boolean wasActive = (oldStatus != Session.SessionStatus.CANCELLED
+                            && oldStatus != Session.SessionStatus.NO_SHOW);
+                    boolean isDeactivating = (status == Session.SessionStatus.CANCELLED
+                            || status == Session.SessionStatus.NO_SHOW);
+
+                    // If we move FROM CANCELLED or NO_SHOW to an active state, debit the hours
+                    // again
+                    boolean wasDeactivated = (oldStatus == Session.SessionStatus.CANCELLED
+                            || oldStatus == Session.SessionStatus.NO_SHOW);
+                    boolean isActivating = (status != Session.SessionStatus.CANCELLED
+                            && status != Session.SessionStatus.NO_SHOW);
+
+                    session.setStatus(status);
                     Mono<Session> saveSession = sessionRepository.save(session);
 
-                    // If session is being marked as COMPLETED for the first time
-                    if (status == Session.SessionStatus.COMPLETED && oldStatus != Session.SessionStatus.COMPLETED) {
+                    if (wasActive && isDeactivating) {
                         return enrollmentRepository.findById(session.getEnrollmentId())
                                 .flatMap(enrollment -> {
-                                    int duration = session.getDurationHours();
-                                    enrollment.setHoursConsumed(enrollment.getHoursConsumed() + duration);
+                                    enrollment.setHoursConsumed(
+                                            Math.max(0, enrollment.getHoursConsumed() - session.getDurationHours()));
                                     return enrollmentRepository.save(enrollment);
                                 })
                                 .then(saveSession);
                     }
 
-                    // If session was COMPLETED and is now something else (correction)
-                    if (oldStatus == Session.SessionStatus.COMPLETED && status != Session.SessionStatus.COMPLETED) {
+                    if (wasDeactivated && isActivating) {
                         return enrollmentRepository.findById(session.getEnrollmentId())
                                 .flatMap(enrollment -> {
                                     int duration = session.getDurationHours();
-                                    enrollment.setHoursConsumed(Math.max(0, enrollment.getHoursConsumed() - duration));
+                                    int remaining = enrollment.getHoursPurchased() - enrollment.getHoursConsumed();
+                                    if (remaining < duration) {
+                                        return Mono.error(new RuntimeException(
+                                                "Heures insuffisantes pour réactiver cette séance"));
+                                    }
+                                    enrollment.setHoursConsumed(enrollment.getHoursConsumed() + duration);
                                     return enrollmentRepository.save(enrollment);
                                 })
                                 .then(saveSession);
@@ -110,8 +130,9 @@ public class SessionService {
     public Mono<Void> delete(UUID id) {
         return sessionRepository.findById(id)
                 .flatMap(session -> {
-                    // If we delete a completed session, we should probably credit back the hours
-                    if (session.getStatus() == Session.SessionStatus.COMPLETED) {
+                    // If the session was active (not cancelled), refund hours upon deletion
+                    if (session.getStatus() != Session.SessionStatus.CANCELLED
+                            && session.getStatus() != Session.SessionStatus.NO_SHOW) {
                         return enrollmentRepository.findById(session.getEnrollmentId())
                                 .flatMap(enrollment -> {
                                     enrollment.setHoursConsumed(
@@ -129,6 +150,8 @@ public class SessionService {
         return sessionRepository.findById(id)
                 .switchIfEmpty(Mono.error(new RuntimeException("Session not found")))
                 .flatMap(session -> {
+                    int oldDuration = session.getDurationHours();
+
                     if (request.getMonitorId() != null)
                         session.setMonitorId(request.getMonitorId());
                     if (request.getDate() != null)
@@ -139,6 +162,29 @@ public class SessionService {
                         session.setEndTime(request.getEndTime());
                     if (request.getMeetingPoint() != null)
                         session.setMeetingPoint(request.getMeetingPoint());
+
+                    int newDuration = session.getDurationHours();
+                    int diff = newDuration - oldDuration;
+
+                    // If duration changed and session is active, we must adjust enrollment hours
+                    if (diff != 0 && session.getStatus() != Session.SessionStatus.CANCELLED
+                            && session.getStatus() != Session.SessionStatus.NO_SHOW) {
+                        return enrollmentRepository.findById(session.getEnrollmentId())
+                                .flatMap(enrollment -> {
+                                    if (diff > 0) {
+                                        int remaining = enrollment.getHoursPurchased() - enrollment.getHoursConsumed();
+                                        if (remaining < diff) {
+                                            return Mono.error(new RuntimeException(
+                                                    "Heures insuffisantes pour augmenter la durée de ce cours (" + diff
+                                                            + "h supplémentaires requises)"));
+                                        }
+                                    }
+                                    enrollment.setHoursConsumed(enrollment.getHoursConsumed() + diff);
+                                    return enrollmentRepository.save(enrollment);
+                                })
+                                .then(sessionRepository.save(session));
+                    }
+
                     return sessionRepository.save(session);
                 })
                 .flatMap(this::enrichSession);
