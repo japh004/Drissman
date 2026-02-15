@@ -74,6 +74,7 @@ public class SecurityConfig {
                         .pathMatchers(HttpMethod.GET, "/api/schools/**").permitAll()
                         .pathMatchers(HttpMethod.GET, "/api/reviews/**").permitAll()
                         .pathMatchers(HttpMethod.GET, "/api/offers/**").permitAll()
+                        .pathMatchers(HttpMethod.GET, "/api/images/**").permitAll()
 
                         // Demo-mode endpoints
                         .pathMatchers(HttpMethod.GET, "/api/partner/stats").permitAll()
