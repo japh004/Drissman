@@ -1,5 +1,6 @@
 package com.drissman.service;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -15,6 +16,7 @@ import java.nio.file.Paths;
 import java.util.UUID;
 
 @Service
+@Slf4j
 public class ImageStorageService {
 
     private final Path root;
@@ -23,9 +25,11 @@ public class ImageStorageService {
         this.root = Paths.get(uploadDir);
         try {
             Files.createDirectories(root);
+            log.info("Image upload directory initialized at: {}", root.toAbsolutePath());
         } catch (IOException e) {
-            throw new RuntimeException("Could not initialize folder for upload at: " + root.toAbsolutePath()
-                    + ". Error: " + e.getMessage(), e);
+            log.error(
+                    "CRITICAL: Could not initialize folder for upload at: {}. Error: {}. The app will start but uploads will fail.",
+                    root.toAbsolutePath(), e.getMessage());
         }
     }
 
