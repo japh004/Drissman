@@ -32,7 +32,10 @@ public class MonitorService {
 
     public Mono<MonitorDto> getMyProfile(String email) {
         return userRepository.findByEmail(email)
-                .flatMap(user -> monitorRepository.findByUserId(user.getId()))
+                .switchIfEmpty(Mono.error(new RuntimeException("Utilisateur non trouvé avec l'email: " + email)))
+                .flatMap(user -> monitorRepository.findByUserId(user.getId())
+                        .switchIfEmpty(Mono.error(new RuntimeException(
+                                "Profil moniteur non trouvé pour l'utilisateur: " + user.getId()))))
                 .map(this::toDto);
     }
 
