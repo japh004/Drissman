@@ -21,6 +21,7 @@ public class EnrollmentService {
         private final EnrollmentRepository enrollmentRepository;
         private final OfferRepository offerRepository;
         private final UserRepository userRepository;
+        private final com.drissman.domain.repository.SchoolRepository schoolRepository;
 
         public Flux<EnrollmentDto> getMyEnrollments(UUID userId) {
                 return enrollmentRepository.findByUserId(userId)
@@ -72,28 +73,27 @@ public class EnrollmentService {
         public Mono<EnrollmentDto> toDto(Enrollment enrollment) {
                 return Mono.zip(
                                 userRepository.findById(enrollment.getUserId()),
-                                offerRepository.findById(enrollment.getOfferId())).map(
-                                                tuple -> EnrollmentDto.builder()
-                                                                .id(enrollment.getId())
-                                                                .userId(enrollment.getUserId())
-                                                                .schoolId(enrollment.getSchoolId())
-                                                                .offerId(enrollment.getOfferId())
-                                                                .userName(tuple.getT1().getFirstName() + " "
-                                                                                + tuple.getT1().getLastName())
-                                                                .offerName(tuple.getT2().getName())
-                                                                .hoursPurchased(enrollment.getHoursPurchased())
-                                                                .hoursConsumed(enrollment.getHoursConsumed())
-                                                                .status(enrollment.getStatus().name())
-                                                                .createdAt(
-                                                                                enrollment.getCreatedAt() != null
-                                                                                                ? enrollment.getCreatedAt()
-                                                                                                                .toString()
-                                                                                                : null)
-                                                                .offerPrice(
-                                                                                tuple.getT2().getPrice() != null ? tuple
-                                                                                                .getT2().getPrice()
-                                                                                                .longValue() : 0L)
-                                                                .userEmail(tuple.getT1().getEmail())
-                                                                .build());
+                                offerRepository.findById(enrollment.getOfferId()),
+                                schoolRepository.findById(enrollment.getSchoolId()))
+                                .map(tuple -> EnrollmentDto.builder()
+                                                .id(enrollment.getId())
+                                                .userId(enrollment.getUserId())
+                                                .schoolId(enrollment.getSchoolId())
+                                                .offerId(enrollment.getOfferId())
+                                                .userName(tuple.getT1().getFirstName() + " "
+                                                                + tuple.getT1().getLastName())
+                                                .offerName(tuple.getT2().getName())
+                                                .schoolName(tuple.getT3().getName())
+                                                .hoursPurchased(enrollment.getHoursPurchased())
+                                                .hoursConsumed(enrollment.getHoursConsumed())
+                                                .status(enrollment.getStatus().name())
+                                                .createdAt(enrollment.getCreatedAt() != null
+                                                                ? enrollment.getCreatedAt().toString()
+                                                                : null)
+                                                .offerPrice(tuple.getT2().getPrice() != null ? tuple
+                                                                .getT2().getPrice()
+                                                                .longValue() : 0L)
+                                                .userEmail(tuple.getT1().getEmail())
+                                                .build());
         }
 }

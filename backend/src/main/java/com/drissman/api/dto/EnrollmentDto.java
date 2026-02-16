@@ -18,6 +18,7 @@ public class EnrollmentDto {
     private UUID offerId;
     private String userName;
     private String offerName;
+    private String schoolName;
     private int hoursPurchased;
     private int hoursConsumed;
     private String status;
