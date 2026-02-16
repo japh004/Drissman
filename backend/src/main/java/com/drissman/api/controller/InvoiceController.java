@@ -70,7 +70,7 @@ public class InvoiceController {
      * Trigger synchronization of missing invoices for ACTIVE enrollments
      */
     @PostMapping("/sync")
-    public Flux<Invoice> syncInvoices() {
+    public Flux<InvoiceDto> syncInvoices() {
         return invoiceService.syncMissingInvoices();
     }
 }

@@ -39,14 +39,15 @@ public class InvoiceService {
         /**
          * Sync missing invoices for all ACTIVE enrollments
          */
-        public Flux<Invoice> syncMissingInvoices() {
+        public Flux<InvoiceDto> syncMissingInvoices() {
                 return enrollmentRepository.findAll()
                                 .filter(e -> e.getStatus() == Enrollment.EnrollmentStatus.ACTIVE)
                                 .flatMap(enrollment -> invoiceRepository.findByEnrollmentId(enrollment.getId())
                                                 .next()
                                                 .switchIfEmpty(offerRepository.findById(enrollment.getOfferId())
                                                                 .flatMap(offer -> createForEnrollment(enrollment,
-                                                                                offer.getPrice()))));
+                                                                                offer.getPrice()))))
+                                .flatMap(this::enrichWithEnrollmentInfo);
         }
 
         public Flux<InvoiceDto> findAll() {
@@ -86,7 +87,7 @@ public class InvoiceService {
                 if (invoice.getEnrollmentId() == null) {
                         return Mono.just(InvoiceDto.builder()
                                         .id(invoice.getId())
-                                        .enrollmentId(null)
+                                        .bookingId(null)
                                         .amount(invoice.getAmount())
                                         .status(invoice.getStatus().name())
                                         .paymentMethod(invoice.getPaymentMethod() != null
@@ -99,31 +100,51 @@ public class InvoiceService {
                 }
 
                 return enrollmentRepository.findById(invoice.getEnrollmentId())
-                                .flatMap(enrollment -> Mono.zip(
-                                                schoolRepository.findById(enrollment.getSchoolId()),
-                                                offerRepository.findById(enrollment.getOfferId()),
-                                                userRepository.findById(enrollment.getUserId()))
-                                                .map(tuple -> InvoiceDto.builder()
-                                                                .id(invoice.getId())
-                                                                .enrollmentId(invoice.getEnrollmentId())
-                                                                .enrollment(InvoiceDto.EnrollmentInfo.builder()
-                                                                                .schoolName(tuple.getT1().getName())
-                                                                                .offerName(tuple.getT2().getName())
-                                                                                .studentName(tuple.getT3()
-                                                                                                .getFirstName() + " "
-                                                                                                + tuple.getT3()
-                                                                                                                .getLastName())
-                                                                                .hoursPurchased(enrollment
-                                                                                                .getHoursPurchased())
+                                .flatMap(enrollment -> userRepository.findById(enrollment.getUserId())
+                                                .defaultIfEmpty(com.drissman.domain.entity.User.builder()
+                                                                .firstName("Étudiant")
+                                                                .lastName("Inconnu")
+                                                                .build())
+                                                .flatMap(user -> offerRepository.findById(enrollment.getOfferId())
+                                                                .defaultIfEmpty(com.drissman.domain.entity.Offer
+                                                                                .builder()
+                                                                                .name("Offre inconnue")
                                                                                 .build())
-                                                                .amount(invoice.getAmount())
-                                                                .status(invoice.getStatus().name())
-                                                                .paymentMethod(invoice.getPaymentMethod() != null
-                                                                                ? invoice.getPaymentMethod().name()
-                                                                                : null)
-                                                                .paymentReference(invoice.getPaymentReference())
-                                                                .createdAt(invoice.getCreatedAt())
-                                                                .paidAt(invoice.getPaidAt())
-                                                                .build()));
+                                                                .flatMap(offer -> schoolRepository
+                                                                                .findById(enrollment.getSchoolId())
+                                                                                .defaultIfEmpty(com.drissman.domain.entity.School
+                                                                                                .builder()
+                                                                                                .name("Auto-école inconnue")
+                                                                                                .build())
+                                                                                .map(school -> InvoiceDto.builder()
+                                                                                                .id(invoice.getId())
+                                                                                                .bookingId(invoice
+                                                                                                                .getEnrollmentId())
+                                                                                                .booking(InvoiceDto.BookingInfo
+                                                                                                                .builder()
+                                                                                                                .schoolName(school
+                                                                                                                                .getName())
+                                                                                                                .offerName(offer.getName())
+                                                                                                                .studentName(user
+                                                                                                                                .getFirstName()
+                                                                                                                                + " "
+                                                                                                                                + user.getLastName())
+                                                                                                                .hoursPurchased(enrollment
+                                                                                                                                .getHoursPurchased())
+                                                                                                                .build())
+                                                                                                .amount(invoice.getAmount())
+                                                                                                .status(invoice.getStatus()
+                                                                                                                .name())
+                                                                                                .paymentMethod(invoice
+                                                                                                                .getPaymentMethod() != null
+                                                                                                                                ? invoice.getPaymentMethod()
+                                                                                                                                                .name()
+                                                                                                                                : null)
+                                                                                                .paymentReference(
+                                                                                                                invoice.getPaymentReference())
+                                                                                                .createdAt(invoice
+                                                                                                                .getCreatedAt())
+                                                                                                .paidAt(invoice.getPaidAt())
+                                                                                                .build()))));
         }
 }
