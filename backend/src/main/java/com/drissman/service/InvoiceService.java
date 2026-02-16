@@ -28,6 +28,7 @@ public class InvoiceService {
         public Mono<Invoice> createForEnrollment(Enrollment enrollment, Integer amount) {
                 Invoice invoice = Invoice.builder()
                                 .enrollmentId(enrollment.getId())
+                                .bookingId(enrollment.getId())
                                 .userId(enrollment.getUserId())
                                 .amount(amount)
                                 .status(Invoice.InvoiceStatus.PENDING)

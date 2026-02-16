@@ -25,7 +25,7 @@ public class EnrollmentService {
         private final UserRepository userRepository;
         private final com.drissman.domain.repository.SchoolRepository schoolRepository;
         private final com.drissman.domain.repository.InvoiceRepository invoiceRepository;
-        private final InvoiceService invoiceService;
+        private final @Lazy InvoiceService invoiceService;
 
         public Flux<EnrollmentDto> getMyEnrollments(UUID userId) {
                 return enrollmentRepository.findByUserId(userId)
@@ -81,7 +81,17 @@ public class EnrollmentService {
                                                                                 .flatMap(offer -> invoiceService
                                                                                                 .createForEnrollment(
                                                                                                                 saved,
-                                                                                                                offer.getPrice())))
+                                                                                                                offer.getPrice() != null
+                                                                                                                                ? offer.getPrice()
+                                                                                                                                : 0)))
+                                                                .onErrorResume(e -> {
+                                                                        // Log error but allow enrollment update to
+                                                                        // succeed
+                                                                        System.err.println(
+                                                                                        "Erreur lors de la création de la facture: "
+                                                                                                        + e.getMessage());
+                                                                        return Mono.empty();
+                                                                })
                                                                 .thenReturn(saved));
                                         }
                                         return saveMono;
