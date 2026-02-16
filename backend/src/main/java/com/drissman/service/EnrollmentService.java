@@ -80,7 +80,7 @@ public class EnrollmentService {
                                 .flatMap(user -> offerRepository.findById(enrollment.getOfferId())
                                                 .defaultIfEmpty(com.drissman.domain.entity.Offer.builder()
                                                                 .name("Offre inconnue")
-                                                                .price(java.math.BigDecimal.ZERO)
+                                                                .price(0)
                                                                 .build())
                                                 .flatMap(offer -> schoolRepository.findById(enrollment.getSchoolId())
                                                                 .defaultIfEmpty(com.drissman.domain.entity.School
