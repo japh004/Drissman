@@ -20,11 +20,16 @@ public class InvoiceController {
 
     private final InvoiceService invoiceService;
 
+    @GetMapping
+    public Flux<InvoiceDto> getAllInvoices() {
+        return invoiceService.findAll();
+    }
+
     /**
      * Get all invoices for authenticated user.
      * Uses JWT Principal instead of X-User-Id header.
      */
-    @GetMapping
+    @GetMapping("/my")
     public Flux<InvoiceDto> getMyInvoices(Principal principal) {
         if (principal == null) {
             log.info("Demo mode: returning empty invoices list");

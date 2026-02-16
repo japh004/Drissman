@@ -36,6 +36,11 @@ public class InvoiceService {
                 return invoiceRepository.save(invoice);
         }
 
+        public Flux<InvoiceDto> findAll() {
+                return invoiceRepository.findAll()
+                                .flatMap(this::enrichWithEnrollmentInfo);
+        }
+
         public Flux<InvoiceDto> findByUserId(UUID userId) {
                 return invoiceRepository.findByUserId(userId)
                                 .flatMap(this::enrichWithEnrollmentInfo);
