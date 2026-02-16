@@ -35,4 +35,9 @@ public class EnrollmentController {
         UUID userId = UUID.fromString(principal.getName());
         return enrollmentService.createEnrollment(userId, request);
     }
+
+    @PatchMapping("/{id}/status")
+    public Mono<EnrollmentDto> updateStatus(@PathVariable UUID id, @RequestParam String status) {
+        return enrollmentService.updateStatus(id, status);
+    }
 }
