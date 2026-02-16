@@ -154,7 +154,7 @@ img {
 /* Light mode backgrounds with transparency */
 :root.light .bg-white\/5,
 :root.light .bg-white\/10 {
-    background-color: rgba(0, 0, 0, 0.03) !important;
+    background-color: rgba(0, 0, 0, 0.08) !important;
 }
 
 :root.light .bg-asphalt\/90,

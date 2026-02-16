@@ -150,9 +150,9 @@ export default function SettingsPage() {
     };
 
     const inputClass =
-        "w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-snow placeholder:text-mist/50 focus:border-signal/50 focus:ring-1 focus:ring-signal/50 outline-none transition-all";
+        "w-full px-4 py-3 rounded-xl bg-white/10 border border-white/10 text-snow placeholder:text-mist focus:border-signal/50 focus:ring-1 focus:ring-signal/50 outline-none transition-all";
     const selectClass =
-        "px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-snow focus:border-signal/50 focus:ring-1 focus:ring-signal/50 outline-none transition-all appearance-none cursor-pointer";
+        "px-4 py-2.5 rounded-xl bg-white/10 border border-white/10 text-snow focus:border-signal/50 focus:ring-1 focus:ring-signal/50 outline-none transition-all appearance-none cursor-pointer";
 
     if (authLoading) {
         return (

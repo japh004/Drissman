@@ -297,7 +297,7 @@ export function QuickAddDialog() {
                             <div className="space-y-1">
                                 <Label className="text-[10px] font-black uppercase tracking-wider text-mist ml-1">Élève *</Label>
                                 <select
-                                    className={`w-full bg-white/5 border rounded-xl p-3 text-sm text-snow outline-none focus:border-signal/50 transition-colors ${sessionErrors.enrollmentId ? "border-red-400/50" : "border-white/10"}`}
+                                    className={`w-full bg-white/10 border rounded-xl p-3 text-sm text-snow outline-none focus:border-signal/50 transition-colors ${sessionErrors.enrollmentId ? "border-red-400/50" : "border-white/10"}`}
                                     required
                                     value={sessionForm.enrollmentId}
                                     onChange={(e) => { setSessionForm({ ...sessionForm, enrollmentId: e.target.value }); setSessionErrors({ ...sessionErrors, enrollmentId: "" }); }}
@@ -326,7 +326,7 @@ export function QuickAddDialog() {
                                 <div className="space-y-1">
                                     <Label className="text-[10px] font-black uppercase tracking-wider text-mist ml-1">Moniteur</Label>
                                     <select
-                                        className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm text-snow outline-none focus:border-signal/50"
+                                        className="w-full bg-white/10 border border-white/10 rounded-xl p-3 text-sm text-snow outline-none focus:border-signal/50"
                                         value={sessionForm.monitorId}
                                         onChange={(e) => setSessionForm({ ...sessionForm, monitorId: e.target.value })}
                                     >
@@ -339,7 +339,7 @@ export function QuickAddDialog() {
                                 <div className="space-y-1">
                                     <Label className="text-[10px] font-black uppercase tracking-wider text-mist ml-1">Lieu de RDV</Label>
                                     <Input
-                                        className="bg-white/5 border-white/10"
+                                        className="bg-white/10 border-white/10"
                                         placeholder="Bureau / Gare..."
                                         value={sessionForm.meetingPoint}
                                         onChange={(e) => setSessionForm({ ...sessionForm, meetingPoint: e.target.value })}
@@ -353,7 +353,7 @@ export function QuickAddDialog() {
                                     <Label className="text-[10px] font-black uppercase tracking-wider text-mist ml-1">Date *</Label>
                                     <Input
                                         type="date"
-                                        className={`bg-white/5 block ${sessionErrors.date ? "border-red-400/50" : "border-white/10"}`}
+                                        className={`bg-white/10 block ${sessionErrors.date ? "border-red-400/50" : "border-white/10"}`}
                                         required
                                         value={sessionForm.date}
                                         onChange={(e) => { setSessionForm({ ...sessionForm, date: e.target.value }); setSessionErrors({ ...sessionErrors, date: "" }); }}
@@ -364,7 +364,7 @@ export function QuickAddDialog() {
                                     <Label className="text-[10px] font-black uppercase tracking-wider text-mist ml-1">Heure début *</Label>
                                     <Input
                                         type="time"
-                                        className={`bg-white/5 ${sessionErrors.startTime ? "border-red-400/50" : "border-white/10"}`}
+                                        className={`bg-white/10 ${sessionErrors.startTime ? "border-red-400/50" : "border-white/10"}`}
                                         required
                                         value={sessionForm.startTime}
                                         onChange={(e) => { setSessionForm({ ...sessionForm, startTime: e.target.value }); setSessionErrors({ ...sessionErrors, startTime: "" }); }}
@@ -383,8 +383,8 @@ export function QuickAddDialog() {
                                             type="button"
                                             onClick={() => setSessionForm({ ...sessionForm, durationMinutes: opt.value })}
                                             className={`flex-1 py-2.5 px-3 rounded-xl text-sm font-bold border transition-all duration-200 ${sessionForm.durationMinutes === opt.value
-                                                    ? "bg-signal/20 border-signal text-signal shadow-md shadow-signal/10"
-                                                    : "bg-white/5 border-white/10 text-mist hover:border-white/20 hover:text-snow"
+                                                ? "bg-signal/20 border-signal text-signal shadow-md shadow-signal/10"
+                                                : "bg-white/10 border-white/10 text-mist hover:border-white/20 hover:text-snow"
                                                 }`}
                                         >
                                             {opt.label}
@@ -411,7 +411,7 @@ export function QuickAddDialog() {
                             <div className="space-y-1">
                                 <Label className="text-[10px] font-black uppercase tracking-wider text-mist ml-1">Thématique *</Label>
                                 <Input
-                                    className={`bg-white/5 ${lessonErrors.topic ? "border-red-400/50" : "border-white/10"}`}
+                                    className={`bg-white/10 ${lessonErrors.topic ? "border-red-400/50" : "border-white/10"}`}
                                     placeholder="Ex: Priorités, Signalisation..."
                                     required
                                     value={lessonForm.topic}
@@ -424,7 +424,7 @@ export function QuickAddDialog() {
                             <div className="space-y-1">
                                 <Label className="text-[10px] font-black uppercase tracking-wider text-mist ml-1">Animateur</Label>
                                 <select
-                                    className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm text-snow outline-none focus:border-signal/50"
+                                    className="w-full bg-white/10 border border-white/10 rounded-xl p-3 text-sm text-snow outline-none focus:border-signal/50"
                                     value={lessonForm.monitorId}
                                     onChange={(e) => setLessonForm({ ...lessonForm, monitorId: e.target.value })}
                                 >
@@ -441,7 +441,7 @@ export function QuickAddDialog() {
                                     <Label className="text-[10px] font-black uppercase tracking-wider text-mist ml-1">Date *</Label>
                                     <Input
                                         type="date"
-                                        className={`bg-white/5 block ${lessonErrors.date ? "border-red-400/50" : "border-white/10"}`}
+                                        className={`bg-white/10 block ${lessonErrors.date ? "border-red-400/50" : "border-white/10"}`}
                                         required
                                         value={lessonForm.date}
                                         onChange={(e) => { setLessonForm({ ...lessonForm, date: e.target.value }); setLessonErrors({ ...lessonErrors, date: "" }); }}
@@ -452,7 +452,7 @@ export function QuickAddDialog() {
                                     <Label className="text-[10px] font-black uppercase tracking-wider text-mist ml-1">Heure (Début) *</Label>
                                     <Input
                                         type="time"
-                                        className={`bg-white/5 ${lessonErrors.startTime ? "border-red-400/50" : "border-white/10"}`}
+                                        className={`bg-white/10 ${lessonErrors.startTime ? "border-red-400/50" : "border-white/10"}`}
                                         required
                                         value={lessonForm.startTime}
                                         onChange={(e) => { setLessonForm({ ...lessonForm, startTime: e.target.value }); setLessonErrors({ ...lessonErrors, startTime: "" }); }}
@@ -471,7 +471,7 @@ export function QuickAddDialog() {
                                 <div className="space-y-1">
                                     <Label className="text-[10px] font-black uppercase tracking-wider text-mist ml-1">Salle</Label>
                                     <Input
-                                        className="bg-white/5 border-white/10"
+                                        className="bg-white/10 border-white/10"
                                         placeholder="Salle 1"
                                         value={lessonForm.roomId}
                                         onChange={(e) => setLessonForm({ ...lessonForm, roomId: e.target.value })}
@@ -481,7 +481,7 @@ export function QuickAddDialog() {
                                     <Label className="text-[10px] font-black uppercase tracking-wider text-mist ml-1">Capacité</Label>
                                     <Input
                                         type="number"
-                                        className={`bg-white/5 ${lessonErrors.capacity ? "border-red-400/50" : "border-white/10"}`}
+                                        className={`bg-white/10 ${lessonErrors.capacity ? "border-red-400/50" : "border-white/10"}`}
                                         min={1}
                                         value={lessonForm.capacity}
                                         onChange={(e) => setLessonForm({ ...lessonForm, capacity: parseInt(e.target.value) || 1 })}
