@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react";
 import Link from "next/link";
-import { Check, X, Eye, Loader2, Search, SlidersHorizontal, Users, Clock, CheckCircle, Calendar } from "lucide-react";
+import { Check, X, Loader2, Search, SlidersHorizontal, Users, Clock, CheckCircle, Calendar, ArrowUpRight, TrendingUp, XCircle } from "lucide-react";
 import { usePartnerEnrollments, useMyEnrollments, useAuth } from "@/hooks";
 import { TabNavigation } from "@/components/dashboard/tab-navigation";
 import { formatPrice } from "@/lib/format";
@@ -66,6 +66,7 @@ function BookingsList({ bookings, loading, error, isSchoolAdmin, updateStatus }:
     const totalCount = bookings.length;
     const pendingCount = bookings.filter(b => b.status === "PENDING").length;
     const activeCount = bookings.filter(b => b.status === "ACTIVE" || b.status === "COMPLETED").length;
+    const cancelledCount = bookings.filter(b => b.status === "CANCELLED").length;
 
     // Filtered bookings
     const filteredBookings = useMemo(() => {
@@ -89,48 +90,139 @@ function BookingsList({ bookings, loading, error, isSchoolAdmin, updateStatus }:
             )}
 
             {/* Header */}
-            <div>
-                <h2 className="text-2xl font-bold text-snow">
-                    {isSchoolAdmin ? "Gestion des Inscriptions" : "Mes Inscriptions"}
-                </h2>
-                <p className="text-mist mt-1">
-                    {isSchoolAdmin
-                        ? "Gérez les demandes d'inscription et les paiements."
-                        : "Suivez vos inscriptions aux auto-écoles."}
-                </p>
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+                <div>
+                    <h2 className="text-2xl font-bold text-snow">
+                        {isSchoolAdmin ? "Gestion des Inscriptions" : "Mes Inscriptions"}
+                    </h2>
+                    <p className="text-mist mt-1">
+                        {isSchoolAdmin
+                            ? "Gérez les demandes d'inscription et les paiements."
+                            : "Suivez vos inscriptions aux auto-écoles."}
+                    </p>
+                </div>
+                {!loading && totalCount > 0 && (
+                    <div className="flex items-center gap-2 text-[10px] text-mist font-medium">
+                        <TrendingUp className="h-3.5 w-3.5 text-signal" />
+                        <span className="text-signal font-bold">{totalCount}</span> inscription{totalCount > 1 ? 's' : ''} au total
+                    </div>
+                )}
             </div>
 
-            {/* KPI Cards — Finexy-inspired */}
-            <div className="grid gap-4 md:grid-cols-3">
-                <KpiStatCard
-                    icon={Users}
-                    label="Total Inscriptions"
-                    value={totalCount.toString()}
-                    sub="Ce mois"
-                    accentColor="signal"
-                    loading={loading}
-                />
-                <KpiStatCard
-                    icon={Clock}
-                    label="En Attente"
-                    value={pendingCount.toString()}
-                    sub="À confirmer"
-                    accentColor="yellow"
-                    loading={loading}
-                />
-                <KpiStatCard
-                    icon={CheckCircle}
-                    label="Confirmées"
-                    value={activeCount.toString()}
-                    sub="Actives"
-                    accentColor="green"
-                    loading={loading}
-                />
+            {/* ═══ KPI Cards — with visual mini-elements ═══ */}
+            <div className="grid gap-4 md:grid-cols-4">
+                {/* Total — with mini bar breakdown */}
+                <div className="relative overflow-hidden bg-white/[0.03] backdrop-blur-sm rounded-2xl border border-white/[0.06] p-6 hover:border-signal/20 transition-all group">
+                    <div className="absolute -top-4 -right-4 w-20 h-20 bg-signal/5 rounded-full blur-2xl group-hover:bg-signal/10 transition-colors duration-500" />
+                    <div className="relative">
+                        <div className="flex items-center justify-between mb-3">
+                            <span className="text-[10px] font-black text-mist uppercase tracking-widest">Total</span>
+                            <div className="p-2 rounded-xl bg-signal/10 text-signal group-hover:scale-110 transition-transform duration-300">
+                                <Users className="h-4 w-4" />
+                            </div>
+                        </div>
+                        {loading ? (
+                            <Loader2 className="h-5 w-5 text-mist animate-spin" />
+                        ) : (
+                            <>
+                                <p className="text-3xl font-black text-snow tracking-tight">{totalCount}</p>
+                                {/* Visual breakdown bar */}
+                                <div className="flex gap-[2px] h-2 mt-3 rounded-full overflow-hidden">
+                                    {totalCount > 0 && (
+                                        <>
+                                            <div className="bg-green-500/60 rounded-l-full transition-all duration-700" style={{ width: `${(activeCount / totalCount) * 100}%` }} />
+                                            <div className="bg-yellow-500/60 transition-all duration-700" style={{ width: `${(pendingCount / totalCount) * 100}%` }} />
+                                            <div className="bg-red-500/40 rounded-r-full transition-all duration-700" style={{ width: `${(cancelledCount / totalCount) * 100}%` }} />
+                                        </>
+                                    )}
+                                </div>
+                            </>
+                        )}
+                    </div>
+                </div>
+
+                {/* Pending — with pulsing ring */}
+                <div className="relative overflow-hidden bg-white/[0.03] backdrop-blur-sm rounded-2xl border border-white/[0.06] p-6 hover:border-yellow-500/20 transition-all group">
+                    <div className="absolute -bottom-4 -right-4 w-20 h-20 bg-yellow-500/5 rounded-full blur-2xl group-hover:bg-yellow-500/10 transition-colors duration-500" />
+                    <div className="relative">
+                        <div className="flex items-center justify-between mb-3">
+                            <span className="text-[10px] font-black text-mist uppercase tracking-widest">En attente</span>
+                            <div className="relative">
+                                <div className="p-2 rounded-xl bg-yellow-500/10 text-yellow-500 group-hover:scale-110 transition-transform duration-300">
+                                    <Clock className="h-4 w-4" />
+                                </div>
+                                {pendingCount > 0 && (
+                                    <span className="absolute -top-1 -right-1 h-3 w-3 bg-yellow-500 rounded-full flex items-center justify-center text-[7px] text-asphalt font-black animate-pulse" />
+                                )}
+                            </div>
+                        </div>
+                        {loading ? (
+                            <Loader2 className="h-5 w-5 text-mist animate-spin" />
+                        ) : (
+                            <>
+                                <p className="text-3xl font-black text-yellow-500 tracking-tight">{pendingCount}</p>
+                                <p className="text-[10px] text-mist mt-1">À confirmer</p>
+                            </>
+                        )}
+                    </div>
+                </div>
+
+                {/* Active — with check ring */}
+                <div className="relative overflow-hidden bg-white/[0.03] backdrop-blur-sm rounded-2xl border border-white/[0.06] p-6 hover:border-green-500/20 transition-all group">
+                    <div className="absolute -top-4 -left-4 w-20 h-20 bg-green-500/5 rounded-full blur-2xl group-hover:bg-green-500/10 transition-colors duration-500" />
+                    <div className="relative">
+                        <div className="flex items-center justify-between mb-3">
+                            <span className="text-[10px] font-black text-mist uppercase tracking-widest">Confirmées</span>
+                            <div className="p-2 rounded-xl bg-green-500/10 text-green-500 group-hover:scale-110 transition-transform duration-300">
+                                <CheckCircle className="h-4 w-4" />
+                            </div>
+                        </div>
+                        {loading ? (
+                            <Loader2 className="h-5 w-5 text-mist animate-spin" />
+                        ) : (
+                            <>
+                                <p className="text-3xl font-black text-green-500 tracking-tight">{activeCount}</p>
+                                <p className="text-[10px] text-mist mt-1">Actives</p>
+                            </>
+                        )}
+                    </div>
+                </div>
+
+                {/* Conversion Rate — with visual gauge */}
+                <div className="relative overflow-hidden bg-gradient-to-br from-purple-500/10 via-purple-500/5 to-transparent rounded-2xl border border-purple-500/20 p-6 group hover:border-purple-500/40 transition-all">
+                    <div className="absolute top-3 right-3 w-16 h-16 bg-purple-500/10 rounded-full blur-xl" />
+                    <div className="relative">
+                        <div className="flex items-center justify-between mb-3">
+                            <span className="text-[10px] font-black text-mist uppercase tracking-widest">Conversion</span>
+                            <ArrowUpRight className="h-4 w-4 text-purple-400 group-hover:scale-125 transition-transform" />
+                        </div>
+                        {loading ? (
+                            <Loader2 className="h-5 w-5 text-mist animate-spin" />
+                        ) : (
+                            <>
+                                <p className="text-3xl font-black text-purple-400 tracking-tight">
+                                    {totalCount > 0 ? Math.round((activeCount / totalCount) * 100) : 0}%
+                                </p>
+                                {/* Mini conversion gauge */}
+                                <div className="h-1.5 bg-white/[0.06] rounded-full overflow-hidden mt-3">
+                                    <div
+                                        className="h-full bg-gradient-to-r from-purple-500 to-signal rounded-full transition-all duration-1000"
+                                        style={{ width: `${totalCount > 0 ? (activeCount / totalCount) * 100 : 0}%` }}
+                                    />
+                                </div>
+                            </>
+                        )}
+                    </div>
+                </div>
             </div>
 
             {loading && (
                 <div className="flex items-center justify-center py-20">
-                    <Loader2 className="h-10 w-10 text-signal animate-spin" />
+                    <div className="relative h-16 w-16">
+                        <div className="absolute inset-0 rounded-full border-4 border-signal/10"></div>
+                        <div className="absolute inset-0 rounded-full border-4 border-signal border-t-transparent animate-spin"></div>
+                        <div className="absolute inset-2 rounded-full border-4 border-signal/20 border-b-transparent animate-spin" style={{ animationDirection: 'reverse', animationDuration: '1.5s' }}></div>
+                    </div>
                 </div>
             )}
 
@@ -142,7 +234,7 @@ function BookingsList({ bookings, loading, error, isSchoolAdmin, updateStatus }:
             )}
 
             {!loading && !error && bookings.length === 0 && (
-                <div className="text-center py-20 bg-white/[0.03] rounded-2xl border border-white/[0.06]">
+                <div className="text-center py-20 bg-white/[0.03] rounded-2xl border border-dashed border-white/[0.08]">
                     <div className="h-16 w-16 mx-auto mb-4 rounded-2xl bg-signal/10 flex items-center justify-center">
                         <Calendar className="h-8 w-8 text-signal" />
                     </div>
@@ -160,7 +252,7 @@ function BookingsList({ bookings, loading, error, isSchoolAdmin, updateStatus }:
 
             {!loading && !error && bookings.length > 0 && (
                 <div className="bg-white/[0.03] backdrop-blur-sm rounded-2xl border border-white/[0.06] overflow-hidden">
-                    {/* Search & Filter Bar — Finexy-inspired */}
+                    {/* Search & Filter Bar */}
                     <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 p-5 border-b border-white/[0.06]">
                         <div className="relative flex-1">
                             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-mist" />
@@ -172,20 +264,24 @@ function BookingsList({ bookings, loading, error, isSchoolAdmin, updateStatus }:
                                 className="w-full pl-10 pr-4 py-2.5 bg-white/[0.05] border border-white/[0.08] rounded-xl text-snow text-sm placeholder:text-mist/60 focus:outline-none focus:border-signal/30 focus:ring-1 focus:ring-signal/20 transition-all"
                             />
                         </div>
-                        <div className="flex items-center gap-2">
-                            <SlidersHorizontal className="h-4 w-4 text-mist shrink-0" />
-                            <select
-                                value={statusFilter}
-                                onChange={(e) => setStatusFilter(e.target.value)}
-                                className="bg-white/[0.05] border border-white/[0.08] rounded-xl text-snow text-sm px-3 py-2.5 focus:outline-none focus:border-signal/30 transition-all appearance-none cursor-pointer pr-8"
-                                style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23a0a0a0' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10l-5 5z'/%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 10px center' }}
-                            >
-                                <option value="ALL">Tous les statuts</option>
-                                <option value="PENDING">En attente</option>
-                                <option value="ACTIVE">Actif</option>
-                                <option value="COMPLETED">Terminé</option>
-                                <option value="CANCELLED">Annulé</option>
-                            </select>
+                        {/* Quick filter pills */}
+                        <div className="flex items-center gap-2 flex-wrap">
+                            {[
+                                { value: "ALL", label: "Tous", count: totalCount },
+                                { value: "PENDING", label: "En attente", count: pendingCount },
+                                { value: "ACTIVE", label: "Actif", count: activeCount },
+                            ].map(f => (
+                                <button
+                                    key={f.value}
+                                    onClick={() => setStatusFilter(f.value)}
+                                    className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider border transition-all ${statusFilter === f.value
+                                            ? 'bg-signal/10 border-signal/30 text-signal'
+                                            : 'bg-white/[0.03] border-white/[0.06] text-mist hover:border-white/[0.12]'
+                                        }`}
+                                >
+                                    {f.label} <span className="ml-1 opacity-60">{f.count}</span>
+                                </button>
+                            ))}
                         </div>
                     </div>
 
@@ -194,8 +290,7 @@ function BookingsList({ bookings, loading, error, isSchoolAdmin, updateStatus }:
                         <table className="w-full text-sm text-left">
                             <thead className="bg-white/[0.03] text-mist text-xs font-semibold uppercase tracking-wider border-b border-white/[0.06]">
                                 <tr>
-                                    <th className="px-5 py-4">ID</th>
-                                    <th className="px-5 py-4">Offre</th>
+                                    <th className="px-5 py-4">Inscription</th>
                                     {isSchoolAdmin && <th className="px-5 py-4">Candidat</th>}
                                     <th className="px-5 py-4">Montant</th>
                                     <th className="px-5 py-4">Statut</th>
@@ -206,7 +301,7 @@ function BookingsList({ bookings, loading, error, isSchoolAdmin, updateStatus }:
                             <tbody className="divide-y divide-white/[0.04]">
                                 {filteredBookings.length === 0 ? (
                                     <tr>
-                                        <td colSpan={isSchoolAdmin ? 7 : 6} className="px-5 py-12 text-center text-mist">
+                                        <td colSpan={isSchoolAdmin ? 6 : 5} className="px-5 py-12 text-center text-mist">
                                             Aucun résultat pour cette recherche.
                                         </td>
                                     </tr>
@@ -214,18 +309,25 @@ function BookingsList({ bookings, loading, error, isSchoolAdmin, updateStatus }:
                                     filteredBookings.map((booking) => (
                                         <tr key={booking.id} className="hover:bg-white/[0.03] transition-colors group">
                                             <td className="px-5 py-4">
-                                                <span className="font-mono text-xs text-mist/80">#{booking.id.substring(0, 8)}</span>
-                                            </td>
-                                            <td className="px-5 py-4">
                                                 <div className="flex items-center gap-3">
-                                                    <div className="h-9 w-9 rounded-xl bg-signal/10 flex items-center justify-center shrink-0">
+                                                    <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-signal/20 to-signal/5 border border-signal/15 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300">
                                                         <Calendar className="h-4 w-4 text-signal" />
                                                     </div>
-                                                    <span className="font-medium text-snow">{booking.offerName || 'Offre inconnue'}</span>
+                                                    <div>
+                                                        <span className="font-medium text-snow block">{booking.offerName || 'Offre inconnue'}</span>
+                                                        <span className="font-mono text-[10px] text-mist/50">#{booking.id.substring(0, 8)}</span>
+                                                    </div>
                                                 </div>
                                             </td>
                                             {isSchoolAdmin && (
-                                                <td className="px-5 py-4 text-mist">{booking.userName || '—'}</td>
+                                                <td className="px-5 py-4">
+                                                    <div className="flex items-center gap-2">
+                                                        <div className="h-7 w-7 rounded-lg bg-white/[0.06] flex items-center justify-center text-[10px] text-mist font-black">
+                                                            {(booking.userName || '?')[0].toUpperCase()}
+                                                        </div>
+                                                        <span className="text-mist text-sm">{booking.userName || '—'}</span>
+                                                    </div>
+                                                </td>
                                             )}
                                             <td className="px-5 py-4">
                                                 <span className="font-semibold text-signal">{formatPrice(booking.offerPrice || 0)}</span>
@@ -242,14 +344,15 @@ function BookingsList({ bookings, loading, error, isSchoolAdmin, updateStatus }:
                                                         <>
                                                             <button
                                                                 onClick={() => handleConfirm(booking.id)}
-                                                                className="p-2 hover:bg-green-500/10 rounded-lg text-green-400 transition-colors"
+                                                                className="flex items-center gap-1.5 px-3 py-1.5 bg-green-500/10 hover:bg-green-500/20 border border-green-500/20 rounded-xl text-green-400 text-[10px] font-bold transition-all"
                                                                 title="Confirmer"
                                                             >
-                                                                <Check className="h-4 w-4" />
+                                                                <Check className="h-3.5 w-3.5" />
+                                                                Confirmer
                                                             </button>
                                                             <button
                                                                 onClick={() => handleReject(booking.id)}
-                                                                className="p-2 hover:bg-red-500/10 rounded-lg text-red-400 transition-colors"
+                                                                className="p-1.5 hover:bg-red-500/10 rounded-xl text-red-400/50 hover:text-red-400 transition-all"
                                                                 title="Refuser"
                                                             >
                                                                 <X className="h-4 w-4" />
@@ -283,63 +386,19 @@ function BookingsList({ bookings, loading, error, isSchoolAdmin, updateStatus }:
     );
 }
 
-/* ─── KPI Stat Card — Finexy-inspired ─── */
-function KpiStatCard({ icon: Icon, label, value, sub, accentColor, loading }: {
-    icon: any;
-    label: string;
-    value: string;
-    sub: string;
-    accentColor: 'signal' | 'yellow' | 'green' | 'blue' | 'red';
-    loading?: boolean;
-}) {
-    const colorMap = {
-        signal: { bg: 'bg-signal/10', text: 'text-signal', dot: 'bg-signal' },
-        yellow: { bg: 'bg-yellow-500/10', text: 'text-yellow-500', dot: 'bg-yellow-500' },
-        green: { bg: 'bg-green-500/10', text: 'text-green-500', dot: 'bg-green-500' },
-        blue: { bg: 'bg-blue-500/10', text: 'text-blue-500', dot: 'bg-blue-500' },
-        red: { bg: 'bg-red-500/10', text: 'text-red-500', dot: 'bg-red-500' },
-    };
-    const colors = colorMap[accentColor];
-
-    return (
-        <div className="bg-white/[0.03] backdrop-blur-sm rounded-2xl border border-white/[0.06] p-6 hover:border-white/[0.12] transition-all group">
-            <div className="flex items-center justify-between mb-4">
-                <span className="text-xs font-semibold text-mist uppercase tracking-wide">{label}</span>
-                <div className={`p-2.5 rounded-xl ${colors.bg} ${colors.text} group-hover:scale-110 transition-transform duration-300`}>
-                    <Icon className="h-4 w-4" />
-                </div>
-            </div>
-            {loading ? (
-                <div className="flex items-center gap-2">
-                    <Loader2 className="h-4 w-4 text-mist animate-spin" />
-                    <span className="text-mist text-sm">Chargement...</span>
-                </div>
-            ) : (
-                <>
-                    <p className="text-3xl font-black text-snow tracking-tight">{value}</p>
-                    <div className="flex items-center gap-1.5 mt-2">
-                        <div className={`h-1.5 w-1.5 rounded-full ${colors.dot} animate-pulse`} />
-                        <p className="text-xs text-mist font-medium">{sub}</p>
-                    </div>
-                </>
-            )}
-        </div>
-    );
-}
-
 /* ─── Status Badge ─── */
 function StatusBadge({ status }: { status: string }) {
-    const config: Record<string, { label: string; className: string }> = {
-        ACTIVE: { label: "Actif", className: "bg-green-500/10 text-green-400 border-green-500/20" },
-        COMPLETED: { label: "Terminé", className: "bg-green-500/10 text-green-400 border-green-500/20" },
-        PENDING: { label: "En attente", className: "bg-yellow-500/10 text-yellow-400 border-yellow-500/20" },
-        CANCELLED: { label: "Annulé", className: "bg-red-500/10 text-red-400 border-red-500/20" },
+    const config: Record<string, { label: string; className: string; icon: any }> = {
+        ACTIVE: { label: "Actif", className: "bg-green-500/10 text-green-400 border-green-500/20", icon: CheckCircle },
+        COMPLETED: { label: "Terminé", className: "bg-green-500/10 text-green-400 border-green-500/20", icon: CheckCircle },
+        PENDING: { label: "En attente", className: "bg-yellow-500/10 text-yellow-400 border-yellow-500/20", icon: Clock },
+        CANCELLED: { label: "Annulé", className: "bg-red-500/10 text-red-400 border-red-500/20", icon: XCircle },
     };
-    const { label, className } = config[status] || { label: status, className: "bg-white/10 text-mist border-white/10" };
+    const { label, className, icon: Icon } = config[status] || { label: status, className: "bg-white/10 text-mist border-white/10", icon: Clock };
 
     return (
-        <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold border ${className}`}>
-            <span className={`h-1.5 w-1.5 rounded-full ${className.includes('green') ? 'bg-green-400' : className.includes('yellow') ? 'bg-yellow-400' : className.includes('red') ? 'bg-red-400' : 'bg-mist'}`} />
+        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold border ${className}`}>
+            <Icon className="h-3 w-3" />
             {label}
         </span>
     );

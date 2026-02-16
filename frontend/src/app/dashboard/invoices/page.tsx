@@ -13,7 +13,9 @@ import {
     CreditCard,
     RefreshCw,
     Search,
-    SlidersHorizontal
+    ArrowUpRight,
+    TrendingUp,
+    Wallet
 } from "lucide-react";
 import { toast } from "sonner";
 import { Invoice } from "@/lib/api";
@@ -182,6 +184,11 @@ export default function InvoicesPage() {
         });
     };
 
+    // Stats
+    const paidCount = invoices.filter(i => i.status === 'PAID').length;
+    const pendingCount = invoices.filter(i => i.status === 'PENDING').length;
+    const totalAmount = invoices.reduce((sum, i) => sum + i.amount, 0);
+
     // Filtered invoices
     const filteredInvoices = useMemo(() => {
         return invoices.filter(invoice => {
@@ -198,8 +205,12 @@ export default function InvoicesPage() {
         return (
             <div className="h-full flex items-center justify-center p-8">
                 <div className="text-center">
-                    <Loader2 className="h-12 w-12 text-signal animate-spin mx-auto mb-4" />
-                    <p className="text-mist">Chargement des factures...</p>
+                    <div className="relative h-16 w-16 mx-auto mb-4">
+                        <div className="absolute inset-0 rounded-full border-4 border-signal/10"></div>
+                        <div className="absolute inset-0 rounded-full border-4 border-signal border-t-transparent animate-spin"></div>
+                        <div className="absolute inset-2 rounded-full border-4 border-signal/20 border-b-transparent animate-spin" style={{ animationDirection: 'reverse', animationDuration: '1.5s' }}></div>
+                    </div>
+                    <p className="text-mist font-bold uppercase tracking-[0.2em] text-[10px]">Chargement des factures...</p>
                 </div>
             </div>
         );
@@ -254,63 +265,107 @@ export default function InvoicesPage() {
             )}
 
             {/* Header */}
-            <div>
-                <h1 className="text-2xl font-bold text-snow">
-                    {isSchoolAdmin ? "Factures des élèves" : "Mes Factures"}
-                </h1>
-                <p className="text-mist mt-1">
-                    {isSchoolAdmin
-                        ? "Consultez les factures de vos élèves inscrits."
-                        : "Gérez vos paiements et consultez l'historique de vos transactions."}
-                </p>
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+                <div>
+                    <h1 className="text-2xl font-bold text-snow">
+                        {isSchoolAdmin ? "Factures des élèves" : "Mes Factures"}
+                    </h1>
+                    <p className="text-mist mt-1">
+                        {isSchoolAdmin
+                            ? "Consultez les factures de vos élèves inscrits."
+                            : "Gérez vos paiements et consultez l'historique de vos transactions."}
+                    </p>
+                </div>
+                {invoices.length > 0 && (
+                    <div className="flex items-center gap-2 text-[10px] text-mist font-medium">
+                        <TrendingUp className="h-3.5 w-3.5 text-signal" />
+                        <span className="text-signal font-bold">{totalAmount.toLocaleString()} FCFA</span> total généré
+                    </div>
+                )}
             </div>
 
-            {/* KPI Summary Cards — Finexy-inspired */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="bg-white/[0.03] backdrop-blur-sm rounded-2xl border border-white/[0.06] p-6 hover:border-white/[0.12] transition-all group">
-                    <div className="flex items-center justify-between mb-4">
-                        <span className="text-xs font-semibold text-mist uppercase tracking-wide">Total factures</span>
-                        <div className="p-2.5 rounded-xl bg-signal/10 text-signal group-hover:scale-110 transition-transform duration-300">
-                            <FileText className="h-4 w-4" />
+            {/* ═══ KPI Cards — visually rich ═══ */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                {/* Total invoices — with mini bar */}
+                <div className="relative overflow-hidden bg-white/[0.03] backdrop-blur-sm rounded-2xl border border-white/[0.06] p-6 hover:border-signal/20 transition-all group">
+                    <div className="absolute -top-4 -right-4 w-20 h-20 bg-signal/5 rounded-full blur-2xl group-hover:bg-signal/10 transition-colors duration-500" />
+                    <div className="relative">
+                        <div className="flex items-center justify-between mb-3">
+                            <span className="text-[10px] font-black text-mist uppercase tracking-widest">Total factures</span>
+                            <div className="p-2 rounded-xl bg-signal/10 text-signal group-hover:scale-110 transition-transform duration-300">
+                                <FileText className="h-4 w-4" />
+                            </div>
                         </div>
-                    </div>
-                    <p className="text-3xl font-black text-snow tracking-tight">{invoices.length}</p>
-                    <div className="flex items-center gap-1.5 mt-2">
-                        <div className="h-1.5 w-1.5 rounded-full bg-signal animate-pulse" />
-                        <p className="text-xs text-mist font-medium">Toutes périodes</p>
+                        <p className="text-3xl font-black text-snow tracking-tight">{invoices.length}</p>
+                        {/* Visual breakdown bar */}
+                        <div className="flex gap-[2px] h-2 mt-3 rounded-full overflow-hidden">
+                            <div className="bg-green-500/60 rounded-l-full transition-all duration-700" style={{ width: `${invoices.length > 0 ? (paidCount / invoices.length) * 100 : 0}%` }} />
+                            <div className="bg-yellow-500/60 rounded-r-full transition-all duration-700" style={{ width: `${invoices.length > 0 ? (pendingCount / invoices.length) * 100 : 0}%` }} />
+                        </div>
+                        <div className="flex gap-3 mt-2 text-[9px] text-mist">
+                            <span className="flex items-center gap-1"><span className="h-1.5 w-1.5 rounded-full bg-green-500" /> {paidCount} payées</span>
+                            <span className="flex items-center gap-1"><span className="h-1.5 w-1.5 rounded-full bg-yellow-500" /> {pendingCount} en attente</span>
+                        </div>
                     </div>
                 </div>
 
-                <div className="bg-white/[0.03] backdrop-blur-sm rounded-2xl border border-white/[0.06] p-6 hover:border-white/[0.12] transition-all group">
-                    <div className="flex items-center justify-between mb-4">
-                        <span className="text-xs font-semibold text-mist uppercase tracking-wide">En attente</span>
-                        <div className="p-2.5 rounded-xl bg-yellow-500/10 text-yellow-500 group-hover:scale-110 transition-transform duration-300">
-                            <Clock className="h-4 w-4" />
+                {/* Pending Amount */}
+                <div className="relative overflow-hidden bg-white/[0.03] backdrop-blur-sm rounded-2xl border border-white/[0.06] p-6 hover:border-yellow-500/20 transition-all group">
+                    <div className="absolute -bottom-4 -right-4 w-20 h-20 bg-yellow-500/5 rounded-full blur-2xl group-hover:bg-yellow-500/10 transition-colors duration-500" />
+                    <div className="relative">
+                        <div className="flex items-center justify-between mb-3">
+                            <span className="text-[10px] font-black text-mist uppercase tracking-widest">En attente</span>
+                            <div className="relative">
+                                <div className="p-2 rounded-xl bg-yellow-500/10 text-yellow-500 group-hover:scale-110 transition-transform duration-300">
+                                    <Clock className="h-4 w-4" />
+                                </div>
+                                {pendingCount > 0 && (
+                                    <span className="absolute -top-1 -right-1 h-3 w-3 bg-yellow-500 rounded-full animate-pulse" />
+                                )}
+                            </div>
                         </div>
-                    </div>
-                    <p className="text-3xl font-black text-yellow-500 tracking-tight">{totalPending.toLocaleString()} <span className="text-base font-semibold text-mist">FCFA</span></p>
-                    <div className="flex items-center gap-1.5 mt-2">
-                        <div className="h-1.5 w-1.5 rounded-full bg-yellow-500 animate-pulse" />
-                        <p className="text-xs text-mist font-medium">À encaisser</p>
+                        <p className="text-2xl font-black text-yellow-500 tracking-tight">{totalPending.toLocaleString()}<span className="text-sm font-semibold text-mist ml-1">FCFA</span></p>
+                        <p className="text-[10px] text-mist mt-1">À encaisser</p>
                     </div>
                 </div>
 
-                <div className="bg-white/[0.03] backdrop-blur-sm rounded-2xl border border-white/[0.06] p-6 hover:border-white/[0.12] transition-all group">
-                    <div className="flex items-center justify-between mb-4">
-                        <span className="text-xs font-semibold text-mist uppercase tracking-wide">Payé</span>
-                        <div className="p-2.5 rounded-xl bg-green-500/10 text-green-500 group-hover:scale-110 transition-transform duration-300">
-                            <CheckCircle className="h-4 w-4" />
+                {/* Paid Amount */}
+                <div className="relative overflow-hidden bg-white/[0.03] backdrop-blur-sm rounded-2xl border border-white/[0.06] p-6 hover:border-green-500/20 transition-all group">
+                    <div className="absolute -top-4 -left-4 w-20 h-20 bg-green-500/5 rounded-full blur-2xl group-hover:bg-green-500/10 transition-colors duration-500" />
+                    <div className="relative">
+                        <div className="flex items-center justify-between mb-3">
+                            <span className="text-[10px] font-black text-mist uppercase tracking-widest">Payé</span>
+                            <div className="p-2 rounded-xl bg-green-500/10 text-green-500 group-hover:scale-110 transition-transform duration-300">
+                                <CheckCircle className="h-4 w-4" />
+                            </div>
                         </div>
+                        <p className="text-2xl font-black text-green-500 tracking-tight">{totalPaid.toLocaleString()}<span className="text-sm font-semibold text-mist ml-1">FCFA</span></p>
+                        <p className="text-[10px] text-mist mt-1">Revenus encaissés</p>
                     </div>
-                    <p className="text-3xl font-black text-green-500 tracking-tight">{totalPaid.toLocaleString()} <span className="text-base font-semibold text-mist">FCFA</span></p>
-                    <div className="flex items-center gap-1.5 mt-2">
-                        <div className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
-                        <p className="text-xs text-mist font-medium">Revenus encaissés</p>
+                </div>
+
+                {/* Collection Rate */}
+                <div className="relative overflow-hidden bg-gradient-to-br from-purple-500/10 via-purple-500/5 to-transparent rounded-2xl border border-purple-500/20 p-6 group hover:border-purple-500/40 transition-all">
+                    <div className="absolute top-3 right-3 w-16 h-16 bg-purple-500/10 rounded-full blur-xl" />
+                    <div className="relative">
+                        <div className="flex items-center justify-between mb-3">
+                            <span className="text-[10px] font-black text-mist uppercase tracking-widest">Taux encaissement</span>
+                            <Wallet className="h-4 w-4 text-purple-400 group-hover:scale-125 transition-transform" />
+                        </div>
+                        <p className="text-3xl font-black text-purple-400 tracking-tight">
+                            {totalAmount > 0 ? Math.round((totalPaid / totalAmount) * 100) : 0}%
+                        </p>
+                        <div className="h-1.5 bg-white/[0.06] rounded-full overflow-hidden mt-3">
+                            <div
+                                className="h-full bg-gradient-to-r from-purple-500 to-signal rounded-full transition-all duration-1000"
+                                style={{ width: `${totalAmount > 0 ? (totalPaid / totalAmount) * 100 : 0}%` }}
+                            />
+                        </div>
                     </div>
                 </div>
             </div>
 
-            {/* Invoice Table — Finexy "Recent Activities" inspired */}
+            {/* Invoice Table */}
             <div className="bg-white/[0.03] backdrop-blur-sm rounded-2xl border border-white/[0.06] overflow-hidden">
                 {/* Search & Filter Bar */}
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 p-5 border-b border-white/[0.06]">
@@ -324,21 +379,24 @@ export default function InvoicesPage() {
                             className="w-full pl-10 pr-4 py-2.5 bg-white/[0.05] border border-white/[0.08] rounded-xl text-snow text-sm placeholder:text-mist/60 focus:outline-none focus:border-signal/30 focus:ring-1 focus:ring-signal/20 transition-all"
                         />
                     </div>
-                    <div className="flex items-center gap-2">
-                        <SlidersHorizontal className="h-4 w-4 text-mist shrink-0" />
-                        <select
-                            value={statusFilter}
-                            onChange={(e) => setStatusFilter(e.target.value)}
-                            className="bg-white/[0.05] border border-white/[0.08] rounded-xl text-snow text-sm px-3 py-2.5 focus:outline-none focus:border-signal/30 transition-all appearance-none cursor-pointer pr-8"
-                            style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23a0a0a0' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10l-5 5z'/%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 10px center' }}
-                        >
-                            <option value="ALL">Tous les statuts</option>
-                            <option value="PENDING">En attente</option>
-                            <option value="PAID">Payée</option>
-                            <option value="FAILED">Échouée</option>
-                            <option value="REFUNDED">Remboursée</option>
-                            <option value="OVERDUE">En retard</option>
-                        </select>
+                    {/* Pill filter buttons */}
+                    <div className="flex items-center gap-2 flex-wrap">
+                        {[
+                            { value: "ALL", label: "Toutes", count: invoices.length },
+                            { value: "PENDING", label: "En attente", count: pendingCount },
+                            { value: "PAID", label: "Payées", count: paidCount },
+                        ].map(f => (
+                            <button
+                                key={f.value}
+                                onClick={() => setStatusFilter(f.value)}
+                                className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider border transition-all ${statusFilter === f.value
+                                        ? 'bg-signal/10 border-signal/30 text-signal'
+                                        : 'bg-white/[0.03] border-white/[0.06] text-mist hover:border-white/[0.12]'
+                                    }`}
+                            >
+                                {f.label} <span className="ml-1 opacity-60">{f.count}</span>
+                            </button>
+                        ))}
                     </div>
                 </div>
 
@@ -347,7 +405,6 @@ export default function InvoicesPage() {
                     <table className="w-full text-sm text-left">
                         <thead className="bg-white/[0.03] text-mist text-xs font-semibold uppercase tracking-wider border-b border-white/[0.06]">
                             <tr>
-                                <th className="px-5 py-4">N° Facture</th>
                                 <th className="px-5 py-4">Formation</th>
                                 <th className="px-5 py-4">Montant</th>
                                 <th className="px-5 py-4">Statut</th>
@@ -358,7 +415,7 @@ export default function InvoicesPage() {
                         <tbody className="divide-y divide-white/[0.04]">
                             {filteredInvoices.length === 0 ? (
                                 <tr>
-                                    <td colSpan={6} className="px-5 py-12 text-center text-mist">
+                                    <td colSpan={5} className="px-5 py-12 text-center text-mist">
                                         Aucun résultat pour cette recherche.
                                     </td>
                                 </tr>
@@ -371,21 +428,22 @@ export default function InvoicesPage() {
                                     return (
                                         <tr key={invoice.id} className="hover:bg-white/[0.03] transition-colors group">
                                             <td className="px-5 py-4">
-                                                <span className="font-mono text-xs text-mist/80">#{invoice.id.slice(0, 8)}</span>
-                                            </td>
-                                            <td className="px-5 py-4">
                                                 <div className="flex items-center gap-3">
-                                                    <div className="h-9 w-9 rounded-xl bg-signal/10 flex items-center justify-center shrink-0">
+                                                    <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-signal/20 to-signal/5 border border-signal/15 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300">
                                                         <FileText className="h-4 w-4 text-signal" />
                                                     </div>
                                                     <div>
                                                         <div className="font-medium text-snow">{invoice.booking?.schoolName || "Auto-école"}</div>
-                                                        <div className="text-xs text-mist">{invoice.booking?.offerName || "Formation"}</div>
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="text-[11px] text-mist">{invoice.booking?.offerName || "Formation"}</span>
+                                                            <span className="font-mono text-[9px] text-mist/40">#{invoice.id.slice(0, 8)}</span>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </td>
                                             <td className="px-5 py-4">
-                                                <span className="font-semibold text-signal">{invoice.amount.toLocaleString()} FCFA</span>
+                                                <span className="font-bold text-signal text-base">{invoice.amount.toLocaleString()}</span>
+                                                <span className="text-[10px] text-mist ml-1">FCFA</span>
                                             </td>
                                             <td className="px-5 py-4">
                                                 <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold border ${statusConfig?.className || 'bg-white/10 text-mist border-white/10'}`}>
@@ -398,7 +456,8 @@ export default function InvoicesPage() {
                                                     {formatDate(invoice.createdAt)}
                                                 </div>
                                                 {invoice.paidAt && (
-                                                    <div className="text-[10px] text-green-400 mt-0.5">
+                                                    <div className="text-[10px] text-green-400 mt-0.5 flex items-center gap-1">
+                                                        <CheckCircle className="h-2.5 w-2.5" />
                                                         Payée {formatDate(invoice.paidAt)}
                                                     </div>
                                                 )}
