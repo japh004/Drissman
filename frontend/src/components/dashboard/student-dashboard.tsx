@@ -75,7 +75,7 @@ export function StudentDashboard() {
                         </div>
 
                         {/* Points badge */}
-                        <Link href="/dashboard/rewards" className="group bg-white/[0.06] backdrop-blur-md rounded-2xl px-6 py-4 border border-white/[0.08] hover:border-purple-500/30 transition-all">
+                        <Link href="/dashboard/rewards" className="group bg-white/[0.10] backdrop-blur-md rounded-2xl px-6 py-4 border border-white/[0.14] hover:border-purple-500/30 transition-all">
                             <div className="flex items-center gap-3">
                                 <div className="h-10 w-10 rounded-xl bg-purple-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
                                     <Gift className="h-5 w-5 text-purple-400" />
@@ -94,7 +94,7 @@ export function StudentDashboard() {
             {/* ═══ Formation Progress — SVG Ring Cards ═══ */}
             <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
                 {/* Code de la Route — with SVG ring */}
-                <div className="bg-white/[0.03] backdrop-blur-md rounded-2xl border border-white/[0.06] p-6 group hover:border-signal/20 transition-all duration-500 relative overflow-hidden">
+                <div className="bg-white/[0.07] backdrop-blur-md rounded-2xl border border-white/[0.12] p-6 group hover:border-signal/20 transition-all duration-500 relative overflow-hidden">
                     <div className="absolute -bottom-6 -right-6 w-32 h-32 bg-signal/5 rounded-full blur-2xl group-hover:bg-signal/10 transition-colors duration-500" />
                     <div className="relative flex items-start justify-between">
                         <div className="flex-1">
@@ -116,7 +116,7 @@ export function StudentDashboard() {
                 </div>
 
                 {/* Conduite — with SVG ring */}
-                <div className="bg-white/[0.03] backdrop-blur-md rounded-2xl border border-white/[0.06] p-6 group hover:border-blue-500/20 transition-all duration-500 relative overflow-hidden">
+                <div className="bg-white/[0.07] backdrop-blur-md rounded-2xl border border-white/[0.12] p-6 group hover:border-blue-500/20 transition-all duration-500 relative overflow-hidden">
                     <div className="absolute -bottom-6 -right-6 w-32 h-32 bg-blue-500/5 rounded-full blur-2xl group-hover:bg-blue-500/10 transition-colors duration-500" />
                     <div className="relative flex items-start justify-between">
                         <div className="flex-1">
@@ -159,7 +159,7 @@ export function StudentDashboard() {
             </div>
 
             {/* ═══ Formation Journey — Visual Timeline ═══ */}
-            <div className="bg-white/[0.03] backdrop-blur-md rounded-2xl border border-white/[0.06] p-7">
+            <div className="bg-white/[0.07] backdrop-blur-md rounded-2xl border border-white/[0.12] p-7">
                 <div className="flex items-center justify-between mb-6">
                     <div>
                         <h3 className="text-base font-black text-snow uppercase tracking-wider">Parcours Formation</h3>
@@ -173,7 +173,7 @@ export function StudentDashboard() {
                 {/* Visual journey steps */}
                 <div className="relative">
                     {/* Connection line */}
-                    <div className="absolute top-5 left-0 right-0 h-1 bg-white/[0.06] rounded-full" />
+                    <div className="absolute top-5 left-0 right-0 h-1 bg-white/[0.10] rounded-full" />
                     <div
                         className="absolute top-5 left-0 h-1 bg-gradient-to-r from-signal via-blue-500 to-emerald-500 rounded-full transition-all duration-1000"
                         style={{ width: `${(completedMilestones / milestones.length) * 100}%` }}
@@ -184,7 +184,7 @@ export function StudentDashboard() {
                             <div key={i} className="flex flex-col items-center gap-2 relative" style={{ width: `${100 / milestones.length}%` }}>
                                 <div className={`h-10 w-10 rounded-xl flex items-center justify-center transition-all duration-500 ${milestone.done
                                         ? 'bg-signal/20 border-2 border-signal text-signal shadow-lg shadow-signal/10'
-                                        : 'bg-white/[0.06] border-2 border-white/[0.1] text-mist/40'
+                                        : 'bg-white/[0.10] border-2 border-white/[0.1] text-mist/40'
                                     }`}>
                                     <milestone.icon className="h-4 w-4" />
                                 </div>
@@ -201,7 +201,7 @@ export function StudentDashboard() {
             {/* ═══ Two Column Layout ═══ */}
             <div className="grid gap-6 lg:grid-cols-3">
                 {/* Recent Bookings (2/3) */}
-                <div className="lg:col-span-2 bg-white/[0.03] backdrop-blur-md rounded-2xl border border-white/[0.06] p-7">
+                <div className="lg:col-span-2 bg-white/[0.07] backdrop-blur-md rounded-2xl border border-white/[0.12] p-7">
                     <div className="flex items-center justify-between mb-6">
                         <h3 className="text-base font-black text-snow uppercase tracking-wider">Mes Inscriptions</h3>
                         <Link href="/dashboard/bookings" className="text-[10px] text-signal font-black uppercase tracking-widest hover:underline flex items-center gap-1">
@@ -219,7 +219,7 @@ export function StudentDashboard() {
                     ) : bookings.length > 0 ? (
                         <div className="space-y-3">
                             {bookings.slice(0, 3).map((booking, i) => (
-                                <div key={booking.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-2xl bg-white/[0.03] border border-white/[0.05] hover:border-signal/15 transition-all group/booking">
+                                <div key={booking.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-2xl bg-white/[0.07] border border-white/[0.10] hover:border-signal/15 transition-all group/booking">
                                     <div className="flex items-center gap-4">
                                         <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-signal/20 to-signal/5 border border-signal/20 flex items-center justify-center text-signal group-hover/booking:scale-110 transition-transform">
                                             <Calendar className="h-5 w-5" />
@@ -247,7 +247,7 @@ export function StudentDashboard() {
                             ))}
                         </div>
                     ) : (
-                        <div className="text-center py-12 bg-white/[0.03] rounded-2xl border border-dashed border-white/[0.08]">
+                        <div className="text-center py-12 bg-white/[0.07] rounded-2xl border border-dashed border-white/[0.14]">
                             <Calendar className="h-10 w-10 text-mist/20 mx-auto mb-3" />
                             <p className="text-mist mb-4">Vous n&apos;avez pas encore d&apos;inscription.</p>
                             <Link href="/search" className="text-signal font-bold hover:underline text-sm">
@@ -279,13 +279,13 @@ export function StudentDashboard() {
                     </div>
 
                     {/* Latest Announcements */}
-                    <div className="bg-white/[0.03] backdrop-blur-md rounded-2xl border border-white/[0.06] p-6">
+                    <div className="bg-white/[0.07] backdrop-blur-md rounded-2xl border border-white/[0.12] p-6">
                         <div className="flex items-center gap-2 mb-4">
                             <Megaphone className="h-4 w-4 text-signal" />
                             <h4 className="font-black text-snow text-sm">Annonces</h4>
                         </div>
                         <div className="space-y-3">
-                            <div className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.04] hover:border-white/[0.1] transition-colors">
+                            <div className="p-3 rounded-xl bg-white/[0.07] border border-white/[0.14] hover:border-white/[0.1] transition-colors">
                                 <div className="flex items-start gap-2">
                                     <div className="mt-0.5 h-2 w-2 rounded-full bg-green-400 shrink-0" />
                                     <div>

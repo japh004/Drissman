@@ -116,7 +116,7 @@ export default function CTAVariant() {
                     {/* Right: Visual Card (Stats Grid preserved) */}
                     <div className="hidden lg:block relative">
                         {/* More transparent glass effect to show background texture subtly */}
-                        <div className="relative bg-white/[0.03] backdrop-blur-md border border-white/10 rounded-3xl p-8 shadow-2xl">
+                        <div className="relative bg-white/[0.07] backdrop-blur-md border border-white/10 rounded-3xl p-8 shadow-2xl">
                             {/* Decorative badge */}
                             <div className="absolute -top-4 -right-4 bg-signal text-asphalt text-xs font-bold px-4 py-2 rounded-full shadow-lg">
                                 +10 000 utilisateurs

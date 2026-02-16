@@ -112,7 +112,7 @@ function BookingsList({ bookings, loading, error, isSchoolAdmin, updateStatus }:
             {/* ═══ KPI Cards — with visual mini-elements ═══ */}
             <div className="grid gap-4 md:grid-cols-4">
                 {/* Total — with mini bar breakdown */}
-                <div className="relative overflow-hidden bg-white/[0.03] backdrop-blur-sm rounded-2xl border border-white/[0.06] p-6 hover:border-signal/20 transition-all group">
+                <div className="relative overflow-hidden bg-white/[0.07] backdrop-blur-sm rounded-2xl border border-white/[0.12] p-6 hover:border-signal/20 transition-all group">
                     <div className="absolute -top-4 -right-4 w-20 h-20 bg-signal/5 rounded-full blur-2xl group-hover:bg-signal/10 transition-colors duration-500" />
                     <div className="relative">
                         <div className="flex items-center justify-between mb-3">
@@ -142,7 +142,7 @@ function BookingsList({ bookings, loading, error, isSchoolAdmin, updateStatus }:
                 </div>
 
                 {/* Pending — with pulsing ring */}
-                <div className="relative overflow-hidden bg-white/[0.03] backdrop-blur-sm rounded-2xl border border-white/[0.06] p-6 hover:border-yellow-500/20 transition-all group">
+                <div className="relative overflow-hidden bg-white/[0.07] backdrop-blur-sm rounded-2xl border border-white/[0.12] p-6 hover:border-yellow-500/20 transition-all group">
                     <div className="absolute -bottom-4 -right-4 w-20 h-20 bg-yellow-500/5 rounded-full blur-2xl group-hover:bg-yellow-500/10 transition-colors duration-500" />
                     <div className="relative">
                         <div className="flex items-center justify-between mb-3">
@@ -168,7 +168,7 @@ function BookingsList({ bookings, loading, error, isSchoolAdmin, updateStatus }:
                 </div>
 
                 {/* Active — with check ring */}
-                <div className="relative overflow-hidden bg-white/[0.03] backdrop-blur-sm rounded-2xl border border-white/[0.06] p-6 hover:border-green-500/20 transition-all group">
+                <div className="relative overflow-hidden bg-white/[0.07] backdrop-blur-sm rounded-2xl border border-white/[0.12] p-6 hover:border-green-500/20 transition-all group">
                     <div className="absolute -top-4 -left-4 w-20 h-20 bg-green-500/5 rounded-full blur-2xl group-hover:bg-green-500/10 transition-colors duration-500" />
                     <div className="relative">
                         <div className="flex items-center justify-between mb-3">
@@ -204,7 +204,7 @@ function BookingsList({ bookings, loading, error, isSchoolAdmin, updateStatus }:
                                     {totalCount > 0 ? Math.round((activeCount / totalCount) * 100) : 0}%
                                 </p>
                                 {/* Mini conversion gauge */}
-                                <div className="h-1.5 bg-white/[0.06] rounded-full overflow-hidden mt-3">
+                                <div className="h-1.5 bg-white/[0.10] rounded-full overflow-hidden mt-3">
                                     <div
                                         className="h-full bg-gradient-to-r from-purple-500 to-signal rounded-full transition-all duration-1000"
                                         style={{ width: `${totalCount > 0 ? (activeCount / totalCount) * 100 : 0}%` }}
@@ -234,7 +234,7 @@ function BookingsList({ bookings, loading, error, isSchoolAdmin, updateStatus }:
             )}
 
             {!loading && !error && bookings.length === 0 && (
-                <div className="text-center py-20 bg-white/[0.03] rounded-2xl border border-dashed border-white/[0.08]">
+                <div className="text-center py-20 bg-white/[0.07] rounded-2xl border border-dashed border-white/[0.14]">
                     <div className="h-16 w-16 mx-auto mb-4 rounded-2xl bg-signal/10 flex items-center justify-center">
                         <Calendar className="h-8 w-8 text-signal" />
                     </div>
@@ -251,9 +251,9 @@ function BookingsList({ bookings, loading, error, isSchoolAdmin, updateStatus }:
             )}
 
             {!loading && !error && bookings.length > 0 && (
-                <div className="bg-white/[0.03] backdrop-blur-sm rounded-2xl border border-white/[0.06] overflow-hidden">
+                <div className="bg-white/[0.07] backdrop-blur-sm rounded-2xl border border-white/[0.12] overflow-hidden">
                     {/* Search & Filter Bar */}
-                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 p-5 border-b border-white/[0.06]">
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 p-5 border-b border-white/[0.12]">
                         <div className="relative flex-1">
                             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-mist" />
                             <input
@@ -261,7 +261,7 @@ function BookingsList({ bookings, loading, error, isSchoolAdmin, updateStatus }:
                                 placeholder="Rechercher par ID, offre, nom..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full pl-10 pr-4 py-2.5 bg-white/[0.05] border border-white/[0.08] rounded-xl text-snow text-sm placeholder:text-mist/60 focus:outline-none focus:border-signal/30 focus:ring-1 focus:ring-signal/20 transition-all"
+                                className="w-full pl-10 pr-4 py-2.5 bg-white/[0.08] border border-white/[0.14] rounded-xl text-snow text-sm placeholder:text-mist/60 focus:outline-none focus:border-signal/30 focus:ring-1 focus:ring-signal/20 transition-all"
                             />
                         </div>
                         {/* Quick filter pills */}
@@ -276,7 +276,7 @@ function BookingsList({ bookings, loading, error, isSchoolAdmin, updateStatus }:
                                     onClick={() => setStatusFilter(f.value)}
                                     className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider border transition-all ${statusFilter === f.value
                                             ? 'bg-signal/10 border-signal/30 text-signal'
-                                            : 'bg-white/[0.03] border-white/[0.06] text-mist hover:border-white/[0.12]'
+                                            : 'bg-white/[0.07] border-white/[0.12] text-mist hover:border-white/[0.20]'
                                         }`}
                                 >
                                     {f.label} <span className="ml-1 opacity-60">{f.count}</span>
@@ -288,7 +288,7 @@ function BookingsList({ bookings, loading, error, isSchoolAdmin, updateStatus }:
                     {/* Data Table */}
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm text-left">
-                            <thead className="bg-white/[0.03] text-mist text-xs font-semibold uppercase tracking-wider border-b border-white/[0.06]">
+                            <thead className="bg-white/[0.07] text-mist text-xs font-semibold uppercase tracking-wider border-b border-white/[0.12]">
                                 <tr>
                                     <th className="px-5 py-4">Inscription</th>
                                     {isSchoolAdmin && <th className="px-5 py-4">Candidat</th>}
@@ -298,7 +298,7 @@ function BookingsList({ bookings, loading, error, isSchoolAdmin, updateStatus }:
                                     <th className="px-5 py-4 text-right">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-white/[0.04]">
+                            <tbody className="divide-y divide-white/[0.08]">
                                 {filteredBookings.length === 0 ? (
                                     <tr>
                                         <td colSpan={isSchoolAdmin ? 6 : 5} className="px-5 py-12 text-center text-mist">
@@ -307,7 +307,7 @@ function BookingsList({ bookings, loading, error, isSchoolAdmin, updateStatus }:
                                     </tr>
                                 ) : (
                                     filteredBookings.map((booking) => (
-                                        <tr key={booking.id} className="hover:bg-white/[0.03] transition-colors group">
+                                        <tr key={booking.id} className="hover:bg-white/[0.07] transition-colors group">
                                             <td className="px-5 py-4">
                                                 <div className="flex items-center gap-3">
                                                     <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-signal/20 to-signal/5 border border-signal/15 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300">
@@ -322,7 +322,7 @@ function BookingsList({ bookings, loading, error, isSchoolAdmin, updateStatus }:
                                             {isSchoolAdmin && (
                                                 <td className="px-5 py-4">
                                                     <div className="flex items-center gap-2">
-                                                        <div className="h-7 w-7 rounded-lg bg-white/[0.06] flex items-center justify-center text-[10px] text-mist font-black">
+                                                        <div className="h-7 w-7 rounded-lg bg-white/[0.10] flex items-center justify-center text-[10px] text-mist font-black">
                                                             {(booking.userName || '?')[0].toUpperCase()}
                                                         </div>
                                                         <span className="text-mist text-sm">{booking.userName || '—'}</span>
@@ -369,7 +369,7 @@ function BookingsList({ bookings, loading, error, isSchoolAdmin, updateStatus }:
                     </div>
 
                     {/* Footer count */}
-                    <div className="px-5 py-3 border-t border-white/[0.06] flex items-center justify-between text-xs text-mist">
+                    <div className="px-5 py-3 border-t border-white/[0.12] flex items-center justify-between text-xs text-mist">
                         <span>{filteredBookings.length} inscription{filteredBookings.length > 1 ? 's' : ''} affichée{filteredBookings.length > 1 ? 's' : ''}</span>
                         {searchTerm || statusFilter !== "ALL" ? (
                             <button

@@ -219,7 +219,7 @@ export default function OffersPage() {
                     {offers.map((offer) => (
                         <div
                             key={offer.id}
-                            className="bg-white/[0.03] backdrop-blur-md border border-white/5 rounded-[2rem] p-6 hover:border-signal/30 transition-all duration-500 group flex flex-col"
+                            className="bg-white/[0.07] backdrop-blur-md border border-white/5 rounded-[2rem] p-6 hover:border-signal/30 transition-all duration-500 group flex flex-col"
                         >
                             <div className="flex items-start justify-between mb-4">
                                 <div className="p-3 rounded-2xl bg-white/5 text-signal group-hover:scale-110 transition-transform duration-500 overflow-hidden relative w-12 h-12 flex items-center justify-center">

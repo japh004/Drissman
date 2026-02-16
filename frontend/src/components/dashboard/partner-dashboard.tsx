@@ -94,12 +94,12 @@ export function PartnerDashboard({ user }: PartnerDashboardProps) {
 
                     {/* Mini live stats inline */}
                     <div className="flex gap-3">
-                        <div className="bg-white/[0.06] backdrop-blur-md rounded-2xl px-5 py-3 border border-white/[0.08]">
+                        <div className="bg-white/[0.10] backdrop-blur-md rounded-2xl px-5 py-3 border border-white/[0.14]">
                             <div className="text-[10px] text-mist font-semibold uppercase tracking-wider">Aujourd'hui</div>
                             <div className="text-2xl font-black text-snow">{todaySessions.length}</div>
                             <div className="text-[10px] text-mist">cours</div>
                         </div>
-                        <div className="bg-white/[0.06] backdrop-blur-md rounded-2xl px-5 py-3 border border-white/[0.08]">
+                        <div className="bg-white/[0.10] backdrop-blur-md rounded-2xl px-5 py-3 border border-white/[0.14]">
                             <div className="text-[10px] text-mist font-semibold uppercase tracking-wider">En attente</div>
                             <div className="text-2xl font-black text-yellow-400">{pendingEnrollments.length}</div>
                             <div className="text-[10px] text-mist">inscriptions</div>
@@ -111,7 +111,7 @@ export function PartnerDashboard({ user }: PartnerDashboardProps) {
             {/* ═══ KPI Cards Row with Visual Elements ═══ */}
             <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
                 {/* Revenue Card — with sparkline bars */}
-                <div className="relative overflow-hidden bg-white/[0.03] backdrop-blur-md rounded-2xl border border-white/[0.06] p-6 group hover:border-signal/20 transition-all duration-500">
+                <div className="relative overflow-hidden bg-white/[0.07] backdrop-blur-md rounded-2xl border border-white/[0.12] p-6 group hover:border-signal/20 transition-all duration-500">
                     <div className="absolute -top-4 -right-4 w-24 h-24 bg-signal/5 rounded-full blur-2xl group-hover:bg-signal/10 transition-colors duration-500" />
                     <div className="relative">
                         <div className="flex items-center justify-between mb-3">
@@ -139,7 +139,7 @@ export function PartnerDashboard({ user }: PartnerDashboardProps) {
                 </div>
 
                 {/* Enrollments Card — with circular mini-gauge */}
-                <div className="relative overflow-hidden bg-white/[0.03] backdrop-blur-md rounded-2xl border border-white/[0.06] p-6 group hover:border-blue-500/20 transition-all duration-500">
+                <div className="relative overflow-hidden bg-white/[0.07] backdrop-blur-md rounded-2xl border border-white/[0.12] p-6 group hover:border-blue-500/20 transition-all duration-500">
                     <div className="absolute -bottom-4 -right-4 w-24 h-24 bg-blue-500/5 rounded-full blur-2xl group-hover:bg-blue-500/10 transition-colors duration-500" />
                     <div className="relative">
                         <div className="flex items-center justify-between mb-3">
@@ -167,7 +167,7 @@ export function PartnerDashboard({ user }: PartnerDashboardProps) {
                 </div>
 
                 {/* Success Rate — with visual gauge arc */}
-                <div className="relative overflow-hidden bg-white/[0.03] backdrop-blur-md rounded-2xl border border-white/[0.06] p-6 group hover:border-emerald-500/20 transition-all duration-500">
+                <div className="relative overflow-hidden bg-white/[0.07] backdrop-blur-md rounded-2xl border border-white/[0.12] p-6 group hover:border-emerald-500/20 transition-all duration-500">
                     <div className="absolute -top-4 -left-4 w-24 h-24 bg-emerald-500/5 rounded-full blur-2xl group-hover:bg-emerald-500/10 transition-colors duration-500" />
                     <div className="relative">
                         <div className="flex items-center justify-between mb-3">
@@ -210,7 +210,7 @@ export function PartnerDashboard({ user }: PartnerDashboardProps) {
             {/* ═══ Two-Column: Recent Enrollments + Today Schedule ═══ */}
             <div className="grid gap-6 lg:grid-cols-2">
                 {/* Recent Enrollments — with visual timeline */}
-                <div className="bg-white/[0.03] backdrop-blur-md rounded-2xl border border-white/[0.06] p-7">
+                <div className="bg-white/[0.07] backdrop-blur-md rounded-2xl border border-white/[0.12] p-7">
                     <div className="flex items-center justify-between mb-6">
                         <h3 className="text-base font-black text-snow uppercase tracking-wider">Dernières Inscriptions</h3>
                         <Link href="/dashboard/bookings" className="text-[10px] font-black text-signal uppercase tracking-widest hover:underline flex items-center gap-1">
@@ -224,7 +224,7 @@ export function PartnerDashboard({ user }: PartnerDashboardProps) {
                         )}
                         <div className="space-y-1">
                             {enrollments.length > 0 ? enrollments.slice(0, 4).map((item, i) => (
-                                <div key={item.id} className="flex gap-4 p-3 rounded-2xl hover:bg-white/[0.04] transition-all group/item relative">
+                                <div key={item.id} className="flex gap-4 p-3 rounded-2xl hover:bg-white/[0.08] transition-all group/item relative">
                                     {/* Timeline dot */}
                                     <div className="relative z-10 mt-1">
                                         <div className={`h-[14px] w-[14px] rounded-full border-2 flex items-center justify-center ${item.status === 'PENDING'
@@ -250,7 +250,7 @@ export function PartnerDashboard({ user }: PartnerDashboardProps) {
                                     </div>
                                 </div>
                             )) : (
-                                <div className="text-center py-10 bg-white/[0.03] rounded-2xl border border-dashed border-white/[0.06]">
+                                <div className="text-center py-10 bg-white/[0.07] rounded-2xl border border-dashed border-white/[0.12]">
                                     <Users className="h-8 w-8 text-mist/30 mx-auto mb-2" />
                                     <p className="text-xs text-mist font-bold uppercase tracking-widest">Aucune inscription</p>
                                 </div>
@@ -260,7 +260,7 @@ export function PartnerDashboard({ user }: PartnerDashboardProps) {
                 </div>
 
                 {/* Today's Schedule — with visual cards */}
-                <div className="bg-white/[0.03] backdrop-blur-md rounded-2xl border border-white/[0.06] p-7">
+                <div className="bg-white/[0.07] backdrop-blur-md rounded-2xl border border-white/[0.12] p-7">
                     <div className="flex items-center justify-between mb-6">
                         <div className="flex items-center gap-3">
                             <h3 className="text-base font-black text-snow uppercase tracking-wider">Planning du jour</h3>
@@ -275,7 +275,7 @@ export function PartnerDashboard({ user }: PartnerDashboardProps) {
                     <div className="space-y-3">
                         {todaySessions.length > 0 ? (
                             todaySessions.slice(0, 4).map((item, i) => (
-                                <div key={item.id} className="flex gap-4 items-center p-4 rounded-2xl bg-white/[0.03] border border-white/[0.06] hover:border-signal/20 transition-all group/session">
+                                <div key={item.id} className="flex gap-4 items-center p-4 rounded-2xl bg-white/[0.07] border border-white/[0.12] hover:border-signal/20 transition-all group/session">
                                     {/* Time block visual */}
                                     <div className="bg-signal/10 border border-signal/20 rounded-xl px-3 py-2.5 text-center min-w-[72px] group-hover/session:bg-signal/20 transition-colors">
                                         <div className="text-signal font-black text-sm leading-tight">{item.startTime}</div>
@@ -307,7 +307,7 @@ export function PartnerDashboard({ user }: PartnerDashboardProps) {
                                 </div>
                             ))
                         ) : (
-                            <div className="text-center py-10 bg-white/[0.03] rounded-2xl border border-dashed border-white/[0.06]">
+                            <div className="text-center py-10 bg-white/[0.07] rounded-2xl border border-dashed border-white/[0.12]">
                                 <Calendar className="h-8 w-8 text-mist/30 mx-auto mb-2" />
                                 <p className="text-xs text-mist font-bold uppercase tracking-widest">Aucun cours aujourd'hui</p>
                                 <Link href="/dashboard/planning" className="text-signal text-xs font-bold mt-2 inline-block hover:underline">Planifier un cours →</Link>
@@ -320,7 +320,7 @@ export function PartnerDashboard({ user }: PartnerDashboardProps) {
             {/* ═══ Activity Feed + Revenue Visual ═══ */}
             <div className="grid gap-6 lg:grid-cols-3">
                 {/* Revenue bar chart visual (2/3) */}
-                <div className="lg:col-span-2 bg-white/[0.03] backdrop-blur-md rounded-2xl border border-white/[0.06] p-7">
+                <div className="lg:col-span-2 bg-white/[0.07] backdrop-blur-md rounded-2xl border border-white/[0.12] p-7">
                     <div className="flex items-center justify-between mb-6">
                         <div>
                             <h3 className="text-base font-black text-snow uppercase tracking-wider">Progression Mensuelle</h3>
@@ -371,7 +371,7 @@ export function PartnerDashboard({ user }: PartnerDashboardProps) {
                         </div>
                         <div className="relative pt-2">
                             {/* Animated progress bar */}
-                            <div className="h-3 bg-white/[0.06] rounded-full overflow-hidden">
+                            <div className="h-3 bg-white/[0.10] rounded-full overflow-hidden">
                                 <div
                                     className="h-full bg-gradient-to-r from-purple-500 to-signal rounded-full transition-all duration-1000 relative"
                                     style={{ width: '78%' }}
@@ -388,10 +388,10 @@ export function PartnerDashboard({ user }: PartnerDashboardProps) {
                     </div>
 
                     {/* Annonces */}
-                    <div className="bg-white/[0.03] backdrop-blur-md rounded-2xl border border-white/[0.06] p-6">
+                    <div className="bg-white/[0.07] backdrop-blur-md rounded-2xl border border-white/[0.12] p-6">
                         <h3 className="text-sm font-black text-snow uppercase tracking-wider mb-4">Annonces</h3>
                         <div className="space-y-3">
-                            <div className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.04] hover:border-signal/10 transition-colors">
+                            <div className="p-3 rounded-xl bg-white/[0.07] border border-white/[0.14] hover:border-signal/10 transition-colors">
                                 <div className="flex items-start gap-2">
                                     <div className="mt-0.5 h-2 w-2 rounded-full bg-green-400 shrink-0" />
                                     <div>

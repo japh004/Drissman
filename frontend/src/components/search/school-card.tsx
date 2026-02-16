@@ -26,7 +26,7 @@ export function SchoolCard({ school }: SchoolCardProps) {
     };
 
     return (
-        <div className="group bg-white/[0.03] backdrop-blur-md rounded-3xl border border-white/5 hover:border-signal/40 hover:bg-white/[0.05] transition-all duration-500 overflow-hidden flex flex-col h-auto min-h-[220px] hover:shadow-[0_20px_50px_rgba(0,0,0,0.4),0_0_30px_rgba(255,193,7,0.08)]">
+        <div className="group bg-white/[0.07] backdrop-blur-md rounded-3xl border border-white/5 hover:border-signal/40 hover:bg-white/[0.08] transition-all duration-500 overflow-hidden flex flex-col h-auto min-h-[220px] hover:shadow-[0_20px_50px_rgba(0,0,0,0.4),0_0_30px_rgba(255,193,7,0.08)]">
             <div className="flex flex-col sm:flex-row h-full">
                 {/* Image Section */}
                 <div className="relative w-full sm:w-56 h-48 sm:h-auto flex-shrink-0 overflow-hidden bg-steel/20">

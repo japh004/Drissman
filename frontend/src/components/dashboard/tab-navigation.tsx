@@ -18,7 +18,7 @@ export function TabNavigation({ tabs }: TabNavigationProps) {
     const pathname = usePathname();
 
     return (
-        <div className="flex items-center gap-1 bg-white/[0.04] backdrop-blur-sm p-1.5 rounded-2xl border border-white/[0.06] mb-8 w-fit">
+        <div className="flex items-center gap-1 bg-white/[0.08] backdrop-blur-sm p-1.5 rounded-2xl border border-white/[0.12] mb-8 w-fit">
             {tabs.map((tab) => {
                 const isActive = pathname === tab.href;
                 return (
@@ -29,7 +29,7 @@ export function TabNavigation({ tabs }: TabNavigationProps) {
                             "relative px-6 py-2.5 text-sm font-semibold rounded-xl transition-all duration-300 whitespace-nowrap",
                             isActive
                                 ? "bg-signal text-asphalt shadow-lg shadow-signal/20"
-                                : "text-mist hover:text-snow hover:bg-white/[0.06]"
+                                : "text-mist hover:text-snow hover:bg-white/[0.10]"
                         )}
                     >
                         <span className="flex items-center gap-2">

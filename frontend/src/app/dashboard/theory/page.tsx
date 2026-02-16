@@ -488,7 +488,7 @@ export default function TheoryPage() {
                                                             : isCompleted
                                                                 ? 'bg-emerald-500/5 border-emerald-500/20 opacity-70'
                                                                 : `${typeConfig!.bgColor} ${typeConfig!.borderColor}`
-                                                        : 'hover:bg-white/[0.03] border-dashed border-transparent hover:border-white/10 flex items-center justify-center'
+                                                        : 'hover:bg-white/[0.07] border-dashed border-transparent hover:border-white/10 flex items-center justify-center'
                                                         }`}
                                                 >
                                                     {lesson ? (

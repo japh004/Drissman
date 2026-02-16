@@ -242,7 +242,7 @@ export default function PlanningPage() {
                                                         ? item.type === 'session'
                                                             ? STATUS_CONFIG[item.data.status]?.color || 'bg-white/5'
                                                             : 'bg-white/10 border border-white/10'
-                                                        : 'hover:bg-white/[0.03] border border-dashed border-transparent hover:border-white/10 flex items-center justify-center'
+                                                        : 'hover:bg-white/[0.07] border border-dashed border-transparent hover:border-white/10 flex items-center justify-center'
                                                         }`}
                                                 >
                                                     {item ? (

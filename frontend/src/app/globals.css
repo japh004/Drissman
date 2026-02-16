@@ -5,7 +5,7 @@
     --color-concrete: #2d2d2d;
     --color-steel: #3d3d3d;
     --color-fog: #6b6b6b;
-    --color-mist: #a0a0a0;
+    --color-mist: #b0b0b0;
     --color-snow: #f5f5f5;
     --color-signal: #ffc107;
     --color-signal-dark: #e0a800;
@@ -87,15 +87,150 @@ img {
     padding-right: 1.5rem;
 }
 
-.glass {
-    background: rgba(45, 45, 45, 0.7);
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+/* ============================================
+   VISIBILITY BOOST — Dark Mode
+   These overrides fix ultra-low opacity patterns
+   used in card backgrounds, borders, and inputs
+   ============================================ */
+
+/* Card / container backgrounds: 3%→8%, 4%→9%, 5%→10%, 6%→12% */
+[class*="bg-white\/\[0.03\]"],
+[class*="bg-white\/\[0\.03\]"] {
+    background-color: rgba(255, 255, 255, 0.08) !important;
 }
 
+[class*="bg-white\/\[0.04\]"],
+[class*="bg-white\/\[0\.04\]"] {
+    background-color: rgba(255, 255, 255, 0.09) !important;
+}
+
+[class*="bg-white\/\[0.05\]"],
+[class*="bg-white\/\[0\.05\]"] {
+    background-color: rgba(255, 255, 255, 0.10) !important;
+}
+
+[class*="bg-white\/\[0.06\]"],
+[class*="bg-white\/\[0\.06\]"] {
+    background-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+/* Border visibility: 4%→10%, 6%→14%, 8%→16% */
+[class*="border-white\/\[0.04\]"],
+[class*="border-white\/\[0\.04\]"] {
+    border-color: rgba(255, 255, 255, 0.10) !important;
+}
+
+[class*="border-white\/\[0.06\]"],
+[class*="border-white\/\[0\.06\]"] {
+    border-color: rgba(255, 255, 255, 0.14) !important;
+}
+
+[class*="border-white\/\[0.08\]"],
+[class*="border-white\/\[0\.08\]"] {
+    border-color: rgba(255, 255, 255, 0.16) !important;
+}
+
+/* Dividers: 4%→10% */
+[class*="divide-white\/\[0.04\]"]>*+*,
+[class*="divide-white\/\[0\.04\]"]>*+* {
+    border-color: rgba(255, 255, 255, 0.10) !important;
+}
+
+/* Form inputs — higher bg and border */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="search"],
+input[type="tel"],
+input[type="url"],
+input[type="number"],
+input[type="date"],
+textarea,
+select {
+    background-color: rgba(255, 255, 255, 0.10) !important;
+    border-color: rgba(255, 255, 255, 0.16) !important;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+    border-color: rgba(255, 193, 7, 0.4) !important;
+}
+
+/* Low-opacity tailwind backgrounds bg-white/5 and bg-white/10 */
+.bg-white\/5 {
+    background-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.bg-white\/10 {
+    background-color: rgba(255, 255, 255, 0.13) !important;
+}
+
+/* Low-opacity borders border-white/5 and border-white/10 */
+.border-white\/5 {
+    border-color: rgba(255, 255, 255, 0.10) !important;
+}
+
+.border-white\/10 {
+    border-color: rgba(255, 255, 255, 0.14) !important;
+}
+
+.glass {
+    background: rgba(45, 45, 45, 0.8);
+    backdrop-filter: blur(14px);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+/* ============================================
+   LIGHT MODE OVERRIDES for visibility
+   ============================================ */
 :root.light .glass {
-    background: rgba(255, 255, 255, 0.7);
-    border: 1px solid rgba(0, 0, 0, 0.1);
+    background: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+/* Light mode: bracket-fraction bg overrides */
+:root.light [class*="bg-white\/\[0.03\]"],
+:root.light [class*="bg-white\/\[0\.03\]"],
+:root.light [class*="bg-white\/\[0.04\]"],
+:root.light [class*="bg-white\/\[0\.04\]"],
+:root.light [class*="bg-white\/\[0.05\]"],
+:root.light [class*="bg-white\/\[0\.05\]"],
+:root.light [class*="bg-white\/\[0.06\]"],
+:root.light [class*="bg-white\/\[0\.06\]"] {
+    background-color: rgba(0, 0, 0, 0.04) !important;
+}
+
+/* Light mode: bracket-fraction border overrides */
+:root.light [class*="border-white\/\[0.04\]"],
+:root.light [class*="border-white\/\[0\.04\]"],
+:root.light [class*="border-white\/\[0.06\]"],
+:root.light [class*="border-white\/\[0\.06\]"],
+:root.light [class*="border-white\/\[0.08\]"],
+:root.light [class*="border-white\/\[0\.08\]"] {
+    border-color: rgba(0, 0, 0, 0.10) !important;
+}
+
+/* Light mode: form inputs */
+:root.light input[type="text"],
+:root.light input[type="email"],
+:root.light input[type="password"],
+:root.light input[type="search"],
+:root.light input[type="tel"],
+:root.light input[type="url"],
+:root.light input[type="number"],
+:root.light input[type="date"],
+:root.light textarea,
+:root.light select {
+    background-color: rgba(0, 0, 0, 0.04) !important;
+    border-color: rgba(0, 0, 0, 0.12) !important;
+    color: #1a1a1a !important;
+}
+
+/* Light mode: dividers */
+:root.light [class*="divide-white\/\[0.04\]"]>*+*,
+:root.light [class*="divide-white\/\[0\.04\]"]>*+* {
+    border-color: rgba(0, 0, 0, 0.08) !important;
 }
 
 .title-giant {

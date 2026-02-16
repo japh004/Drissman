@@ -287,7 +287,7 @@ export default function InvoicesPage() {
             {/* ═══ KPI Cards — visually rich ═══ */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 {/* Total invoices — with mini bar */}
-                <div className="relative overflow-hidden bg-white/[0.03] backdrop-blur-sm rounded-2xl border border-white/[0.06] p-6 hover:border-signal/20 transition-all group">
+                <div className="relative overflow-hidden bg-white/[0.07] backdrop-blur-sm rounded-2xl border border-white/[0.12] p-6 hover:border-signal/20 transition-all group">
                     <div className="absolute -top-4 -right-4 w-20 h-20 bg-signal/5 rounded-full blur-2xl group-hover:bg-signal/10 transition-colors duration-500" />
                     <div className="relative">
                         <div className="flex items-center justify-between mb-3">
@@ -310,7 +310,7 @@ export default function InvoicesPage() {
                 </div>
 
                 {/* Pending Amount */}
-                <div className="relative overflow-hidden bg-white/[0.03] backdrop-blur-sm rounded-2xl border border-white/[0.06] p-6 hover:border-yellow-500/20 transition-all group">
+                <div className="relative overflow-hidden bg-white/[0.07] backdrop-blur-sm rounded-2xl border border-white/[0.12] p-6 hover:border-yellow-500/20 transition-all group">
                     <div className="absolute -bottom-4 -right-4 w-20 h-20 bg-yellow-500/5 rounded-full blur-2xl group-hover:bg-yellow-500/10 transition-colors duration-500" />
                     <div className="relative">
                         <div className="flex items-center justify-between mb-3">
@@ -330,7 +330,7 @@ export default function InvoicesPage() {
                 </div>
 
                 {/* Paid Amount */}
-                <div className="relative overflow-hidden bg-white/[0.03] backdrop-blur-sm rounded-2xl border border-white/[0.06] p-6 hover:border-green-500/20 transition-all group">
+                <div className="relative overflow-hidden bg-white/[0.07] backdrop-blur-sm rounded-2xl border border-white/[0.12] p-6 hover:border-green-500/20 transition-all group">
                     <div className="absolute -top-4 -left-4 w-20 h-20 bg-green-500/5 rounded-full blur-2xl group-hover:bg-green-500/10 transition-colors duration-500" />
                     <div className="relative">
                         <div className="flex items-center justify-between mb-3">
@@ -355,7 +355,7 @@ export default function InvoicesPage() {
                         <p className="text-3xl font-black text-purple-400 tracking-tight">
                             {totalAmount > 0 ? Math.round((totalPaid / totalAmount) * 100) : 0}%
                         </p>
-                        <div className="h-1.5 bg-white/[0.06] rounded-full overflow-hidden mt-3">
+                        <div className="h-1.5 bg-white/[0.10] rounded-full overflow-hidden mt-3">
                             <div
                                 className="h-full bg-gradient-to-r from-purple-500 to-signal rounded-full transition-all duration-1000"
                                 style={{ width: `${totalAmount > 0 ? (totalPaid / totalAmount) * 100 : 0}%` }}
@@ -366,9 +366,9 @@ export default function InvoicesPage() {
             </div>
 
             {/* Invoice Table */}
-            <div className="bg-white/[0.03] backdrop-blur-sm rounded-2xl border border-white/[0.06] overflow-hidden">
+            <div className="bg-white/[0.07] backdrop-blur-sm rounded-2xl border border-white/[0.12] overflow-hidden">
                 {/* Search & Filter Bar */}
-                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 p-5 border-b border-white/[0.06]">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 p-5 border-b border-white/[0.12]">
                     <div className="relative flex-1">
                         <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-mist" />
                         <input
@@ -376,7 +376,7 @@ export default function InvoicesPage() {
                             placeholder="Rechercher par ID, auto-école, offre..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2.5 bg-white/[0.05] border border-white/[0.08] rounded-xl text-snow text-sm placeholder:text-mist/60 focus:outline-none focus:border-signal/30 focus:ring-1 focus:ring-signal/20 transition-all"
+                            className="w-full pl-10 pr-4 py-2.5 bg-white/[0.08] border border-white/[0.14] rounded-xl text-snow text-sm placeholder:text-mist/60 focus:outline-none focus:border-signal/30 focus:ring-1 focus:ring-signal/20 transition-all"
                         />
                     </div>
                     {/* Pill filter buttons */}
@@ -391,7 +391,7 @@ export default function InvoicesPage() {
                                 onClick={() => setStatusFilter(f.value)}
                                 className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider border transition-all ${statusFilter === f.value
                                         ? 'bg-signal/10 border-signal/30 text-signal'
-                                        : 'bg-white/[0.03] border-white/[0.06] text-mist hover:border-white/[0.12]'
+                                        : 'bg-white/[0.07] border-white/[0.12] text-mist hover:border-white/[0.20]'
                                     }`}
                             >
                                 {f.label} <span className="ml-1 opacity-60">{f.count}</span>
@@ -403,7 +403,7 @@ export default function InvoicesPage() {
                 {/* Table */}
                 <div className="overflow-x-auto">
                     <table className="w-full text-sm text-left">
-                        <thead className="bg-white/[0.03] text-mist text-xs font-semibold uppercase tracking-wider border-b border-white/[0.06]">
+                        <thead className="bg-white/[0.07] text-mist text-xs font-semibold uppercase tracking-wider border-b border-white/[0.12]">
                             <tr>
                                 <th className="px-5 py-4">Formation</th>
                                 <th className="px-5 py-4">Montant</th>
@@ -412,7 +412,7 @@ export default function InvoicesPage() {
                                 <th className="px-5 py-4 text-right">Actions</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-white/[0.04]">
+                        <tbody className="divide-y divide-white/[0.08]">
                             {filteredInvoices.length === 0 ? (
                                 <tr>
                                     <td colSpan={5} className="px-5 py-12 text-center text-mist">
@@ -426,7 +426,7 @@ export default function InvoicesPage() {
                                     const isPaying = payingId === invoice.id;
 
                                     return (
-                                        <tr key={invoice.id} className="hover:bg-white/[0.03] transition-colors group">
+                                        <tr key={invoice.id} className="hover:bg-white/[0.07] transition-colors group">
                                             <td className="px-5 py-4">
                                                 <div className="flex items-center gap-3">
                                                     <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-signal/20 to-signal/5 border border-signal/15 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300">
@@ -466,7 +466,7 @@ export default function InvoicesPage() {
                                                 <div className="flex justify-end gap-1.5 opacity-60 group-hover:opacity-100 transition-opacity">
                                                     <button
                                                         onClick={() => handleDownloadInvoice(invoice)}
-                                                        className="p-2 bg-white/[0.05] hover:bg-white/[0.1] rounded-xl text-signal hover:text-signal-dark transition-all border border-white/[0.06]"
+                                                        className="p-2 bg-white/[0.08] hover:bg-white/[0.14] rounded-xl text-signal hover:text-signal-dark transition-all border border-white/[0.12]"
                                                         title="Télécharger la facture"
                                                     >
                                                         <Download className="h-4 w-4" />
@@ -497,7 +497,7 @@ export default function InvoicesPage() {
                 </div>
 
                 {/* Footer */}
-                <div className="px-5 py-3 border-t border-white/[0.06] flex items-center justify-between text-xs text-mist">
+                <div className="px-5 py-3 border-t border-white/[0.12] flex items-center justify-between text-xs text-mist">
                     <span>{filteredInvoices.length} facture{filteredInvoices.length > 1 ? 's' : ''} affichée{filteredInvoices.length > 1 ? 's' : ''}</span>
                     {searchTerm || statusFilter !== "ALL" ? (
                         <button
