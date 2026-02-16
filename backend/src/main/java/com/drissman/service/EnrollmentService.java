@@ -6,7 +6,9 @@ import com.drissman.domain.entity.Enrollment;
 import com.drissman.domain.repository.EnrollmentRepository;
 import com.drissman.domain.repository.OfferRepository;
 import com.drissman.domain.repository.UserRepository;
+import com.drissman.service.InvoiceService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -22,6 +24,8 @@ public class EnrollmentService {
         private final OfferRepository offerRepository;
         private final UserRepository userRepository;
         private final com.drissman.domain.repository.SchoolRepository schoolRepository;
+        private final com.drissman.domain.repository.InvoiceRepository invoiceRepository;
+        private final InvoiceService invoiceService;
 
         public Flux<EnrollmentDto> getMyEnrollments(UUID userId) {
                 return enrollmentRepository.findByUserId(userId)
@@ -66,7 +70,21 @@ public class EnrollmentService {
                                 .switchIfEmpty(Mono.error(new RuntimeException("Inscription non trouvée")))
                                 .flatMap(enrollment -> {
                                         enrollment.setStatus(Enrollment.EnrollmentStatus.valueOf(status));
-                                        return enrollmentRepository.save(enrollment);
+                                        Mono<Enrollment> saveMono = enrollmentRepository.save(enrollment);
+
+                                        if (enrollment.getStatus() == Enrollment.EnrollmentStatus.ACTIVE) {
+                                                return saveMono.flatMap(saved -> invoiceRepository
+                                                                .findByEnrollmentId(saved.getId())
+                                                                .next()
+                                                                .switchIfEmpty(offerRepository
+                                                                                .findById(saved.getOfferId())
+                                                                                .flatMap(offer -> invoiceService
+                                                                                                .createForEnrollment(
+                                                                                                                saved,
+                                                                                                                offer.getPrice())))
+                                                                .thenReturn(saved));
+                                        }
+                                        return saveMono;
                                 })
                                 .flatMap(this::toDto);
         }

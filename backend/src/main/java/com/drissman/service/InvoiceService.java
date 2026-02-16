@@ -36,6 +36,19 @@ public class InvoiceService {
                 return invoiceRepository.save(invoice);
         }
 
+        /**
+         * Sync missing invoices for all ACTIVE enrollments
+         */
+        public Flux<Invoice> syncMissingInvoices() {
+                return enrollmentRepository.findAll()
+                                .filter(e -> e.getStatus() == Enrollment.EnrollmentStatus.ACTIVE)
+                                .flatMap(enrollment -> invoiceRepository.findByEnrollmentId(enrollment.getId())
+                                                .next()
+                                                .switchIfEmpty(offerRepository.findById(enrollment.getOfferId())
+                                                                .flatMap(offer -> createForEnrollment(enrollment,
+                                                                                offer.getPrice()))));
+        }
+
         public Flux<InvoiceDto> findAll() {
                 return invoiceRepository.findAll()
                                 .flatMap(this::enrichWithEnrollmentInfo);

@@ -65,4 +65,12 @@ public class InvoiceController {
             @RequestParam String reference) {
         return invoiceService.markAsPaid(id, method, reference);
     }
+
+    /**
+     * Trigger synchronization of missing invoices for ACTIVE enrollments
+     */
+    @PostMapping("/sync")
+    public Flux<Invoice> syncInvoices() {
+        return invoiceService.syncMissingInvoices();
+    }
 }
