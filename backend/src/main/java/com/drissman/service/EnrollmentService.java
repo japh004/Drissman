@@ -63,6 +63,7 @@ public class EnrollmentService {
 
         public Mono<EnrollmentDto> updateStatus(UUID id, String status) {
                 return enrollmentRepository.findById(id)
+                                .switchIfEmpty(Mono.error(new RuntimeException("Inscription non trouvée")))
                                 .flatMap(enrollment -> {
                                         enrollment.setStatus(Enrollment.EnrollmentStatus.valueOf(status));
                                         return enrollmentRepository.save(enrollment);
@@ -71,29 +72,45 @@ public class EnrollmentService {
         }
 
         public Mono<EnrollmentDto> toDto(Enrollment enrollment) {
-                return Mono.zip(
-                                userRepository.findById(enrollment.getUserId()),
-                                offerRepository.findById(enrollment.getOfferId()),
-                                schoolRepository.findById(enrollment.getSchoolId()))
-                                .map(tuple -> EnrollmentDto.builder()
-                                                .id(enrollment.getId())
-                                                .userId(enrollment.getUserId())
-                                                .schoolId(enrollment.getSchoolId())
-                                                .offerId(enrollment.getOfferId())
-                                                .userName(tuple.getT1().getFirstName() + " "
-                                                                + tuple.getT1().getLastName())
-                                                .offerName(tuple.getT2().getName())
-                                                .schoolName(tuple.getT3().getName())
-                                                .hoursPurchased(enrollment.getHoursPurchased())
-                                                .hoursConsumed(enrollment.getHoursConsumed())
-                                                .status(enrollment.getStatus().name())
-                                                .createdAt(enrollment.getCreatedAt() != null
-                                                                ? enrollment.getCreatedAt().toString()
-                                                                : null)
-                                                .offerPrice(tuple.getT2().getPrice() != null ? tuple
-                                                                .getT2().getPrice()
-                                                                .longValue() : 0L)
-                                                .userEmail(tuple.getT1().getEmail())
-                                                .build());
+                return userRepository.findById(enrollment.getUserId())
+                                .defaultIfEmpty(com.drissman.domain.entity.User.builder()
+                                                .firstName("Utilisateur")
+                                                .lastName("Inconnu")
+                                                .build())
+                                .flatMap(user -> offerRepository.findById(enrollment.getOfferId())
+                                                .defaultIfEmpty(com.drissman.domain.entity.Offer.builder()
+                                                                .name("Offre inconnue")
+                                                                .price(java.math.BigDecimal.ZERO)
+                                                                .build())
+                                                .flatMap(offer -> schoolRepository.findById(enrollment.getSchoolId())
+                                                                .defaultIfEmpty(com.drissman.domain.entity.School
+                                                                                .builder()
+                                                                                .name("Auto-école inconnue")
+                                                                                .build())
+                                                                .map(school -> EnrollmentDto.builder()
+                                                                                .id(enrollment.getId())
+                                                                                .userId(enrollment.getUserId())
+                                                                                .schoolId(enrollment.getSchoolId())
+                                                                                .offerId(enrollment.getOfferId())
+                                                                                .userName(user.getFirstName() + " "
+                                                                                                + user.getLastName())
+                                                                                .offerName(offer.getName())
+                                                                                .schoolName(school.getName())
+                                                                                .hoursPurchased(enrollment
+                                                                                                .getHoursPurchased())
+                                                                                .hoursConsumed(enrollment
+                                                                                                .getHoursConsumed())
+                                                                                .status(enrollment.getStatus().name())
+                                                                                .createdAt(enrollment
+                                                                                                .getCreatedAt() != null
+                                                                                                                ? enrollment.getCreatedAt()
+                                                                                                                                .toString()
+                                                                                                                : null)
+                                                                                .offerPrice(offer.getPrice() != null
+                                                                                                ? offer.getPrice()
+                                                                                                                .longValue()
+                                                                                                : 0L)
+                                                                                .userEmail(user.getEmail())
+                                                                                .build())));
         }
 }
