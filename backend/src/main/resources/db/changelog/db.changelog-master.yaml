@@ -56,4 +56,4 @@ databaseChangeLog:
   - include:
       file: db/changelog/changes/026-add-user-id-to-monitors.yaml
   - include:
-      file: db/changelog/changes/028-add-school-id-to-invoices.yaml
+      file: db/changelog/changes/029-fix-invoice-school-id.yaml
