@@ -28,9 +28,10 @@ public class InvoiceService {
         public Mono<Invoice> createForEnrollment(Enrollment enrollment, Integer amount) {
                 Invoice invoice = Invoice.builder()
                                 .enrollmentId(enrollment.getId())
-                                .bookingId(enrollment.getId())
+                                .bookingId(enrollment.getId()) // Populate booking_id as well
                                 .userId(enrollment.getUserId())
                                 .amount(amount)
+                                .createdAt(LocalDateTime.now())
                                 .status(Invoice.InvoiceStatus.PENDING)
                                 .build();
 
@@ -47,7 +48,9 @@ public class InvoiceService {
                                                 .next()
                                                 .switchIfEmpty(offerRepository.findById(enrollment.getOfferId())
                                                                 .flatMap(offer -> createForEnrollment(enrollment,
-                                                                                offer.getPrice()))))
+                                                                                offer.getPrice() != null
+                                                                                                ? offer.getPrice()
+                                                                                                : 0))))
                                 .flatMap(this::enrichWithEnrollmentInfo);
         }
 
