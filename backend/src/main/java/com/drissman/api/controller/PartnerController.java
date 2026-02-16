@@ -24,6 +24,7 @@ public class PartnerController {
     private final PartnerService partnerService;
     private final SchoolService schoolService;
     private final UserRepository userRepository;
+    private final EnrollmentService enrollmentService;
 
     @GetMapping("/stats")
     public Mono<PartnerStatsDto> getStats(Principal principal) {
@@ -89,5 +90,10 @@ public class PartnerController {
                     return schoolService.update(user.getSchoolId(), request)
                             .then();
                 });
+    }
+
+    @PatchMapping("/enrollments/{id}/status")
+    public Mono<EnrollmentDto> updateEnrollmentStatus(@PathVariable UUID id, @RequestParam String status) {
+        return enrollmentService.updateStatus(id, status);
     }
 }

@@ -26,34 +26,14 @@ public class PartnerService {
         private final UserRepository userRepository;
         private final SessionRepository sessionRepository;
         private final InvoiceRepository invoiceRepository;
+        private final EnrollmentService enrollmentService;
 
         public Flux<EnrollmentDto> getEnrollments(UUID schoolId) {
                 if (schoolId == null) {
                         return Flux.empty();
                 }
                 return enrollmentRepository.findBySchoolId(schoolId)
-                                .flatMap(enrollment -> Mono.zip(
-                                                userRepository.findById(enrollment.getUserId()),
-                                                offerRepository.findById(enrollment.getOfferId()))
-                                                .map(tuple -> EnrollmentDto.builder()
-                                                                .id(enrollment.getId())
-                                                                .userId(enrollment.getUserId())
-                                                                .schoolId(enrollment.getSchoolId())
-                                                                .offerId(enrollment.getOfferId())
-                                                                .userName(tuple.getT1().getFirstName() + " "
-                                                                                + tuple.getT1().getLastName())
-                                                                .offerName(tuple.getT2().getName())
-                                                                .hoursPurchased(enrollment.getHoursPurchased())
-                                                                .hoursConsumed(enrollment.getHoursConsumed())
-                                                                .status(enrollment.getStatus().name())
-                                                                .createdAt(enrollment.getCreatedAt() != null
-                                                                                ? enrollment.getCreatedAt().toString()
-                                                                                : null)
-                                                                .offerPrice(tuple.getT2().getPrice() != null
-                                                                                ? tuple.getT2().getPrice().longValue()
-                                                                                : 0L)
-                                                                .userEmail(tuple.getT1().getEmail())
-                                                                .build()));
+                                .flatMap(enrollmentService::toDto);
         }
 
         public Mono<PartnerStatsDto> getStats(UUID schoolId) {
