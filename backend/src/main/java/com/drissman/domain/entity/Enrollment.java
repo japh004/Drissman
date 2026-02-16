@@ -53,6 +53,7 @@ public class Enrollment {
     private LocalDateTime createdAt;
 
     public enum EnrollmentStatus {
+        PENDING,
         ACTIVE,
         SUSPENDED,
         COMPLETED,

@@ -43,6 +43,11 @@ public class SessionService {
     public Mono<SessionDto> create(CreateSessionRequest request) {
         return enrollmentRepository.findById(request.getEnrollmentId())
                 .flatMap(enrollment -> {
+                    // Only active enrollments can book sessions
+                    if (enrollment.getStatus() != Enrollment.EnrollmentStatus.ACTIVE) {
+                        return Mono.error(new RuntimeException("Votre inscription doit être confirmée par l'admin avant de pouvoir réserver des cours."));
+                    }
+
                     // Check if student has enough hours remaining
                     int remainingHours = enrollment.getHoursPurchased() - enrollment.getHoursConsumed();
                     int duration = (int) java.time.Duration.between(request.getStartTime(), request.getEndTime())

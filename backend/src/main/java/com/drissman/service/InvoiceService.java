@@ -66,19 +66,6 @@ public class InvoiceService {
                                         invoice.setPaidAt(LocalDateTime.now());
                                         return invoiceRepository.save(invoice);
                                 })
-                                .flatMap(invoice -> {
-                                        // Activate the enrollment when payment is confirmed
-                                        if (invoice.getEnrollmentId() != null) {
-                                                return enrollmentRepository.findById(invoice.getEnrollmentId())
-                                                                .flatMap(enrollment -> {
-                                                                        enrollment.setStatus(
-                                                                                        Enrollment.EnrollmentStatus.ACTIVE);
-                                                                        return enrollmentRepository.save(enrollment);
-                                                                })
-                                                                .thenReturn(invoice);
-                                        }
-                                        return Mono.just(invoice);
-                                })
                                 .flatMap(this::enrichWithEnrollmentInfo);
         }
 

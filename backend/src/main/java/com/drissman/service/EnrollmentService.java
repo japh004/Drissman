@@ -43,7 +43,7 @@ public class EnrollmentService {
                                                         .offerId(offer.getId())
                                                         .hoursPurchased(offer.getHours())
                                                         .hoursConsumed(0)
-                                                        .status(Enrollment.EnrollmentStatus.ACTIVE)
+                                                        .status(Enrollment.EnrollmentStatus.PENDING)
                                                         .enrolledAt(LocalDateTime.now())
                                                         .createdAt(LocalDateTime.now())
                                                         .build();
