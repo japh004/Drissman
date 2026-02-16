@@ -4,6 +4,7 @@ import com.drissman.api.dto.EnrollmentDto;
 import com.drissman.api.dto.PartnerStatsDto;
 import com.drissman.api.dto.UpdateSchoolRequest;
 import com.drissman.domain.repository.UserRepository;
+import com.drissman.service.EnrollmentService;
 import com.drissman.service.PartnerService;
 import com.drissman.service.SchoolService;
 import lombok.RequiredArgsConstructor;
