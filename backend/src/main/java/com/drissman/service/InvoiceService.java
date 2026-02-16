@@ -28,7 +28,8 @@ public class InvoiceService {
         public Mono<Invoice> createForEnrollment(Enrollment enrollment, Integer amount) {
                 Invoice invoice = Invoice.builder()
                                 .enrollmentId(enrollment.getId())
-                                .bookingId(enrollment.getId()) // Populate booking_id as well
+                                .bookingId(enrollment.getId())
+                                .schoolId(enrollment.getSchoolId()) // Populate school_id
                                 .userId(enrollment.getUserId())
                                 .amount(amount)
                                 .createdAt(LocalDateTime.now())
@@ -65,8 +66,7 @@ public class InvoiceService {
         }
 
         public Flux<InvoiceDto> findBySchoolId(UUID schoolId) {
-                return enrollmentRepository.findBySchoolId(schoolId)
-                                .flatMap(enrollment -> invoiceRepository.findByEnrollmentId(enrollment.getId()))
+                return invoiceRepository.findBySchoolId(schoolId)
                                 .flatMap(this::enrichWithEnrollmentInfo);
         }
 
@@ -149,6 +149,23 @@ public class InvoiceService {
                                                                                                 .createdAt(invoice
                                                                                                                 .getCreatedAt())
                                                                                                 .paidAt(invoice.getPaidAt())
-                                                                                                .build()))));
+                                                                                                .paidAt(invoice.getPaidAt())
+                                                                                                .build())))
+                                .switchIfEmpty(Mono.just(InvoiceDto.builder()
+                                                .id(invoice.getId())
+                                                .bookingId(invoice.getBookingId())
+                                                .amount(invoice.getAmount())
+                                                .status(invoice.getStatus().name())
+                                                .booking(InvoiceDto.BookingInfo.builder()
+                                                                .schoolName("École")
+                                                                .offerName("Offre (Supprimée)")
+                                                                .studentName("Étudiant (Inconnu)")
+                                                                .hoursPurchased(0)
+                                                                .build())
+                                                .paymentMethod(invoice.getPaymentMethod() != null ? invoice.getPaymentMethod().name() : null)
+                                                .paymentReference(invoice.getPaymentReference())
+                                                .createdAt(invoice.getCreatedAt())
+                                                .paidAt(invoice.getPaidAt())
+                                                .build()));
         }
 }

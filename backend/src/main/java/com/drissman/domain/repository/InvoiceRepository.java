@@ -10,4 +10,6 @@ public interface InvoiceRepository extends ReactiveCrudRepository<Invoice, UUID>
     Flux<Invoice> findByUserId(UUID userId);
 
     Flux<Invoice> findByEnrollmentId(UUID enrollmentId);
+
+    Flux<Invoice> findBySchoolId(UUID schoolId);
 }

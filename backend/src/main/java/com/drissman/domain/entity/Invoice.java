@@ -30,6 +30,9 @@ public class Invoice {
     @Column("user_id")
     private UUID userId;
 
+    @Column("school_id")
+    private UUID schoolId;
+
     private Integer amount;
 
     private InvoiceStatus status;
