@@ -17,11 +17,20 @@ interface BookingModalProps {
     onClose: () => void;
     school: any;
     selectedOffer?: any;
+    selectedPeriod?: {
+        id: string;
+        name: string;
+        offerId: string;
+        offerName?: string;
+        offerPrice?: number;
+        startDate: string;
+        endDate: string;
+    };
 }
 
 type Step = "DETAILS" | "PAYMENT" | "SUCCESS";
 
-export function BookingModal({ isOpen, onClose, school, selectedOffer }: BookingModalProps) {
+export function BookingModal({ isOpen, onClose, school, selectedOffer, selectedPeriod }: BookingModalProps) {
     const { user, isAuthenticated } = useAuth();
     const [step, setStep] = useState<Step>("DETAILS");
     const [isLoading, setIsLoading] = useState(false);
@@ -34,13 +43,16 @@ export function BookingModal({ isOpen, onClose, school, selectedOffer }: Booking
     });
     const [bookingId, setBookingId] = useState<string | null>(null);
 
-    const offerTitle = selectedOffer
-        ? (selectedOffer.name || selectedOffer.title)
-        : "Formation Permis B (Standard)";
+    // When a training period is selected, use its offer info
+    const offerTitle = selectedPeriod
+        ? `${selectedPeriod.name}${selectedPeriod.offerName ? ` — ${selectedPeriod.offerName}` : ''}`
+        : selectedOffer
+            ? (selectedOffer.name || selectedOffer.title)
+            : "Formation Permis B (Standard)";
 
-    // Fallback price logic: offer price -> school default price -> 0
-    const offerPrice = selectedOffer?.price || school?.price || 0;
-    const offerId = selectedOffer?.id;
+    // Fallback price logic: period offer price -> offer price -> school default -> 0
+    const offerPrice = selectedPeriod?.offerPrice || selectedOffer?.price || school?.price || 0;
+    const offerId = selectedPeriod?.offerId || selectedOffer?.id;
 
     // Get minimum date (tomorrow)
     const getMinDate = () => {
@@ -73,7 +85,8 @@ export function BookingModal({ isOpen, onClose, school, selectedOffer }: Booking
                 schoolId: school.id,
                 offerId: offerId,
                 date: formData.date,
-                time: formData.time
+                time: formData.time,
+                ...(selectedPeriod?.id ? { trainingPeriodId: selectedPeriod.id } : {})
             };
 
             const booking = await bookingsService.create(bookingPayload);
@@ -146,6 +159,13 @@ export function BookingModal({ isOpen, onClose, school, selectedOffer }: Booking
                             <span className="font-bold text-gray-900">{offerTitle}</span>
                             <span className="font-bold text-gray-900">{offerPrice.toLocaleString()} FCFA</span>
                         </div>
+                        {selectedPeriod && (
+                            <p className="text-xs text-mist mt-2">
+                                Période: {new Date(selectedPeriod.startDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
+                                {' → '}
+                                {new Date(selectedPeriod.endDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}
+                            </p>
+                        )}
                     </div>
 
                     {!isAuthenticated && (

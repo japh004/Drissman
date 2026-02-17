@@ -15,4 +15,5 @@ export { useMonitors } from './useMonitors';
 export { useSessions } from './useSessions';
 export { useModules } from './useModules';
 export { useMyEnrollments } from './useMyEnrollments';
+export { useTrainingPeriods, usePublishedPeriods } from './useTrainingPeriods';
 

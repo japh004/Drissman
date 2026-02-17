@@ -25,4 +25,6 @@ public class EnrollmentDto {
     private String createdAt;
     private Long offerPrice;
     private String userEmail;
+    private UUID trainingPeriodId;
+    private String trainingPeriodName;
 }

@@ -24,6 +24,7 @@ export interface CreateBookingPayload {
     offerId: string;
     date: string;
     time?: string;
+    trainingPeriodId?: string;
 }
 
 export interface Invoice {

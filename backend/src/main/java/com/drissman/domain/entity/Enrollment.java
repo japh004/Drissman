@@ -37,6 +37,9 @@ public class Enrollment {
     @Column("offer_id")
     private UUID offerId;
 
+    @Column("training_period_id")
+    private UUID trainingPeriodId;
+
     @Column("enrolled_at")
     private LocalDateTime enrolledAt;
 

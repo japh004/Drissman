@@ -76,4 +76,6 @@ export interface Enrollment {
     hoursConsumed: number;
     status: 'ACTIVE' | 'COMPLETED' | 'CANCELLED' | 'PENDING' | 'SUSPENDED';
     createdAt?: string;
+    trainingPeriodId?: string;
+    trainingPeriodName?: string;
 }

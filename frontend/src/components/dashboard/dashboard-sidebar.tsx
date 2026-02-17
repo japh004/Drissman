@@ -17,7 +17,8 @@ import {
     Gift,
     Eye,
     Search,
-    BookOpen
+    BookOpen,
+    GraduationCap
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -31,6 +32,7 @@ const partnerNavigation = [
     { name: "Mon Auto-école", href: "/dashboard/school", icon: School },
     { name: "Moniteurs", href: "/dashboard/monitors", icon: Users },
     { name: "Formation", href: "/dashboard/offers", icon: Tag },
+    { name: "Périodes", href: "/dashboard/training-periods", icon: GraduationCap },
     { name: "Planning", href: "/dashboard/planning", icon: Calendar },
     { name: "Aide & Support", href: "/dashboard/help", icon: HelpCircle },
     { name: "Paramètres", href: "/dashboard/settings", icon: Settings },

@@ -2,8 +2,9 @@ import api from './client';
 import type { Enrollment } from '@/types/partner';
 
 export interface CreateEnrollmentPayload {
-    offerId: string;
-    schoolId: string;
+    offerId?: string;
+    schoolId?: string;
+    trainingPeriodId?: string;
 }
 
 export const enrollmentService = {

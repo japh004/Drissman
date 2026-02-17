@@ -57,3 +57,7 @@ databaseChangeLog:
       file: db/changelog/changes/026-add-user-id-to-monitors.yaml
   - include:
       file: db/changelog/changes/029-fix-invoice-school-id.yaml
+  - include:
+      file: db/changelog/changes/030-create-training-periods-table.yaml
+  - include:
+      file: db/changelog/changes/031-add-training-period-to-enrollments.yaml

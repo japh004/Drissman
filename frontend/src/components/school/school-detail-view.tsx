@@ -6,18 +6,23 @@ import { School, Offer } from "@/lib/api";
 import { BookingWidget } from "./booking-widget";
 import { BookingModal } from "@/components/booking/booking-modal";
 import { OffersList } from "./offers-list";
+import { TrainingPeriodsList } from "./training-periods-list";
 import { SchoolGallery } from "./school-gallery";
 import { ReviewForm } from "./review-form";
 import { MapPin, Star, Check, Menu, X, ArrowLeft, Shield } from "lucide-react";
-import { useReviews } from "@/hooks";
+import { useReviews, usePublishedPeriods } from "@/hooks";
 import { useAuth } from "@/hooks";
 import { ThemeToggle } from "@/components/theme-toggle";
+import type { TrainingPeriod } from "@/lib/api/training-periods";
 
 export function SchoolDetailView({ school }: { school: any }) {
     const [menuOpen, setMenuOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
     const [isBookingOpen, setIsBookingOpen] = useState(false);
     const [selectedOffer, setSelectedOffer] = useState<Offer | undefined>(undefined);
+    const [selectedPeriod, setSelectedPeriod] = useState<TrainingPeriod | undefined>(undefined);
+
+    const { periods: publishedPeriods } = usePublishedPeriods(school.id);
 
     const { user, isAuthenticated } = useAuth();
     const { reviews, loading: reviewsLoading, createReview, averageRating, reviewCount } = useReviews(school.id);
@@ -30,6 +35,13 @@ export function SchoolDetailView({ school }: { school: any }) {
 
     const handleBookClick = (offer?: Offer) => {
         setSelectedOffer(offer);
+        setSelectedPeriod(undefined);
+        setIsBookingOpen(true);
+    };
+
+    const handlePeriodClick = (period: TrainingPeriod) => {
+        setSelectedPeriod(period);
+        setSelectedOffer(undefined);
         setIsBookingOpen(true);
     };
 
@@ -157,6 +169,15 @@ export function SchoolDetailView({ school }: { school: any }) {
                                 </div>
                             </div>
 
+                            {/* Training Periods (Cohorts) */}
+                            {publishedPeriods.length > 0 && (
+                                <TrainingPeriodsList
+                                    periods={publishedPeriods}
+                                    schoolImageUrl={school.imageUrl}
+                                    onSelectPeriod={handlePeriodClick}
+                                />
+                            )}
+
                             {/* Offers */}
                             {school.offers && school.offers.length > 0 && (
                                 <OffersList offers={school.offers} schoolImageUrl={school.imageUrl} onSelectOffer={handleBookClick} />
@@ -252,6 +273,15 @@ export function SchoolDetailView({ school }: { school: any }) {
                 onClose={() => setIsBookingOpen(false)}
                 school={school}
                 selectedOffer={selectedOffer}
+                selectedPeriod={selectedPeriod ? {
+                    id: selectedPeriod.id,
+                    name: selectedPeriod.name,
+                    offerId: selectedPeriod.offerId,
+                    offerName: selectedPeriod.offerName,
+                    offerPrice: selectedPeriod.offerPrice,
+                    startDate: selectedPeriod.startDate,
+                    endDate: selectedPeriod.endDate,
+                } : undefined}
             />
         </div>
     );

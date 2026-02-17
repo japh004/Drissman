@@ -18,4 +18,8 @@ public interface EnrollmentRepository extends ReactiveCrudRepository<Enrollment,
     Mono<Enrollment> findByUserIdAndOfferId(UUID userId, UUID offerId);
 
     Mono<Boolean> existsByUserIdAndOfferIdAndStatus(UUID userId, UUID offerId, Enrollment.EnrollmentStatus status);
+
+    Flux<Enrollment> findByTrainingPeriodId(UUID trainingPeriodId);
+
+    Mono<Long> countByTrainingPeriodId(UUID trainingPeriodId);
 }

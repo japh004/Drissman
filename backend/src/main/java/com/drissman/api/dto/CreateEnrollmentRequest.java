@@ -14,4 +14,5 @@ import java.util.UUID;
 public class CreateEnrollmentRequest {
     private UUID offerId;
     private UUID schoolId;
+    private UUID trainingPeriodId;
 }
