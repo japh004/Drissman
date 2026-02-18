@@ -28,14 +28,4 @@ public class StudentController {
         UUID userId = UUID.fromString(principal.getName());
         return studentPortalService.getPortalData(userId);
     }
-
-    @GetMapping("/portal")
-    public Mono<com.drissman.api.dto.StudentPortalResponse> getPortalData(Principal principal) {
-        if (principal == null) {
-            return Mono.error(new org.springframework.web.server.ResponseStatusException(
-                    org.springframework.http.HttpStatus.UNAUTHORIZED));
-        }
-        UUID userId = UUID.fromString(principal.getName());
-        return studentPortalService.getPortalData(userId);
-    }
 }
