@@ -20,7 +20,8 @@ import {
     FileText,
     AlertCircle,
     UserCircle,
-    BadgeCheck
+    BadgeCheck,
+    Plus
 } from "lucide-react";
 import Link from "next/link";
 import { formatPrice } from "@/lib/format";
@@ -43,8 +44,8 @@ function AdminBookings({ schoolId }: { schoolId: string }) {
     const filtered = enrollments.filter(e => {
         const matchesSearch =
             e.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            (e as any).studentName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            e.offerName.toLowerCase().includes(searchTerm.toLowerCase());
+            e.userName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            e.offerName?.toLowerCase().includes(searchTerm.toLowerCase());
 
         const matchesStatus = statusFilter === "ALL" || e.status === statusFilter;
         return matchesSearch && matchesStatus;
@@ -123,11 +124,11 @@ function AdminBookings({ schoolId }: { schoolId: string }) {
                                     {/* Student Info */}
                                     <div className="flex items-center gap-5 min-w-[280px]">
                                         <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-white/10 to-white/5 border border-white/10 flex items-center justify-center text-xl font-black text-signal group-hover:scale-110 transition-transform duration-500">
-                                            {(e as any).studentName?.[0] || 'E'}
+                                            {e.userName?.[0] || 'E'}
                                         </div>
                                         <div>
                                             <h3 className="text-xl font-black text-snow group-hover:text-signal transition-colors uppercase tracking-tight">
-                                                {(e as any).studentName || "Élève Anonyme"}
+                                                {e.userName || "Élève Anonyme"}
                                             </h3>
                                             <div className="flex items-center gap-2 mt-1">
                                                 <div className="h-1.5 w-1.5 rounded-full bg-signal/60" />
@@ -153,7 +154,7 @@ function AdminBookings({ schoolId }: { schoolId: string }) {
                                     {/* Pricing / Status */}
                                     <div className="flex items-center gap-12 w-full lg:w-auto">
                                         <div className="text-right">
-                                            <div className="text-2xl font-black text-snow tabular-nums tracking-tighter">{formatPrice(e.offerPrice)}</div>
+                                            <div className="text-2xl font-black text-snow tabular-nums tracking-tighter">{formatPrice(e.offerPrice || 0)}</div>
                                             <div className="text-[8px] font-black text-mist uppercase tracking-widest">Formation Totale</div>
                                         </div>
 
@@ -230,7 +231,7 @@ function StudentBookings() {
                                                 <StatusBadge status={e.status} />
                                                 <span className="text-[9px] font-black text-mist uppercase tracking-tighter opacity-40">#DOSS-{e.id.slice(0, 6)}</span>
                                             </div>
-                                            <h3 className="text-2xl font-black text-snow tracking-tight uppercase group-hover:text-signal transition-colors leading-none">{e.offerName}</h3>
+                                            <h3 className="text-2xl font-black text-snow tracking-tight uppercase group-hover:text-signal transition-colors leading-none">{e.offerName || "Formation"}</h3>
                                             <p className="text-mist font-bold mt-2 uppercase text-[10px] tracking-widest flex items-center gap-2">
                                                 <BadgeCheck className="h-3.5 w-3.5 text-signal" /> {e.schoolName}
                                             </p>

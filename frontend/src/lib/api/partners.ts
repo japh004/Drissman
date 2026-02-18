@@ -76,6 +76,12 @@ export const partnerService = {
         return data || [];
     },
 
+    async updateEnrollmentStatus(id: string, status: Enrollment['status']): Promise<Enrollment> {
+        const { data, error } = await api.patch<Enrollment>(`/partner/enrollments/${id}/status?status=${status}`);
+        if (error) throw new Error(error);
+        return data!;
+    },
+
     // Monitor Profile (for logged-in monitors)
     async getMonitorProfile(): Promise<Monitor> {
         const { data, error } = await api.get<Monitor>('/monitors/me');
