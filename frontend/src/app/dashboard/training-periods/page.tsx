@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { useTrainingPeriods, useAuth, useOffers } from "@/hooks";
 import { trainingPeriodService, type TrainingPeriod, type CreateTrainingPeriodPayload } from "@/lib/api/training-periods";
 import {
@@ -18,7 +19,8 @@ import {
     XCircle,
     Play,
     ChevronRight,
-    Clock
+    Clock,
+    BookOpen
 } from "lucide-react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
@@ -58,6 +60,7 @@ const STATUS_CONFIG: Record<string, { label: string; color: string; bgColor: str
 type FilterStatus = "ALL" | TrainingPeriod["status"];
 
 export default function TrainingPeriodsPage() {
+    const router = useRouter();
     const { user } = useAuth();
     const schoolId = user?.schoolId;
     const { periods, loading, error, refetch } = useTrainingPeriods(schoolId);
@@ -227,8 +230,8 @@ export default function TrainingPeriodsPage() {
                             key={status}
                             onClick={() => setFilterStatus(status)}
                             className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border ${isActive
-                                    ? "bg-signal/20 border-signal/40 text-signal"
-                                    : "bg-white/5 border-white/10 text-mist hover:bg-white/10"
+                                ? "bg-signal/20 border-signal/40 text-signal"
+                                : "bg-white/5 border-white/10 text-mist hover:bg-white/10"
                                 }`}
                         >
                             {status === "ALL" ? "Toutes" : config?.label} ({count})
@@ -413,6 +416,17 @@ export default function TrainingPeriodsPage() {
                                         </div>
                                     )}
                                 </div>
+
+                                {/* Planning Link */}
+                                <button
+                                    onClick={() => router.push(`/dashboard/training-periods/${period.id}/planning`)}
+                                    className="mt-3 w-full py-2.5 px-3 rounded-xl bg-signal/10 hover:bg-signal/20 text-signal text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 border border-signal/20"
+                                >
+                                    <BookOpen className="h-3 w-3" />
+                                    Voir le planning
+                                    <ChevronRight className="h-3 w-3" />
+                                </button>
+
                             </div>
                         );
                     })}

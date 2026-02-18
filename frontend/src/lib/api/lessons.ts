@@ -56,5 +56,11 @@ export const lessonService = {
     async unregisterStudent(lessonId: string, studentId: string): Promise<void> {
         const { error } = await api.delete(`/lessons/${lessonId}/registrations/${studentId}`);
         if (error) throw new Error(error);
+    },
+
+    async getLessonsByPeriod(trainingPeriodId: string): Promise<Lesson[]> {
+        const { data, error } = await api.get<Lesson[]>(`/lessons/period/${trainingPeriodId}`);
+        if (error) throw new Error(error);
+        return data || [];
     }
 };

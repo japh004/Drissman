@@ -14,6 +14,7 @@ export interface Lesson {
     capacity: number;
     enrolledCount: number;
     status: 'SCHEDULED' | 'CANCELLED' | 'COMPLETED';
+    trainingPeriodId?: string;
     registeredStudents?: StudentRegistration[];
 }
 
@@ -35,4 +36,5 @@ export interface CreateLessonPayload {
     description?: string;
     roomId?: string;
     capacity?: number;
+    trainingPeriodId?: string;
 }

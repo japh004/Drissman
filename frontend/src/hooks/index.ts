@@ -16,4 +16,5 @@ export { useSessions } from './useSessions';
 export { useModules } from './useModules';
 export { useMyEnrollments } from './useMyEnrollments';
 export { useTrainingPeriods, usePublishedPeriods } from './useTrainingPeriods';
+export { useOfferModules } from './useOfferModules';
 
