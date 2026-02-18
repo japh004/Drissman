@@ -36,4 +36,6 @@ public class CreateLessonRequest {
     private String roomId;
 
     private Integer capacity = 20;
+
+    private UUID trainingPeriodId;
 }

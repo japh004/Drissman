@@ -15,4 +15,6 @@ public interface LessonRepository extends R2dbcRepository<Lesson, UUID> {
     Flux<Lesson> findBySchoolIdAndDateBetween(UUID schoolId, LocalDate startDate, LocalDate endDate);
 
     Flux<Lesson> findByMonitorId(UUID monitorId);
+
+    Flux<Lesson> findByTrainingPeriodId(UUID trainingPeriodId);
 }

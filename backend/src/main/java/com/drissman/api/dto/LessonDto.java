@@ -30,6 +30,7 @@ public class LessonDto {
     private Integer capacity;
     private Integer enrolledCount;
     private String status;
+    private UUID trainingPeriodId;
     private List<StudentRegistrationDto> registeredStudents;
 
     @Data

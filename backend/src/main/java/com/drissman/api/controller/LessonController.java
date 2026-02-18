@@ -38,6 +38,12 @@ public class LessonController {
                 .flatMapMany(lessonService::getLessons);
     }
 
+    @GetMapping("/period/{trainingPeriodId}")
+    public Flux<LessonDto> getLessonsByPeriod(@PathVariable UUID trainingPeriodId, Principal principal) {
+        return getSchoolId(principal)
+                .flatMapMany(schoolId -> lessonService.getLessonsByTrainingPeriod(trainingPeriodId));
+    }
+
     @PutMapping("/{lessonId}")
     public Mono<LessonDto> updateLesson(@PathVariable UUID lessonId,
             @Valid @RequestBody CreateLessonRequest request,

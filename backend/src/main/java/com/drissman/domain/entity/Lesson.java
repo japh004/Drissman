@@ -45,6 +45,9 @@ public class Lesson {
     @Column("module_id")
     private UUID moduleId;
 
+    @Column("training_period_id")
+    private UUID trainingPeriodId;
+
     private String description;
 
     @Column("room_id")

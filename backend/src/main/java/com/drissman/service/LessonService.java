@@ -53,6 +53,7 @@ public class LessonService {
                                                         .topic(request.getTopic())
                                                         .lessonType(lessonType)
                                                         .moduleId(request.getModuleId())
+                                                        .trainingPeriodId(request.getTrainingPeriodId())
                                                         .description(request.getDescription())
                                                         .roomId(request.getRoomId())
                                                         .capacity(request.getCapacity() != null ? request.getCapacity()
@@ -67,6 +68,11 @@ public class LessonService {
 
         public Flux<LessonDto> getLessons(UUID schoolId) {
                 return lessonRepository.findBySchoolId(schoolId)
+                                .flatMap(this::enrichLesson);
+        }
+
+        public Flux<LessonDto> getLessonsByTrainingPeriod(UUID trainingPeriodId) {
+                return lessonRepository.findByTrainingPeriodId(trainingPeriodId)
                                 .flatMap(this::enrichLesson);
         }
 
@@ -334,6 +340,7 @@ public class LessonService {
                                                                 : "CODE")
                                                 .moduleId(lesson.getModuleId())
                                                 .moduleName(tuple.getT3())
+                                                .trainingPeriodId(lesson.getTrainingPeriodId())
                                                 .description(lesson.getDescription())
                                                 .roomId(lesson.getRoomId())
                                                 .capacity(lesson.getCapacity())

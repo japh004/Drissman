@@ -61,3 +61,7 @@ databaseChangeLog:
       file: db/changelog/changes/030-create-training-periods-table.yaml
   - include:
       file: db/changelog/changes/031-add-training-period-to-enrollments.yaml
+  - include:
+      file: db/changelog/changes/032-create-offer-modules-table.yaml
+  - include:
+      file: db/changelog/changes/033-add-training-period-to-lessons.yaml
