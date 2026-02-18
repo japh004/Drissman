@@ -6,7 +6,6 @@ import { useTrainingPeriods, useAuth, useOffers } from "@/hooks";
 import { trainingPeriodService, type TrainingPeriod, type CreateTrainingPeriodPayload } from "@/lib/api/training-periods";
 import { offerModuleService } from "@/lib/api";
 import {
-    GraduationCap,
     Plus,
     Loader2,
     Edit2,
@@ -21,7 +20,9 @@ import {
     Play,
     ChevronRight,
     Clock,
-    BookOpen
+    BookOpen,
+    ArrowRight,
+    GraduationCap
 } from "lucide-react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
@@ -66,12 +67,15 @@ export default function TrainingPeriodsPage() {
     const schoolId = user?.schoolId;
     const { periods, loading, error, refetch } = useTrainingPeriods(schoolId);
     const { offers } = useOffers(schoolId);
+
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingId, setEditingId] = useState<string | null>(null);
     const [formData, setFormData] = useState<PeriodFormData>(initialFormData);
+    const [currentStep, setCurrentStep] = useState(1);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [actionId, setActionId] = useState<string | null>(null);
     const [filterStatus, setFilterStatus] = useState<FilterStatus>("ALL");
+
     const [selectedOfferModules, setSelectedOfferModules] = useState<any[]>([]);
     const [loadingModules, setLoadingModules] = useState(false);
 
@@ -102,6 +106,7 @@ export default function TrainingPeriodsPage() {
     const handleOpenCreate = () => {
         setEditingId(null);
         setFormData(initialFormData);
+        setCurrentStep(1);
         setIsModalOpen(true);
     };
 
@@ -117,6 +122,7 @@ export default function TrainingPeriodsPage() {
             enrollmentDeadline: period.enrollmentDeadline?.split("T")[0] || "",
             scheduleDescription: period.scheduleDescription || "",
         });
+        setCurrentStep(1);
         setIsModalOpen(true);
     };
 
@@ -342,15 +348,6 @@ export default function TrainingPeriodsPage() {
                                     </span>
                                 </div>
 
-                                {period.enrollmentDeadline && (
-                                    <div className="mt-2 flex items-center gap-3 text-xs text-mist/70">
-                                        <Clock className="h-3.5 w-3.5 text-orange-400/60" />
-                                        <span className="font-medium">
-                                            Inscription avant le {new Date(period.enrollmentDeadline).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}
-                                        </span>
-                                    </div>
-                                )}
-
                                 {/* Capacity Bar */}
                                 <div className="mt-4">
                                     <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest mb-2">
@@ -370,18 +367,6 @@ export default function TrainingPeriodsPage() {
                                         />
                                     </div>
                                 </div>
-
-                                {/* Price */}
-                                {period.offerPrice != null && (
-                                    <div className="mt-4 pt-4 border-t border-white/5 flex items-center justify-between">
-                                        <div>
-                                            <span className="text-[10px] block font-black text-mist uppercase tracking-widest mb-1">Tarif</span>
-                                            <span className="text-xl font-black text-snow tracking-tighter">
-                                                {period.offerPrice.toLocaleString()} <span className="text-xs text-signal">FCFA</span>
-                                            </span>
-                                        </div>
-                                    </div>
-                                )}
 
                                 {/* Action Buttons */}
                                 <div className="mt-4 pt-4 border-t border-white/5 flex gap-2">
@@ -433,11 +418,6 @@ export default function TrainingPeriodsPage() {
                                             </button>
                                         </>
                                     )}
-                                    {(period.status === "COMPLETED" || period.status === "CANCELLED") && (
-                                        <div className="flex-1 py-2.5 px-3 rounded-xl bg-white/5 text-mist text-[10px] font-black uppercase tracking-widest text-center">
-                                            {period.status === "COMPLETED" ? "✓ Formation achevée" : "✕ Période annulée"}
-                                        </div>
-                                    )}
                                 </div>
 
                                 {/* Planning Link */}
@@ -449,7 +429,6 @@ export default function TrainingPeriodsPage() {
                                     Voir le planning
                                     <ChevronRight className="h-3 w-3" />
                                 </button>
-
                             </div>
                         );
                     })}
@@ -460,158 +439,189 @@ export default function TrainingPeriodsPage() {
             <Modal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
-                title={editingId ? "Modifier la période" : "Nouvelle période de formation"}
+                title={editingId ? "Modifier la session" : "Nouvelle session stratégique"}
             >
-                <form onSubmit={handleSubmit} className="space-y-6 p-2">
-                    <div className="space-y-2">
-                        <Label htmlFor="offerId" className="text-[10px] font-black uppercase tracking-widest text-mist">Offre associée *</Label>
-                        <select
-                            id="offerId"
-                            value={formData.offerId}
-                            onChange={(e) => setFormData({ ...formData, offerId: e.target.value })}
-                            className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-sm text-snow focus:outline-none focus:ring-2 focus:ring-signal/20 focus:border-signal/50 transition-all font-medium"
-                            required
-                        >
-                            <option value="" className="bg-asphalt text-mist">Sélectionnez une offre</option>
-                            {offers.map((offer) => (
-                                <option key={offer.id} value={offer.id} className="bg-asphalt text-snow">
-                                    {offer.name} — {offer.hours}h — {offer.price.toLocaleString()} FCFA
-                                </option>
-                            ))}
-                        </select>
+                <div className="p-1">
+                    {/* Progress Bar */}
+                    <div className="flex gap-2 mb-8 px-2">
+                        {[1, 2].map(step => (
+                            <div key={step} className={`h-1.5 flex-1 rounded-full transition-all duration-500 ${currentStep >= step ? "bg-signal shadow-[0_0_10px_rgba(255,193,7,0.3)]" : "bg-white/5"}`} />
+                        ))}
                     </div>
 
-                    {/* Offer Preview (Modules) */}
-                    {formData.offerId && (
-                        <div className="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-3">
-                            <div className="flex items-center justify-between">
-                                <h4 className="text-[10px] font-black uppercase tracking-widest text-signal">Programme de cette offre</h4>
-                                {loadingModules && <Loader2 className="h-3 w-3 animate-spin text-mist" />}
-                            </div>
-                            <div className="space-y-2 max-h-[120px] overflow-y-auto pr-2 custom-scrollbar">
-                                {selectedOfferModules.length > 0 ? (
-                                    selectedOfferModules.map((m, idx) => (
-                                        <div key={idx} className="flex items-center gap-3 py-1 border-b border-white/5 last:border-none">
-                                            <div className="h-1.5 w-1.5 rounded-full bg-signal/50" />
-                                            <span className="text-xs text-snow font-medium">{m.moduleName}</span>
-                                            <span className="text-[9px] text-mist ml-auto">{m.moduleRequiredHours}h</span>
+                    <form onSubmit={handleSubmit} className="space-y-8">
+                        {currentStep === 1 && (
+                            <div className="space-y-6 animate-in slide-in-from-right-4 duration-500">
+                                <div className="space-y-1">
+                                    <h3 className="text-lg font-black text-snow uppercase tracking-tight">Choix de la Formation</h3>
+                                    <p className="text-[10px] text-mist font-bold uppercase tracking-widest">Sélectionnez le socle de cette session</p>
+                                </div>
+
+                                <div className="space-y-4">
+                                    <Label className="text-[10px] font-black uppercase tracking-widest text-mist ml-1">Offre de référence *</Label>
+                                    <div className="grid gap-3 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+                                        {offers.map(offer => (
+                                            <label
+                                                key={offer.id}
+                                                className={`flex items-center gap-4 p-4 rounded-2xl border transition-all cursor-pointer group ${formData.offerId === offer.id ? "bg-signal/10 border-signal/30" : "bg-white/5 border-white/5 hover:border-white/10"}`}
+                                            >
+                                                <input
+                                                    type="radio"
+                                                    name="offerId"
+                                                    className="hidden"
+                                                    value={offer.id}
+                                                    checked={formData.offerId === offer.id}
+                                                    onChange={() => setFormData({ ...formData, offerId: offer.id, name: `Promotion ${offer.name} - ${new Date().getFullYear()}` })}
+                                                />
+                                                <div className={`h-5 w-5 rounded-full border-2 flex items-center justify-center transition-all ${formData.offerId === offer.id ? "border-signal" : "border-white/20 group-hover:border-signal/50"}`}>
+                                                    {formData.offerId === offer.id && <div className="h-2 w-2 rounded-full bg-signal" />}
+                                                </div>
+                                                <div className="flex-1">
+                                                    <p className="text-xs font-black text-snow">{offer.name}</p>
+                                                    <div className="flex items-center gap-2 mt-1">
+                                                        <span className="text-[9px] text-mist font-bold uppercase tracking-widest">{offer.hours}H</span>
+                                                        <div className="h-1 w-1 rounded-full bg-white/10" />
+                                                        <span className="text-[9px] text-signal font-black">{offer.price.toLocaleString()} CFA</span>
+                                                    </div>
+                                                </div>
+                                            </label>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {formData.offerId && (
+                                    <div className="p-5 rounded-2xl bg-gradient-to-br from-white/5 to-transparent border border-white/5 space-y-4">
+                                        <div className="flex items-center justify-between">
+                                            <h4 className="text-[10px] font-black uppercase tracking-widest text-signal/70">Contenu du Programme</h4>
+                                            {loadingModules && <Loader2 className="h-3 w-3 animate-spin text-mist" />}
                                         </div>
-                                    ))
-                                ) : !loadingModules && (
-                                    <p className="text-[10px] text-mist italic">Aucun module associé à cette offre.</p>
+                                        <div className="space-y-2">
+                                            {selectedOfferModules.length > 0 ? (
+                                                selectedOfferModules.map((m, idx) => (
+                                                    <div key={idx} className="flex items-center gap-3">
+                                                        <Check className="h-3 w-3 text-emerald-400" />
+                                                        <span className="text-[11px] text-snow font-medium">{m.moduleName}</span>
+                                                        <span className="text-[9px] text-mist ml-auto">{m.moduleRequiredHours}h</span>
+                                                    </div>
+                                                ))
+                                            ) : !loadingModules && (
+                                                <p className="text-[10px] text-mist italic">Aucun module défini pour cette offre.</p>
+                                            )}
+                                        </div>
+                                    </div>
                                 )}
+
+                                <button
+                                    type="button"
+                                    onClick={() => formData.offerId ? setCurrentStep(2) : toast.error("Sélectionnez une offre")}
+                                    className="w-full py-4 rounded-2xl bg-snow text-asphalt font-black uppercase tracking-widest text-[10px] hover:bg-signal transition-all flex items-center justify-center gap-2"
+                                >
+                                    Configurer les Dates
+                                    <ArrowRight className="h-4 w-4" />
+                                </button>
                             </div>
-                        </div>
-                    )}
+                        )}
 
-                    <div className="space-y-2">
-                        <Label htmlFor="name" className="text-[10px] font-black uppercase tracking-widest text-mist">Nom de la période *</Label>
-                        <Input
-                            id="name"
-                            placeholder="Ex: Promotion Janvier 2026"
-                            value={formData.name}
-                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                            className="bg-white/5 border-white/10 rounded-xl focus:border-signal/50 focus:ring-signal/20"
-                            required
-                        />
-                    </div>
+                        {currentStep === 2 && (
+                            <div className="space-y-6 animate-in slide-in-from-right-4 duration-500">
+                                <div className="space-y-1">
+                                    <h3 className="text-lg font-black text-snow uppercase tracking-tight">Détails de la Session</h3>
+                                    <p className="text-[10px] text-mist font-bold uppercase tracking-widest">Définissez le calendrier et la capacité</p>
+                                </div>
 
-                    <div className="space-y-2">
-                        <Label htmlFor="description" className="text-[10px] font-black uppercase tracking-widest text-mist">Description</Label>
-                        <textarea
-                            id="description"
-                            placeholder="Description du programme, informations pratiques..."
-                            value={formData.description}
-                            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                            className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-sm text-snow placeholder:text-mist/30 focus:outline-none focus:ring-2 focus:ring-signal/20 focus:border-signal/50 transition-all resize-none font-medium"
-                            rows={3}
-                        />
-                    </div>
+                                <div className="space-y-3">
+                                    <Label htmlFor="name" className="text-[10px] font-black uppercase tracking-widest text-mist ml-1">Nom de la promotion *</Label>
+                                    <Input
+                                        id="name"
+                                        placeholder="Ex: Promotion Alpha 2026"
+                                        value={formData.name}
+                                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                        className="bg-white/5 border-white/10 rounded-2xl h-12 focus:ring-signal/20"
+                                        required
+                                    />
+                                </div>
 
-                    <div className="grid grid-cols-2 gap-6">
-                        <div className="space-y-2">
-                            <Label htmlFor="startDate" className="text-[10px] font-black uppercase tracking-widest text-mist">Date de début *</Label>
-                            <Input
-                                id="startDate"
-                                type="date"
-                                value={formData.startDate}
-                                onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-                                className="bg-white/5 border-white/10 rounded-xl focus:border-signal/50 focus:ring-signal/20"
-                                required
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="endDate" className="text-[10px] font-black uppercase tracking-widest text-mist">Date de fin *</Label>
-                            <Input
-                                id="endDate"
-                                type="date"
-                                value={formData.endDate}
-                                onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
-                                className="bg-white/5 border-white/10 rounded-xl focus:border-signal/50 focus:ring-signal/20"
-                                required
-                            />
-                        </div>
-                    </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-3">
+                                        <Label htmlFor="startDate" className="text-[10px] font-black uppercase tracking-widest text-mist ml-1">Date d'Ouverture</Label>
+                                        <Input
+                                            id="startDate"
+                                            type="date"
+                                            value={formData.startDate}
+                                            onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+                                            className="bg-white/5 border-white/10 rounded-2xl h-12"
+                                            required
+                                        />
+                                    </div>
+                                    <div className="space-y-3">
+                                        <Label htmlFor="endDate" className="text-[10px] font-black uppercase tracking-widest text-mist ml-1">Date de Clôture</Label>
+                                        <Input
+                                            id="endDate"
+                                            type="date"
+                                            value={formData.endDate}
+                                            onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+                                            className="bg-white/5 border-white/10 rounded-2xl h-12"
+                                            required
+                                        />
+                                    </div>
+                                </div>
 
-                    <div className="grid grid-cols-2 gap-6">
-                        <div className="space-y-2">
-                            <Label htmlFor="maxStudents" className="text-[10px] font-black uppercase tracking-widest text-mist">Places max</Label>
-                            <Input
-                                id="maxStudents"
-                                type="number"
-                                placeholder="30"
-                                value={formData.maxStudents}
-                                onChange={(e) => setFormData({ ...formData, maxStudents: e.target.value })}
-                                className="bg-white/5 border-white/10 rounded-xl focus:border-signal/50 focus:ring-signal/20"
-                                min="1"
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="enrollmentDeadline" className="text-[10px] font-black uppercase tracking-widest text-mist">Date limite inscription</Label>
-                            <Input
-                                id="enrollmentDeadline"
-                                type="date"
-                                value={formData.enrollmentDeadline}
-                                onChange={(e) => setFormData({ ...formData, enrollmentDeadline: e.target.value })}
-                                className="bg-white/5 border-white/10 rounded-xl focus:border-signal/50 focus:ring-signal/20"
-                            />
-                        </div>
-                    </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-3">
+                                        <Label htmlFor="maxStudents" className="text-[10px] font-black uppercase tracking-widest text-mist ml-1">Capacité Max</Label>
+                                        <Input
+                                            id="maxStudents"
+                                            type="number"
+                                            value={formData.maxStudents}
+                                            onChange={(e) => setFormData({ ...formData, maxStudents: e.target.value })}
+                                            className="bg-white/5 border-white/10 rounded-2xl h-12 font-black text-signal"
+                                            required
+                                        />
+                                    </div>
+                                    <div className="space-y-3">
+                                        <Label htmlFor="enrollmentDeadline" className="text-[10px] font-black uppercase tracking-widest text-mist ml-1">Limite Inscription</Label>
+                                        <Input
+                                            id="enrollmentDeadline"
+                                            type="date"
+                                            value={formData.enrollmentDeadline}
+                                            onChange={(e) => setFormData({ ...formData, enrollmentDeadline: e.target.value })}
+                                            className="bg-white/5 border-white/10 rounded-2xl h-12"
+                                        />
+                                    </div>
+                                </div>
 
-                    <div className="space-y-2">
-                        <Label htmlFor="scheduleDescription" className="text-[10px] font-black uppercase tracking-widest text-mist">Planning / Horaires</Label>
-                        <textarea
-                            id="scheduleDescription"
-                            placeholder="Ex: Lundi au Vendredi, 8h-12h / 14h-17h"
-                            value={formData.scheduleDescription}
-                            onChange={(e) => setFormData({ ...formData, scheduleDescription: e.target.value })}
-                            className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-sm text-snow placeholder:text-mist/30 focus:outline-none focus:ring-2 focus:ring-signal/20 focus:border-signal/50 transition-all resize-none font-medium"
-                            rows={2}
-                        />
-                    </div>
+                                <div className="space-y-3">
+                                    <Label htmlFor="scheduleDescription" className="text-[10px] font-black uppercase tracking-widest text-mist ml-1">Indications horaires (Lundi-Vendredi...)</Label>
+                                    <textarea
+                                        id="scheduleDescription"
+                                        placeholder="Ex: Sessions de code le matin, conduite l'après-midi..."
+                                        value={formData.scheduleDescription}
+                                        onChange={(e) => setFormData({ ...formData, scheduleDescription: e.target.value })}
+                                        className="w-full p-4 bg-white/5 border border-white/10 rounded-2xl text-xs text-snow focus:ring-2 focus:ring-signal/20 outline-none h-24 resize-none"
+                                    />
+                                </div>
 
-                    <div className="flex gap-4 pt-6">
-                        <button
-                            type="button"
-                            onClick={() => setIsModalOpen(false)}
-                            className="flex-1 py-3 px-4 rounded-xl border border-white/10 text-mist text-[10px] font-black uppercase tracking-widest hover:bg-white/5 transition-all"
-                        >
-                            Annuler
-                        </button>
-                        <button
-                            type="submit"
-                            disabled={isSubmitting}
-                            className="flex-1 py-3 px-4 rounded-xl bg-signal hover:bg-signal-dark text-asphalt text-[10px] font-black uppercase tracking-widest shadow-lg shadow-signal/20 transition-all disabled:opacity-50 flex items-center justify-center gap-2 border-none"
-                        >
-                            {isSubmitting ? (
-                                <Loader2 className="h-3 w-3 animate-spin" />
-                            ) : (
-                                <Check className="h-3 w-3" />
-                            )}
-                            {editingId ? "Sauvegarder" : "Créer la période"}
-                        </button>
-                    </div>
-                </form>
+                                <div className="flex gap-4 pt-4">
+                                    <button
+                                        type="button"
+                                        onClick={() => setCurrentStep(1)}
+                                        className="h-12 flex-1 rounded-2xl border border-white/10 text-mist text-[10px] font-black uppercase tracking-widest"
+                                    >
+                                        Retour
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        disabled={isSubmitting}
+                                        className="h-12 flex-[2] rounded-2xl bg-signal text-asphalt text-[10px] font-black uppercase tracking-widest shadow-lg shadow-signal/20 transition-all flex items-center justify-center gap-2"
+                                    >
+                                        {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+                                        {editingId ? "Sauvegarder les modifications" : "Lancer la Promotion"}
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </form>
+                </div>
             </Modal>
         </div>
     );

@@ -60,12 +60,14 @@ export default function OffersPage() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingId, setEditingId] = useState<string | null>(null);
     const [formData, setFormData] = useState<OfferFormData>(initialFormData);
+    const [currentStep, setCurrentStep] = useState(1);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [deletingId, setDeletingId] = useState<string | null>(null);
 
     const handleOpenCreate = () => {
         setEditingId(null);
         setFormData(initialFormData);
+        setCurrentStep(1);
         setIsModalOpen(true);
     };
 
@@ -89,6 +91,7 @@ export default function OffersPage() {
             permitType: offer.permitType || "B",
             selectedModuleIds
         });
+        setCurrentStep(1);
         setIsModalOpen(true);
     };
 
@@ -302,142 +305,229 @@ export default function OffersPage() {
             <Modal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
-                title={editingId ? "Modifier l'offre" : "Nouvelle offre"}
+                title={editingId ? "Modifier l'offre" : "Nouvelle offre stratégique"}
             >
-                <form onSubmit={handleSubmit} className="space-y-6 p-2">
-                    <div className="space-y-2">
-                        <Label htmlFor="name" className="text-[10px] font-black uppercase tracking-widest text-mist">Nom de l&apos;offre *</Label>
-                        <Input
-                            id="name"
-                            placeholder="Ex: Formule Accélérée B"
-                            value={formData.name}
-                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                            className="bg-white/5 border-white/10 rounded-xl focus:border-signal/50 focus:ring-signal/20"
-                            required
-                        />
+                <div className="p-1">
+                    {/* Wizard Progress */}
+                    <div className="flex items-center gap-2 mb-8 px-2">
+                        {[1, 2, 3].map((step) => (
+                            <div key={step} className="flex-1 flex items-center gap-2">
+                                <div className={`h-1.5 flex-1 rounded-full transition-all duration-500 ${currentStep >= step ? "bg-signal shadow-[0_0_10px_rgba(255,193,7,0.3)]" : "bg-white/5"}`} />
+                                {step < 3 && <div className="h-1 w-1 rounded-full bg-white/10" />}
+                            </div>
+                        ))}
                     </div>
 
-                    <div className="space-y-2">
-                        <Label htmlFor="permitType" className="text-[10px] font-black uppercase tracking-widest text-mist">Type de permis *</Label>
-                        <select
-                            id="permitType"
-                            value={formData.permitType}
-                            onChange={(e) => setFormData({ ...formData, permitType: e.target.value })}
-                            className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-sm text-snow focus:outline-none focus:ring-2 focus:ring-signal/20 focus:border-signal/50 transition-all font-medium"
-                            required
-                        >
-                            {PERMIT_TYPES.map((type) => (
-                                <option key={type.value} value={type.value} className="bg-asphalt text-snow">
-                                    {type.label}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
+                    <form onSubmit={handleSubmit} className="space-y-8">
+                        {currentStep === 1 && (
+                            <div className="space-y-6 animate-in slide-in-from-right-4 duration-500">
+                                <div className="space-y-1">
+                                    <h3 className="text-lg font-black text-snow uppercase tracking-tight">Informations de base</h3>
+                                    <p className="text-[10px] text-mist font-bold uppercase tracking-widest">Définissez l&apos;identité de votre formation</p>
+                                </div>
 
-                    <div className="space-y-2">
-                        <Label htmlFor="description" className="text-[10px] font-black uppercase tracking-widest text-mist">Description</Label>
-                        <textarea
-                            id="description"
-                            placeholder="Détaillez le contenu (ex: code inclus, frais de dossier...)"
-                            value={formData.description}
-                            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                            className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-sm text-snow placeholder:text-mist/30 focus:outline-none focus:ring-2 focus:ring-signal/20 focus:border-signal/50 transition-all resize-none font-medium"
-                            rows={3}
-                        />
-                    </div>
+                                <div className="space-y-3">
+                                    <Label htmlFor="name" className="text-[10px] font-black uppercase tracking-widest text-mist ml-1">Nom commercial</Label>
+                                    <Input
+                                        id="name"
+                                        placeholder="Ex: Excellence Permis B"
+                                        value={formData.name}
+                                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                        className="bg-white/5 border-white/10 rounded-2xl h-12 focus:ring-signal/20"
+                                        required
+                                    />
+                                </div>
 
-
-                    <div className="grid grid-cols-2 gap-6">
-                        <div className="space-y-2">
-                            <Label htmlFor="price" className="text-[10px] font-black uppercase tracking-widest text-mist">Prix (FCFA) *</Label>
-                            <Input
-                                id="price"
-                                type="number"
-                                placeholder="150000"
-                                value={formData.price}
-                                onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                                className="bg-white/5 border-white/10 rounded-xl focus:border-signal/50 focus:ring-signal/20 text-signal font-black"
-                                required
-                                min="0"
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="hours" className="text-[10px] font-black uppercase tracking-widest text-mist">Nombre d&apos;heures *</Label>
-                            <Input
-                                id="hours"
-                                type="number"
-                                placeholder="20"
-                                value={formData.hours}
-                                onChange={(e) => setFormData({ ...formData, hours: e.target.value })}
-                                className="bg-white/5 border-white/10 rounded-xl focus:border-signal/50 focus:ring-signal/20"
-                                required
-                                min="1"
-                            />
-                        </div>
-                    </div>
-
-                    <div className="space-y-4">
-                        <Label className="text-[10px] font-black uppercase tracking-widest text-mist">Programme de formation (Modules)</Label>
-                        <div className="grid grid-cols-1 gap-3 max-h-[200px] overflow-y-auto pr-2 custom-scrollbar">
-                            {['CODE', 'CONDUITE', 'EXAMEN_BLANC'].map(category => {
-                                const categoryModules = modules.filter(m => m.category === category);
-                                if (categoryModules.length === 0) return null;
-
-                                return (
-                                    <div key={category} className="space-y-2">
-                                        <h4 className="text-[9px] font-bold text-signal/50 uppercase tracking-widest">{category}</h4>
-                                        <div className="space-y-1">
-                                            {categoryModules.map(module => (
-                                                <label
-                                                    key={module.id}
-                                                    className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/5 hover:border-signal/30 cursor-pointer transition-all group"
-                                                >
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={formData.selectedModuleIds.includes(module.id)}
-                                                        onChange={(e) => {
-                                                            const ids = e.target.checked
-                                                                ? [...formData.selectedModuleIds, module.id]
-                                                                : formData.selectedModuleIds.filter(id => id !== module.id);
-                                                            setFormData({ ...formData, selectedModuleIds: ids });
-                                                        }}
-                                                        className="h-4 w-4 rounded border-white/10 bg-white/5 text-signal focus:ring-offset-asphalt focus:ring-signal"
-                                                    />
-                                                    <div className="flex-1">
-                                                        <p className="text-xs font-bold text-snow group-hover:text-signal transition-colors">{module.name}</p>
-                                                        <p className="text-[9px] text-mist">{module.requiredHours}h requis</p>
-                                                    </div>
-                                                </label>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-3">
+                                        <Label htmlFor="permitType" className="text-[10px] font-black uppercase tracking-widest text-mist ml-1">Catégorie</Label>
+                                        <select
+                                            id="permitType"
+                                            value={formData.permitType}
+                                            onChange={(e) => setFormData({ ...formData, permitType: e.target.value })}
+                                            className="w-full h-12 px-4 bg-white/5 border border-white/10 rounded-2xl text-sm text-snow focus:ring-2 focus:ring-signal/20 outline-none appearance-none cursor-pointer font-bold"
+                                        >
+                                            {PERMIT_TYPES.map((type) => (
+                                                <option key={type.value} value={type.value} className="bg-asphalt text-snow">{type.label}</option>
                                             ))}
+                                        </select>
+                                    </div>
+                                    <div className="space-y-3">
+                                        <Label htmlFor="hours" className="text-[10px] font-black uppercase tracking-widest text-mist ml-1">Volume horaire</Label>
+                                        <Input
+                                            id="hours"
+                                            type="number"
+                                            placeholder="20"
+                                            value={formData.hours}
+                                            onChange={(e) => setFormData({ ...formData, hours: e.target.value })}
+                                            className="bg-white/5 border-white/10 rounded-2xl h-12 text-center font-black"
+                                            required
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="space-y-3">
+                                    <Label htmlFor="price" className="text-[10px] font-black uppercase tracking-widest text-mist ml-1">Tarif Premium (FCFA)</Label>
+                                    <div className="relative">
+                                        <Input
+                                            id="price"
+                                            type="number"
+                                            placeholder="250000"
+                                            value={formData.price}
+                                            onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                                            className="bg-white/10 border-white/5 rounded-2xl h-14 pl-6 text-xl font-black text-signal focus:ring-signal/30"
+                                            required
+                                        />
+                                        <div className="absolute right-6 top-1/2 -translate-y-1/2 text-signal/50 font-black text-xs">CFA</div>
+                                    </div>
+                                </div>
+
+                                <button
+                                    type="button"
+                                    onClick={() => formData.name && formData.price && formData.hours ? setCurrentStep(2) : toast.error("Complétez les champs")}
+                                    className="w-full py-4 rounded-2xl bg-snow text-asphalt font-black uppercase tracking-widest text-[10px] hover:bg-signal transition-all flex items-center justify-center gap-2"
+                                >
+                                    Configurer le Programme
+                                    <ChevronRight className="h-4 w-4" />
+                                </button>
+                            </div>
+                        )}
+
+                        {currentStep === 2 && (
+                            <div className="space-y-6 animate-in slide-in-from-right-4 duration-500">
+                                <div className="space-y-1">
+                                    <h3 className="text-lg font-black text-snow uppercase tracking-tight">Architecture du Programme</h3>
+                                    <p className="text-[10px] text-mist font-bold uppercase tracking-widest">Sélectionnez les modules constitutifs</p>
+                                </div>
+
+                                <div className="space-y-4 max-h-[350px] overflow-y-auto pr-2 custom-scrollbar">
+                                    {['CODE', 'CONDUITE', 'EXAMEN_BLANC'].map(category => {
+                                        const catModules = modules.filter(m => m.category === category);
+                                        if (catModules.length === 0) return null;
+
+                                        return (
+                                            <div key={category} className="space-y-3">
+                                                <div className="flex items-center gap-2">
+                                                    <div className="h-px flex-1 bg-white/5" />
+                                                    <span className="text-[9px] font-black text-signal uppercase tracking-widest opacity-60">{category}</span>
+                                                    <div className="h-px flex-1 bg-white/5" />
+                                                </div>
+                                                <div className="grid gap-2">
+                                                    {catModules.map(module => (
+                                                        <label
+                                                            key={module.id}
+                                                            className={`flex items-center gap-4 p-4 rounded-2xl border transition-all cursor-pointer group ${formData.selectedModuleIds.includes(module.id) ? "bg-signal/10 border-signal/30" : "bg-white/5 border-white/5 hover:border-white/10"}`}
+                                                        >
+                                                            <div className={`h-5 w-5 rounded-lg border-2 flex items-center justify-center transition-all ${formData.selectedModuleIds.includes(module.id) ? "bg-signal border-signal" : "border-white/20 group-hover:border-signal/50"}`}>
+                                                                {formData.selectedModuleIds.includes(module.id) && <Check className="h-3 w-3 text-asphalt font-black" />}
+                                                            </div>
+                                                            <input
+                                                                type="checkbox"
+                                                                className="hidden"
+                                                                checked={formData.selectedModuleIds.includes(module.id)}
+                                                                onChange={(e) => {
+                                                                    const ids = e.target.checked
+                                                                        ? [...formData.selectedModuleIds, module.id]
+                                                                        : formData.selectedModuleIds.filter(id => id !== module.id);
+                                                                    setFormData({ ...formData, selectedModuleIds: ids });
+                                                                }}
+                                                            />
+                                                            <div className="flex-1">
+                                                                <p className="text-xs font-black text-snow">{module.name}</p>
+                                                                <p className="text-[9px] text-mist font-bold uppercase">{module.requiredHours} Heures requis</p>
+                                                            </div>
+                                                        </label>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+
+                                <div className="flex gap-4">
+                                    <button
+                                        type="button"
+                                        onClick={() => setCurrentStep(1)}
+                                        className="h-12 flex-1 rounded-2xl border border-white/10 text-mist text-[10px] font-black uppercase tracking-widest"
+                                    >
+                                        Retour
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => formData.selectedModuleIds.length > 0 ? setCurrentStep(3) : toast.error("Sélectionnez au moins un module")}
+                                        className="h-12 flex-[2] rounded-2xl bg-snow text-asphalt text-[10px] font-black uppercase tracking-widest hover:bg-signal transition-all"
+                                    >
+                                        Finaliser l&apos;Offre
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+                        {currentStep === 3 && (
+                            <div className="space-y-8 animate-in slide-in-from-right-4 duration-500">
+                                <div className="space-y-1">
+                                    <h3 className="text-lg font-black text-snow uppercase tracking-tight">Récapitulatif</h3>
+                                    <p className="text-[10px] text-mist font-bold uppercase tracking-widest">Confirmez les détails de votre formation</p>
+                                </div>
+
+                                <div className="p-6 rounded-[2rem] bg-gradient-to-br from-white/10 to-transparent border border-white/10 space-y-6">
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <p className="text-[10px] text-mist font-black uppercase tracking-widest mb-1">Dénomination</p>
+                                            <p className="text-xl font-black text-snow leading-tight">{formData.name}</p>
+                                        </div>
+                                        <div className="h-12 w-12 rounded-2xl bg-signal flex items-center justify-center text-asphalt">
+                                            <GraduationCap className="h-6 w-6" />
                                         </div>
                                     </div>
-                                );
-                            })}
-                        </div>
-                    </div>
 
-                    <div className="flex gap-4 pt-6">
-                        <button
-                            type="button"
-                            onClick={() => setIsModalOpen(false)}
-                            className="flex-1 py-3 px-4 rounded-xl border border-white/10 text-mist text-[10px] font-black uppercase tracking-widest hover:bg-white/5 transition-all"
-                        >
-                            Annuler
-                        </button>
-                        <button
-                            type="submit"
-                            disabled={isSubmitting}
-                            className="flex-1 py-3 px-4 rounded-xl bg-signal hover:bg-signal-dark text-asphalt text-[10px] font-black uppercase tracking-widest shadow-lg shadow-signal/20 transition-all disabled:opacity-50 flex items-center justify-center gap-2 border-none"
-                        >
-                            {isSubmitting ? (
-                                <Loader2 className="h-3 w-3 animate-spin" />
-                            ) : (
-                                <Check className="h-3 w-3" />
-                            )}
-                            {editingId ? "Sauvegarder" : "Créer l'offre"}
-                        </button>
-                    </div>
-                </form>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="p-4 rounded-2xl bg-white/5 border border-white/5">
+                                            <p className="text-[9px] text-mist font-bold uppercase tracking-widest mb-1">Prix</p>
+                                            <p className="text-lg font-black text-signal">{parseInt(formData.price || "0").toLocaleString()} <span className="text-[10px]">CFA</span></p>
+                                        </div>
+                                        <div className="p-4 rounded-2xl bg-white/5 border border-white/5">
+                                            <p className="text-[9px] text-mist font-bold uppercase tracking-widest mb-1">Volume</p>
+                                            <p className="text-lg font-black text-snow">{formData.hours} <span className="text-[10px] text-mist">Heures</span></p>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <p className="text-[10px] text-mist font-black uppercase tracking-widest mb-3">Programme ({formData.selectedModuleIds.length} modules)</p>
+                                        <div className="flex flex-wrap gap-2">
+                                            {formData.selectedModuleIds.map(id => {
+                                                const m = modules.find(mod => mod.id === id);
+                                                return m ? (
+                                                    <span key={id} className="px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-[9px] font-bold text-snow">
+                                                        {m.name}
+                                                    </span>
+                                                ) : null;
+                                            })}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="flex gap-4">
+                                    <button
+                                        type="button"
+                                        onClick={() => setCurrentStep(2)}
+                                        className="h-12 flex-1 rounded-2xl border border-white/10 text-mist text-[10px] font-black uppercase tracking-widest"
+                                    >
+                                        Modifier
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        disabled={isSubmitting}
+                                        className="h-12 flex-[2] rounded-2xl bg-signal text-asphalt text-[10px] font-black uppercase tracking-widest shadow-lg shadow-signal/20 transition-all flex items-center justify-center gap-2"
+                                    >
+                                        {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+                                        {editingId ? "Mettre à jour l'offre" : "Publier l'Offre"}
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </form>
+                </div>
             </Modal>
         </div>
     );
