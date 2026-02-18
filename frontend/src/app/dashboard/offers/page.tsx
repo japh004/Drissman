@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { useOffers, useAuth } from "@/hooks";
+import { useState, useEffect } from "react";
+import { useOffers, useAuth, useModules } from "@/hooks";
+import { offerModuleService, type Module } from "@/lib/api";
 import {
     Plus,
     Loader2,
@@ -27,6 +28,7 @@ interface OfferFormData {
     price: string;
     hours: string;
     permitType: string;
+    selectedModuleIds: string[];
 }
 
 const initialFormData: OfferFormData = {
@@ -34,7 +36,8 @@ const initialFormData: OfferFormData = {
     description: "",
     price: "",
     hours: "",
-    permitType: "B"
+    permitType: "B",
+    selectedModuleIds: []
 };
 
 const PERMIT_TYPES = [
@@ -53,6 +56,7 @@ export default function OffersPage() {
     const schoolId = user?.schoolId;
 
     const { offers, loading, error, refetch, createOffer, updateOffer, deleteOffer } = useOffers(schoolId);
+    const { modules } = useModules(schoolId);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingId, setEditingId] = useState<string | null>(null);
     const [formData, setFormData] = useState<OfferFormData>(initialFormData);
@@ -65,14 +69,25 @@ export default function OffersPage() {
         setIsModalOpen(true);
     };
 
-    const handleOpenEdit = (offer: { id: string; name: string; description?: string; price: number; hours: number; permitType: string; imageUrl?: string }) => {
+    const handleOpenEdit = async (offer: { id: string; name: string; description?: string; price: number; hours: number; permitType: string; }) => {
         setEditingId(offer.id);
+
+        // Fetch linked modules
+        let selectedModuleIds: string[] = [];
+        try {
+            const linkedModules = await offerModuleService.getModulesForOffer(offer.id);
+            selectedModuleIds = linkedModules.map(m => m.moduleId);
+        } catch (err) {
+            console.error("Failed to fetch linked modules:", err);
+        }
+
         setFormData({
             name: offer.name,
             description: offer.description || "",
             price: offer.price.toString(),
             hours: offer.hours.toString(),
-            permitType: offer.permitType || "B"
+            permitType: offer.permitType || "B",
+            selectedModuleIds
         });
         setIsModalOpen(true);
     };
@@ -93,17 +108,17 @@ export default function OffersPage() {
         setIsSubmitting(true);
 
         try {
+            let savedOffer;
             if (editingId) {
-                await updateOffer(editingId, {
+                savedOffer = await updateOffer(editingId, {
                     name: formData.name,
                     description: formData.description || undefined,
                     price: parseInt(formData.price),
                     hours: parseInt(formData.hours),
                     permitType: formData.permitType
                 });
-                toast.success("Offre mise à jour avec succès !");
             } else {
-                await createOffer({
+                savedOffer = await createOffer({
                     schoolId,
                     name: formData.name,
                     description: formData.description || undefined,
@@ -111,10 +126,22 @@ export default function OffersPage() {
                     hours: parseInt(formData.hours),
                     permitType: formData.permitType
                 });
-                toast.success("Offre créée avec succès !");
             }
+
+            // Sync offer modules if an offer was saved
+            if (savedOffer?.id) {
+                await offerModuleService.setModulesForOffer(savedOffer.id, {
+                    modules: formData.selectedModuleIds.map((moduleId, index) => ({
+                        moduleId,
+                        orderIndex: index
+                    }))
+                });
+            }
+
+            toast.success(editingId ? "Offre mise à jour !" : "Offre créée !");
             setIsModalOpen(false);
             setFormData(initialFormData);
+            refetch(); // Refresh to show new state
         } catch (err) {
             console.error("Failed to save offer:", err);
             toast.error("Erreur lors de l'enregistrement");
@@ -346,6 +373,46 @@ export default function OffersPage() {
                                 required
                                 min="1"
                             />
+                        </div>
+                    </div>
+
+                    <div className="space-y-4">
+                        <Label className="text-[10px] font-black uppercase tracking-widest text-mist">Programme de formation (Modules)</Label>
+                        <div className="grid grid-cols-1 gap-3 max-h-[200px] overflow-y-auto pr-2 custom-scrollbar">
+                            {['CODE', 'CONDUITE', 'EXAMEN_BLANC'].map(category => {
+                                const categoryModules = modules.filter(m => m.category === category);
+                                if (categoryModules.length === 0) return null;
+
+                                return (
+                                    <div key={category} className="space-y-2">
+                                        <h4 className="text-[9px] font-bold text-signal/50 uppercase tracking-widest">{category}</h4>
+                                        <div className="space-y-1">
+                                            {categoryModules.map(module => (
+                                                <label
+                                                    key={module.id}
+                                                    className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/5 hover:border-signal/30 cursor-pointer transition-all group"
+                                                >
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={formData.selectedModuleIds.includes(module.id)}
+                                                        onChange={(e) => {
+                                                            const ids = e.target.checked
+                                                                ? [...formData.selectedModuleIds, module.id]
+                                                                : formData.selectedModuleIds.filter(id => id !== module.id);
+                                                            setFormData({ ...formData, selectedModuleIds: ids });
+                                                        }}
+                                                        className="h-4 w-4 rounded border-white/10 bg-white/5 text-signal focus:ring-offset-asphalt focus:ring-signal"
+                                                    />
+                                                    <div className="flex-1">
+                                                        <p className="text-xs font-bold text-snow group-hover:text-signal transition-colors">{module.name}</p>
+                                                        <p className="text-[9px] text-mist">{module.requiredHours}h requis</p>
+                                                    </div>
+                                                </label>
+                                            ))}
+                                        </div>
+                                    </div>
+                                );
+                            })}
                         </div>
                     </div>
 

@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useTrainingPeriods, useAuth, useOffers } from "@/hooks";
 import { trainingPeriodService, type TrainingPeriod, type CreateTrainingPeriodPayload } from "@/lib/api/training-periods";
+import { offerModuleService } from "@/lib/api";
 import {
     GraduationCap,
     Plus,
@@ -71,6 +72,28 @@ export default function TrainingPeriodsPage() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [actionId, setActionId] = useState<string | null>(null);
     const [filterStatus, setFilterStatus] = useState<FilterStatus>("ALL");
+    const [selectedOfferModules, setSelectedOfferModules] = useState<any[]>([]);
+    const [loadingModules, setLoadingModules] = useState(false);
+
+    // Fetch modules when offer changes
+    useEffect(() => {
+        const fetchLinkedModules = async () => {
+            if (!formData.offerId) {
+                setSelectedOfferModules([]);
+                return;
+            }
+            setLoadingModules(true);
+            try {
+                const mods = await offerModuleService.getModulesForOffer(formData.offerId);
+                setSelectedOfferModules(mods);
+            } catch (err) {
+                console.error("Failed to fetch modules for preview:", err);
+            } finally {
+                setLoadingModules(false);
+            }
+        };
+        fetchLinkedModules();
+    }, [formData.offerId]);
 
     const filteredPeriods = filterStatus === "ALL"
         ? periods
@@ -207,8 +230,8 @@ export default function TrainingPeriodsPage() {
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div>
-                    <h1 className="text-3xl font-black text-snow uppercase tracking-tight">Périodes de Formation</h1>
-                    <p className="text-mist font-bold">Créez et gérez les cohortes de formation pour vos élèves.</p>
+                    <h1 className="text-3xl font-black text-snow uppercase tracking-tight">Périodes</h1>
+                    <p className="text-mist font-bold">Gérez vos sessions de formation et les inscriptions.</p>
                 </div>
                 <button
                     onClick={handleOpenCreate}
@@ -457,6 +480,29 @@ export default function TrainingPeriodsPage() {
                             ))}
                         </select>
                     </div>
+
+                    {/* Offer Preview (Modules) */}
+                    {formData.offerId && (
+                        <div className="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-3">
+                            <div className="flex items-center justify-between">
+                                <h4 className="text-[10px] font-black uppercase tracking-widest text-signal">Programme de cette offre</h4>
+                                {loadingModules && <Loader2 className="h-3 w-3 animate-spin text-mist" />}
+                            </div>
+                            <div className="space-y-2 max-h-[120px] overflow-y-auto pr-2 custom-scrollbar">
+                                {selectedOfferModules.length > 0 ? (
+                                    selectedOfferModules.map((m, idx) => (
+                                        <div key={idx} className="flex items-center gap-3 py-1 border-b border-white/5 last:border-none">
+                                            <div className="h-1.5 w-1.5 rounded-full bg-signal/50" />
+                                            <span className="text-xs text-snow font-medium">{m.moduleName}</span>
+                                            <span className="text-[9px] text-mist ml-auto">{m.moduleRequiredHours}h</span>
+                                        </div>
+                                    ))
+                                ) : !loadingModules && (
+                                    <p className="text-[10px] text-mist italic">Aucun module associé à cette offre.</p>
+                                )}
+                            </div>
+                        </div>
+                    )}
 
                     <div className="space-y-2">
                         <Label htmlFor="name" className="text-[10px] font-black uppercase tracking-widest text-mist">Nom de la période *</Label>
