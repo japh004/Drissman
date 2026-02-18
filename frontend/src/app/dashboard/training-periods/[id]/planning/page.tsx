@@ -278,7 +278,14 @@ export default function PeriodPlanningPage() {
                     <select
                         className="w-full h-10 rounded-xl bg-white/5 border border-white/10 px-3 text-snow text-sm"
                         value={formData.moduleId}
-                        onChange={e => setFormData({ ...formData, moduleId: e.target.value })}
+                        onChange={e => {
+                            const mod = availableModules.find(m => m.id === e.target.value);
+                            setFormData({
+                                ...formData,
+                                moduleId: e.target.value,
+                                topic: mod ? mod.name : formData.topic
+                            });
+                        }}
                     >
                         <option value="">Aucun module</option>
                         {availableModules.map(m => (
@@ -460,10 +467,10 @@ export default function PeriodPlanningPage() {
 
                                             {/* Type badge */}
                                             <div className={`px-2.5 py-1 rounded-lg text-xs font-bold ${lesson.lessonType === "CONDUITE"
-                                                    ? "bg-blue-500/10 text-blue-400 border border-blue-500/20"
-                                                    : lesson.lessonType === "EXAMEN_BLANC"
-                                                        ? "bg-purple-500/10 text-purple-400 border border-purple-500/20"
-                                                        : "bg-amber-500/10 text-amber-400 border border-amber-500/20"
+                                                ? "bg-blue-500/10 text-blue-400 border border-blue-500/20"
+                                                : lesson.lessonType === "EXAMEN_BLANC"
+                                                    ? "bg-purple-500/10 text-purple-400 border border-purple-500/20"
+                                                    : "bg-amber-500/10 text-amber-400 border border-amber-500/20"
                                                 }`}>
                                                 {lesson.lessonType === "CONDUITE" ? "🚗" : lesson.lessonType === "EXAMEN_BLANC" ? "📝" : "📖"}
                                                 {" "}

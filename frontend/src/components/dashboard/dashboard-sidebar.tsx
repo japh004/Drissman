@@ -25,13 +25,11 @@ import { QuickAddDialog } from "./quick-add-dialog";
 
 // ─── Admin (SCHOOL_ADMIN) ───
 const adminNavigation = [
-    { name: "Vue d'ensemble", href: "/dashboard", icon: LayoutDashboard },
-    { name: "Formations", href: "/dashboard/offers", icon: GraduationCap },
-    { name: "Périodes", href: "/dashboard/training-periods", icon: Calendar },
-    { name: "Cours", href: "/dashboard/planning", icon: BookOpen },
-    { name: "Élèves", href: "/dashboard/bookings", icon: Users },
-    { name: "Moniteurs", href: "/dashboard/monitors", icon: UserCheck },
-    { name: "Mon Auto-école", href: "/dashboard/school", icon: School },
+    { name: "Tableau de Bord", href: "/dashboard", icon: LayoutDashboard },
+    { name: "Sessions", href: "/dashboard/training-periods", icon: Calendar },
+    { name: "Catalogue", href: "/dashboard/offers", icon: GraduationCap },
+    { name: "Équipe", href: "/dashboard/monitors", icon: UserCheck },
+    { name: "Registre", href: "/dashboard/bookings", icon: Users },
     { name: "Paramètres", href: "/dashboard/settings", icon: Settings },
 ];
 
