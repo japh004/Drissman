@@ -20,36 +20,23 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, Plus, Car, BookOpen, Calendar as CalendarIcon, Clock, AlertCircle } from "lucide-react";
+import { Loader2, Plus, Car, BookOpen, Calendar as CalendarIcon, Clock, AlertCircle, MapPin, User, ChevronRight, Activity, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 
 // --- Utilities ---
-
-/** Safely compute endTime string from startTime + durationMinutes. Returns null if invalid. */
 function computeEndTime(startTime: string, durationMinutes: number): string | null {
     const parts = startTime.split(":");
     if (parts.length < 2) return null;
     const startH = parseInt(parts[0], 10);
     const startM = parseInt(parts[1], 10);
     if (isNaN(startH) || isNaN(startM)) return null;
-
     const totalMinutes = startH * 60 + startM + durationMinutes;
-    if (totalMinutes > 23 * 60 + 59) return null; // Cannot exceed 23:59
-
+    if (totalMinutes > 23 * 60 + 59) return null;
     const endH = Math.floor(totalMinutes / 60);
     const endM = totalMinutes % 60;
     return `${endH.toString().padStart(2, "0")}:${endM.toString().padStart(2, "0")}`;
 }
 
-/** Check if a date string is today or in the future */
-function isDateValid(dateStr: string): boolean {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const date = new Date(dateStr + "T00:00:00");
-    return date >= today;
-}
-
-// --- Duration Options ---
 const DURATION_OPTIONS = [
     { value: 60, label: "1h" },
     { value: 90, label: "1h30" },
@@ -59,22 +46,17 @@ const DURATION_OPTIONS = [
 export function QuickAddDialog() {
     const { user } = useAuth();
     const schoolId = user?.schoolId || "";
-
     const [open, setOpen] = useState(false);
     const [activeTab, setActiveTab] = useState("session");
 
-    // Data Loading
     const { monitors } = useMonitors(schoolId);
     const { createSession } = useSessions(schoolId);
     const { createLesson } = useLessons(schoolId);
 
     const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
     const [loadingEnrollments, setLoadingEnrollments] = useState(false);
-
-    // Form States
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    // Session Form (Conduite)
     const [sessionForm, setSessionForm] = useState({
         enrollmentId: "",
         monitorId: "",
@@ -84,7 +66,6 @@ export function QuickAddDialog() {
         meetingPoint: "",
     });
 
-    // Lesson Form (Code)
     const [lessonForm, setLessonForm] = useState({
         monitorId: "",
         topic: "",
@@ -94,408 +75,217 @@ export function QuickAddDialog() {
         capacity: 20,
     });
 
-    // Validation errors
-    const [sessionErrors, setSessionErrors] = useState<Record<string, string>>({});
-    const [lessonErrors, setLessonErrors] = useState<Record<string, string>>({});
-
     useEffect(() => {
         if (open && schoolId) {
+            const fetchEnrollments = async () => {
+                setLoadingEnrollments(true);
+                try {
+                    const data = await partnerService.getEnrollments(schoolId);
+                    setEnrollments(data.filter((e) => e.status === "VALIDATED" || e.status === "IN_PROGRESS"));
+                } catch (err) {
+                    toast.error("Erreur élèves");
+                } finally {
+                    setLoadingEnrollments(false);
+                }
+            };
             fetchEnrollments();
         }
     }, [open, schoolId]);
 
-    const fetchEnrollments = async () => {
-        setLoadingEnrollments(true);
-        try {
-            const data = await partnerService.getEnrollments(schoolId);
-            setEnrollments(data.filter((e) => e.status === "ACTIVE"));
-        } catch (err) {
-            toast.error("Erreur lors du chargement des élèves");
-        } finally {
-            setLoadingEnrollments(false);
-        }
-    };
-
-    // --- Computed values ---
-
-    const selectedEnrollment = useMemo(() => {
-        if (!sessionForm.enrollmentId) return null;
-        return enrollments.find((e) => e.id === sessionForm.enrollmentId) || null;
-    }, [sessionForm.enrollmentId, enrollments]);
-
-    const remainingHours = useMemo(() => {
-        if (!selectedEnrollment) return null;
-        return selectedEnrollment.hoursPurchased - selectedEnrollment.hoursConsumed;
-    }, [selectedEnrollment]);
-
-    const sessionEndTime = useMemo(() => {
-        return computeEndTime(sessionForm.startTime, sessionForm.durationMinutes);
-    }, [sessionForm.startTime, sessionForm.durationMinutes]);
-
-    const lessonEndTime = useMemo(() => {
-        return computeEndTime(lessonForm.startTime, 60); // Cours de code = 1h fixe
-    }, [lessonForm.startTime]);
-
-    // --- Validation ---
-
-    const validateSession = (): boolean => {
-        const errors: Record<string, string> = {};
-
-        if (!sessionForm.enrollmentId) errors.enrollmentId = "Veuillez sélectionner un élève";
-        if (!sessionForm.date) errors.date = "La date est requise";
-        else if (!isDateValid(sessionForm.date)) errors.date = "La date doit être aujourd'hui ou dans le futur";
-        if (!sessionForm.startTime) errors.startTime = "L'heure de début est requise";
-        if (!sessionEndTime) errors.startTime = "L'heure de fin dépasse la journée. Choisissez une heure plus tôt ou réduisez la durée.";
-
-        if (remainingHours !== null && remainingHours < sessionForm.durationMinutes / 60) {
-            errors.enrollmentId = `Heures insuffisantes (${remainingHours}h restantes, ${sessionForm.durationMinutes / 60}h requises)`;
-        }
-
-        setSessionErrors(errors);
-        return Object.keys(errors).length === 0;
-    };
-
-    const validateLesson = (): boolean => {
-        const errors: Record<string, string> = {};
-
-        if (!lessonForm.topic.trim()) errors.topic = "La thématique est requise";
-        if (!lessonForm.date) errors.date = "La date est requise";
-        else if (!isDateValid(lessonForm.date)) errors.date = "La date doit être aujourd'hui ou dans le futur";
-        if (!lessonForm.startTime) errors.startTime = "L'heure de début est requise";
-        if (!lessonEndTime) errors.startTime = "L'heure de fin dépasse la journée";
-        if (lessonForm.capacity < 1) errors.capacity = "La capacité doit être d'au moins 1";
-
-        setLessonErrors(errors);
-        return Object.keys(errors).length === 0;
-    };
-
-    // --- Submit handlers ---
+    const selectedEnrollment = useMemo(() => enrollments.find((e) => e.id === sessionForm.enrollmentId), [sessionForm.enrollmentId, enrollments]);
+    const sessionEndTime = useMemo(() => computeEndTime(sessionForm.startTime, sessionForm.durationMinutes), [sessionForm.startTime, sessionForm.durationMinutes]);
+    const lessonEndTime = useMemo(() => computeEndTime(lessonForm.startTime, 60), [lessonForm.startTime]);
 
     const handleCreateSession = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!validateSession()) return;
-
+        if (!sessionForm.enrollmentId) return toast.error("Choix élève requis");
         setIsSubmitting(true);
         try {
             await createSession({
-                enrollmentId: sessionForm.enrollmentId,
-                monitorId: sessionForm.monitorId || undefined,
-                date: sessionForm.date,
-                startTime: sessionForm.startTime,
+                ...sessionForm,
                 endTime: sessionEndTime!,
-                meetingPoint: sessionForm.meetingPoint || undefined,
-                status: "SCHEDULED",
+                status: "SCHEDULED"
             });
-
-            toast.success("Leçon de conduite planifiée avec succès");
+            toast.success("Séance Conduite planifiée");
             setOpen(false);
-            resetSessionForm();
-        } catch (err) {
-            // Error handled in hook (toast)
-        } finally {
-            setIsSubmitting(false);
-        }
+        } catch (err) { } finally { setIsSubmitting(false); }
     };
 
     const handleCreateLesson = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!validateLesson()) return;
-
+        if (!lessonForm.topic) return toast.error("Sujet requis");
         setIsSubmitting(true);
         try {
-            const success = await createLesson({
-                monitorId: lessonForm.monitorId || undefined,
-                date: lessonForm.date,
-                startTime: lessonForm.startTime,
+            await createLesson({
+                ...lessonForm,
                 endTime: lessonEndTime!,
-                topic: lessonForm.topic,
-                roomId: lessonForm.roomId,
-                capacity: lessonForm.capacity,
             });
-
-            if (success) {
-                setOpen(false);
-                resetLessonForm();
-            }
-        } catch (err) {
-            // Handled in hook
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
-
-    const resetSessionForm = () => {
-        setSessionForm({
-            enrollmentId: "",
-            monitorId: "",
-            date: new Date().toISOString().split("T")[0],
-            startTime: "08:00",
-            durationMinutes: 60,
-            meetingPoint: "",
-        });
-        setSessionErrors({});
-    };
-
-    const resetLessonForm = () => {
-        setLessonForm({
-            monitorId: "",
-            topic: "",
-            date: new Date().toISOString().split("T")[0],
-            startTime: "18:00",
-            roomId: "",
-            capacity: 20,
-        });
-        setLessonErrors({});
-    };
-
-    const activeMonitors = monitors.filter((m) => m.status === "ACTIVE");
-
-    // --- Error display helper ---
-    const FieldError = ({ message }: { message?: string }) => {
-        if (!message) return null;
-        return (
-            <p className="flex items-center gap-1 text-[11px] text-red-400 mt-1">
-                <AlertCircle className="h-3 w-3 flex-shrink-0" />
-                {message}
-            </p>
-        );
+            toast.success("Cours de Code ouvert");
+            setOpen(false);
+        } catch (err) { } finally { setIsSubmitting(false); }
     };
 
     return (
-        <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) { setSessionErrors({}); setLessonErrors({}); } }}>
+        <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button className="w-full bg-signal text-asphalt font-black uppercase tracking-widest hover:bg-signal/90 mb-6 py-6 shadow-lg shadow-signal/20 group relative overflow-hidden">
-                    <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
-                    <Plus className="mr-2 h-5 w-5" />
-                    Nouveau Cours
-                </Button>
+                <button className="w-full relative group mb-8">
+                    <div className="absolute inset-0 bg-signal blur-[20px] opacity-20 group-hover:opacity-40 transition-opacity" />
+                    <div className="relative h-16 bg-signal text-asphalt rounded-2xl flex items-center justify-center gap-3 font-black uppercase tracking-widest text-xs shadow-xl shadow-signal/10 transition-transform active:scale-95">
+                        <Plus className="h-5 w-5 stroke-[3]" />
+                        Ajouter un cours
+                    </div>
+                </button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[520px] bg-asphalt border-white/10 text-snow max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                    <DialogTitle className="text-xl font-black uppercase tracking-tight flex items-center gap-2">
-                        <CalendarIcon className="h-5 w-5 text-signal" />
-                        Planifier une session
-                    </DialogTitle>
-                </DialogHeader>
+            <DialogContent className="sm:max-w-[500px] bg-asphalt/95 backdrop-blur-2xl border-white/5 text-snow p-0 overflow-hidden rounded-[2.5rem] shadow-2xl">
+                <div className="p-8 pb-0">
+                    <DialogHeader className="mb-8">
+                        <DialogTitle className="text-2xl font-black uppercase tracking-tight flex items-center gap-3">
+                            <Sparkles className="h-6 w-6 text-signal" />
+                            Planification Rapide
+                        </DialogTitle>
+                    </DialogHeader>
 
-                <Tabs defaultValue="session" value={activeTab} onValueChange={setActiveTab} className="w-full">
-                    <TabsList className="grid w-full grid-cols-2 bg-white/5 p-1 rounded-xl mb-6">
-                        <TabsTrigger value="session" className="data-[state=active]:bg-signal data-[state=active]:text-asphalt font-bold uppercase tracking-wide text-xs">
-                            <Car className="mr-2 h-4 w-4" />
-                            Conduite
-                        </TabsTrigger>
-                        <TabsTrigger value="lesson" className="data-[state=active]:bg-purple-500 data-[state=active]:text-white font-bold uppercase tracking-wide text-xs">
-                            <BookOpen className="mr-2 h-4 w-4" />
-                            Code (Collectif)
-                        </TabsTrigger>
-                    </TabsList>
+                    <Tabs defaultValue="session" onValueChange={setActiveTab} className="w-full">
+                        <TabsList className="grid w-full grid-cols-2 bg-white/5 p-1.5 rounded-2xl mb-10 h-auto">
+                            <TabsTrigger value="session" className="py-3 rounded-xl data-[state=active]:bg-signal data-[state=active]:text-asphalt text-mist text-[10px] font-black uppercase tracking-widest transition-all">
+                                <Car className="mr-2 h-4 w-4" /> Conduite
+                            </TabsTrigger>
+                            <TabsTrigger value="lesson" className="py-3 rounded-xl data-[state=active]:bg-blue-500 data-[state=active]:text-snow text-mist text-[10px] font-black uppercase tracking-widest transition-all">
+                                <BookOpen className="mr-2 h-4 w-4" /> Code
+                            </TabsTrigger>
+                        </TabsList>
 
-                    {/* ONGLET CONDUITE */}
-                    <TabsContent value="session">
-                        <form onSubmit={handleCreateSession} className="space-y-4">
-                            {/* Élève */}
-                            <div className="space-y-1">
-                                <Label className="text-[10px] font-black uppercase tracking-wider text-mist ml-1">Élève *</Label>
-                                <select
-                                    className={`w-full bg-white/10 border rounded-xl p-3 text-sm text-snow outline-none focus:border-signal/50 transition-colors ${sessionErrors.enrollmentId ? "border-red-400/50" : "border-white/10"}`}
-                                    required
-                                    value={sessionForm.enrollmentId}
-                                    onChange={(e) => { setSessionForm({ ...sessionForm, enrollmentId: e.target.value }); setSessionErrors({ ...sessionErrors, enrollmentId: "" }); }}
-                                >
-                                    <option value="" className="bg-asphalt">Sélectionner un élève...</option>
-                                    {enrollments.map((enrollment) => (
-                                        <option key={enrollment.id} value={enrollment.id} className="bg-asphalt">
-                                            {enrollment.userName || "Sans nom"} ({enrollment.offerName})
-                                        </option>
-                                    ))}
-                                </select>
-                                <FieldError message={sessionErrors.enrollmentId} />
-
-                                {/* Real-time remaining hours */}
-                                {selectedEnrollment && remainingHours !== null && (
-                                    <div className={`flex items-center gap-2 mt-2 px-3 py-2 rounded-lg text-xs font-semibold ${remainingHours <= 2 ? "bg-red-400/10 text-red-400 border border-red-400/20" : remainingHours <= 5 ? "bg-yellow-400/10 text-yellow-400 border border-yellow-400/20" : "bg-emerald-400/10 text-emerald-400 border border-emerald-400/20"}`}>
-                                        <Clock className="h-3.5 w-3.5" />
-                                        <span>{remainingHours}h restantes sur {selectedEnrollment.hoursPurchased}h</span>
-                                        <span className="text-[10px] opacity-70 ml-auto">{selectedEnrollment.offerName}</span>
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* Moniteur + Lieu */}
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-1">
-                                    <Label className="text-[10px] font-black uppercase tracking-wider text-mist ml-1">Moniteur</Label>
-                                    <select
-                                        className="w-full bg-white/10 border border-white/10 rounded-xl p-3 text-sm text-snow outline-none focus:border-signal/50"
-                                        value={sessionForm.monitorId}
-                                        onChange={(e) => setSessionForm({ ...sessionForm, monitorId: e.target.value })}
-                                    >
-                                        <option value="" className="bg-asphalt">Non assigné</option>
-                                        {activeMonitors.map((m) => (
-                                            <option key={m.id} value={m.id} className="bg-asphalt">{m.firstName} {m.lastName}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div className="space-y-1">
-                                    <Label className="text-[10px] font-black uppercase tracking-wider text-mist ml-1">Lieu de RDV</Label>
-                                    <Input
-                                        className="bg-white/10 border-white/10"
-                                        placeholder="Bureau / Gare..."
-                                        value={sessionForm.meetingPoint}
-                                        onChange={(e) => setSessionForm({ ...sessionForm, meetingPoint: e.target.value })}
-                                    />
-                                </div>
-                            </div>
-
-                            {/* Date + Heure */}
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-1">
-                                    <Label className="text-[10px] font-black uppercase tracking-wider text-mist ml-1">Date *</Label>
-                                    <Input
-                                        type="date"
-                                        className={`bg-white/10 block ${sessionErrors.date ? "border-red-400/50" : "border-white/10"}`}
-                                        required
-                                        value={sessionForm.date}
-                                        onChange={(e) => { setSessionForm({ ...sessionForm, date: e.target.value }); setSessionErrors({ ...sessionErrors, date: "" }); }}
-                                    />
-                                    <FieldError message={sessionErrors.date} />
-                                </div>
-                                <div className="space-y-1">
-                                    <Label className="text-[10px] font-black uppercase tracking-wider text-mist ml-1">Heure début *</Label>
-                                    <Input
-                                        type="time"
-                                        className={`bg-white/10 ${sessionErrors.startTime ? "border-red-400/50" : "border-white/10"}`}
-                                        required
-                                        value={sessionForm.startTime}
-                                        onChange={(e) => { setSessionForm({ ...sessionForm, startTime: e.target.value }); setSessionErrors({ ...sessionErrors, startTime: "" }); }}
-                                    />
-                                    <FieldError message={sessionErrors.startTime} />
-                                </div>
-                            </div>
-
-                            {/* Duration Selector */}
-                            <div className="space-y-1">
-                                <Label className="text-[10px] font-black uppercase tracking-wider text-mist ml-1">Durée</Label>
-                                <div className="flex gap-2">
-                                    {DURATION_OPTIONS.map((opt) => (
-                                        <button
-                                            key={opt.value}
-                                            type="button"
-                                            onClick={() => setSessionForm({ ...sessionForm, durationMinutes: opt.value })}
-                                            className={`flex-1 py-2.5 px-3 rounded-xl text-sm font-bold border transition-all duration-200 ${sessionForm.durationMinutes === opt.value
-                                                ? "bg-signal/20 border-signal text-signal shadow-md shadow-signal/10"
-                                                : "bg-white/10 border-white/10 text-mist hover:border-white/20 hover:text-snow"
-                                                }`}
+                        <div className="min-h-[400px] pb-10">
+                            {activeTab === "session" ? (
+                                <form onSubmit={handleCreateSession} className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
+                                    <div className="space-y-3">
+                                        <Label className="text-[10px] font-black uppercase tracking-widest text-mist ml-1">Sélection Élève</Label>
+                                        <select
+                                            className="w-full h-14 bg-white/5 border border-white/10 rounded-2xl px-6 text-snow font-bold focus:border-signal/50 outline-none appearance-none cursor-pointer"
+                                            value={sessionForm.enrollmentId}
+                                            onChange={(e) => setSessionForm({ ...sessionForm, enrollmentId: e.target.value })}
+                                            required
                                         >
-                                            {opt.label}
-                                        </button>
-                                    ))}
-                                </div>
-                                {sessionEndTime && (
-                                    <p className="text-[11px] text-mist mt-1 ml-1">
-                                        Fin prévue : <span className="text-snow font-semibold">{sessionEndTime}</span>
-                                    </p>
-                                )}
-                            </div>
+                                            <option value="" className="bg-asphalt italic">Parcourir le registre...</option>
+                                            {enrollments.map(e => (
+                                                <option key={e.id} value={e.id} className="bg-asphalt">{(e as any).studentName} — {e.offerName}</option>
+                                            ))}
+                                        </select>
+                                    </div>
 
-                            <Button type="submit" disabled={isSubmitting || loadingEnrollments} className="w-full bg-signal text-asphalt font-black uppercase tracking-widest py-6 mt-2">
-                                {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Confirmer la leçon"}
-                            </Button>
-                        </form>
-                    </TabsContent>
+                                    <div className="grid grid-cols-2 gap-6">
+                                        <div className="space-y-3">
+                                            <Label className="text-[10px] font-black uppercase tracking-widest text-mist ml-1">Moniteur</Label>
+                                            <select
+                                                className="w-full h-14 bg-white/5 border border-white/10 rounded-2xl px-6 text-snow font-bold focus:border-signal/50 outline-none appearance-none"
+                                                value={sessionForm.monitorId}
+                                                onChange={(e) => setSessionForm({ ...sessionForm, monitorId: e.target.value })}
+                                            >
+                                                <option value="" className="bg-asphalt">Auto-assigné</option>
+                                                {monitors.map(m => (
+                                                    <option key={m.id} value={m.id} className="bg-asphalt">{m.firstName} {m.lastName}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <div className="space-y-3">
+                                            <Label className="text-[10px] font-black uppercase tracking-widest text-mist ml-1">Lieu de RDV</Label>
+                                            <Input
+                                                className="h-14 bg-white/5 border-white/10 rounded-2xl px-6"
+                                                placeholder="Agence centrale"
+                                                value={sessionForm.meetingPoint}
+                                                onChange={(e) => setSessionForm({ ...sessionForm, meetingPoint: e.target.value })}
+                                            />
+                                        </div>
+                                    </div>
 
-                    {/* ONGLET CODE */}
-                    <TabsContent value="lesson">
-                        <form onSubmit={handleCreateLesson} className="space-y-4">
-                            {/* Thématique */}
-                            <div className="space-y-1">
-                                <Label className="text-[10px] font-black uppercase tracking-wider text-mist ml-1">Thématique *</Label>
-                                <Input
-                                    className={`bg-white/10 ${lessonErrors.topic ? "border-red-400/50" : "border-white/10"}`}
-                                    placeholder="Ex: Priorités, Signalisation..."
-                                    required
-                                    value={lessonForm.topic}
-                                    onChange={(e) => { setLessonForm({ ...lessonForm, topic: e.target.value }); setLessonErrors({ ...lessonErrors, topic: "" }); }}
-                                />
-                                <FieldError message={lessonErrors.topic} />
-                            </div>
+                                    <div className="grid grid-cols-2 gap-6">
+                                        <div className="space-y-3">
+                                            <Label className="text-[10px] font-black uppercase tracking-widest text-mist ml-1">Date</Label>
+                                            <Input type="date" className="h-14 bg-white/5 border-white/10 rounded-2xl px-6" value={sessionForm.date} onChange={(e) => setSessionForm({ ...sessionForm, date: e.target.value })} />
+                                        </div>
+                                        <div className="space-y-3">
+                                            <Label className="text-[10px] font-black uppercase tracking-widest text-mist ml-1">Heure</Label>
+                                            <Input type="time" className="h-14 bg-white/5 border-white/10 rounded-2xl px-6" value={sessionForm.startTime} onChange={(e) => setSessionForm({ ...sessionForm, startTime: e.target.value })} />
+                                        </div>
+                                    </div>
 
-                            {/* Animateur */}
-                            <div className="space-y-1">
-                                <Label className="text-[10px] font-black uppercase tracking-wider text-mist ml-1">Animateur</Label>
-                                <select
-                                    className="w-full bg-white/10 border border-white/10 rounded-xl p-3 text-sm text-snow outline-none focus:border-signal/50"
-                                    value={lessonForm.monitorId}
-                                    onChange={(e) => setLessonForm({ ...lessonForm, monitorId: e.target.value })}
-                                >
-                                    <option value="" className="bg-asphalt">Non assigné</option>
-                                    {activeMonitors.map((m) => (
-                                        <option key={m.id} value={m.id} className="bg-asphalt">{m.firstName} {m.lastName}</option>
-                                    ))}
-                                </select>
-                            </div>
+                                    <div className="space-y-3">
+                                        <Label className="text-[10px] font-black uppercase tracking-widest text-mist ml-1">Durée : <span className="text-signal">{sessionForm.durationMinutes} min</span></Label>
+                                        <div className="flex gap-3">
+                                            {DURATION_OPTIONS.map(opt => (
+                                                <button
+                                                    key={opt.value}
+                                                    type="button"
+                                                    onClick={() => setSessionForm({ ...sessionForm, durationMinutes: opt.value })}
+                                                    className={`h-12 flex-1 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border ${sessionForm.durationMinutes === opt.value ? "bg-signal/20 border-signal text-signal" : "bg-white/5 border-white/10 text-mist hover:bg-white/10"}`}
+                                                >
+                                                    {opt.label}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
 
-                            {/* Date + Heure */}
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-1">
-                                    <Label className="text-[10px] font-black uppercase tracking-wider text-mist ml-1">Date *</Label>
-                                    <Input
-                                        type="date"
-                                        className={`bg-white/10 block ${lessonErrors.date ? "border-red-400/50" : "border-white/10"}`}
-                                        required
-                                        value={lessonForm.date}
-                                        onChange={(e) => { setLessonForm({ ...lessonForm, date: e.target.value }); setLessonErrors({ ...lessonErrors, date: "" }); }}
-                                    />
-                                    <FieldError message={lessonErrors.date} />
-                                </div>
-                                <div className="space-y-1">
-                                    <Label className="text-[10px] font-black uppercase tracking-wider text-mist ml-1">Heure (Début) *</Label>
-                                    <Input
-                                        type="time"
-                                        className={`bg-white/10 ${lessonErrors.startTime ? "border-red-400/50" : "border-white/10"}`}
-                                        required
-                                        value={lessonForm.startTime}
-                                        onChange={(e) => { setLessonForm({ ...lessonForm, startTime: e.target.value }); setLessonErrors({ ...lessonErrors, startTime: "" }); }}
-                                    />
-                                    <FieldError message={lessonErrors.startTime} />
-                                    {lessonEndTime && (
-                                        <p className="text-[11px] text-mist mt-1">
-                                            Fin : <span className="text-snow font-semibold">{lessonEndTime}</span> (1h)
-                                        </p>
-                                    )}
-                                </div>
-                            </div>
+                                    <button type="submit" disabled={isSubmitting} className="w-full h-16 bg-signal text-asphalt rounded-[1.25rem] font-black uppercase tracking-[0.2em] text-[10px] shadow-xl shadow-signal/20 flex items-center justify-center gap-3">
+                                        {isSubmitting ? <Loader2 className="h-5 w-5 animate-spin" /> : <Activity className="h-5 w-5" />} Planifier la séance
+                                    </button>
+                                </form>
+                            ) : (
+                                <form onSubmit={handleCreateLesson} className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
+                                    <div className="space-y-3">
+                                        <Label className="text-[10px] font-black uppercase tracking-widest text-mist ml-1">Sujet du cours collectif</Label>
+                                        <Input
+                                            placeholder="Ex: Signalisation horizontale"
+                                            className="h-14 bg-white/5 border-white/10 rounded-2xl px-6 text-snow font-bold focus:border-blue-500/50"
+                                            value={lessonForm.topic}
+                                            onChange={(e) => setLessonForm({ ...lessonForm, topic: e.target.value })}
+                                            required
+                                        />
+                                    </div>
 
-                            {/* Salle + Capacité */}
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-1">
-                                    <Label className="text-[10px] font-black uppercase tracking-wider text-mist ml-1">Salle</Label>
-                                    <Input
-                                        className="bg-white/10 border-white/10"
-                                        placeholder="Salle 1"
-                                        value={lessonForm.roomId}
-                                        onChange={(e) => setLessonForm({ ...lessonForm, roomId: e.target.value })}
-                                    />
-                                </div>
-                                <div className="space-y-1">
-                                    <Label className="text-[10px] font-black uppercase tracking-wider text-mist ml-1">Capacité</Label>
-                                    <Input
-                                        type="number"
-                                        className={`bg-white/10 ${lessonErrors.capacity ? "border-red-400/50" : "border-white/10"}`}
-                                        min={1}
-                                        value={lessonForm.capacity}
-                                        onChange={(e) => setLessonForm({ ...lessonForm, capacity: parseInt(e.target.value) || 1 })}
-                                    />
-                                    <FieldError message={lessonErrors.capacity} />
-                                </div>
-                            </div>
+                                    <div className="grid grid-cols-2 gap-6">
+                                        <div className="space-y-3">
+                                            <Label className="text-[10px] font-black uppercase tracking-widest text-mist ml-1">Animateur</Label>
+                                            <select
+                                                className="w-full h-14 bg-white/5 border border-white/10 rounded-2xl px-6 text-snow font-bold focus:border-blue-500/50 outline-none appearance-none"
+                                                value={lessonForm.monitorId}
+                                                onChange={(e) => setLessonForm({ ...lessonForm, monitorId: e.target.value })}
+                                            >
+                                                <option value="" className="bg-asphalt">Par défaut</option>
+                                                {monitors.map(m => (
+                                                    <option key={m.id} value={m.id} className="bg-asphalt">{m.firstName} {m.lastName}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <div className="space-y-3">
+                                            <Label className="text-[10px] font-black uppercase tracking-widest text-mist ml-1">Salle académique</Label>
+                                            <Input className="h-14 bg-white/5 border-white/10 rounded-2xl px-6" placeholder="Salle 1-B" value={lessonForm.roomId} onChange={(e) => setLessonForm({ ...lessonForm, roomId: e.target.value })} />
+                                        </div>
+                                    </div>
 
-                            <Button type="submit" disabled={isSubmitting} className="w-full bg-purple-500 text-white font-black uppercase tracking-widest py-6 mt-2 hover:bg-purple-600">
-                                {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Créer le cours de code"}
-                            </Button>
-                        </form>
-                    </TabsContent>
-                </Tabs>
+                                    <div className="grid grid-cols-2 gap-6">
+                                        <div className="space-y-3">
+                                            <Label className="text-[10px] font-black uppercase tracking-widest text-mist ml-1">Date d&apos;ouverture</Label>
+                                            <Input type="date" className="h-14 bg-white/5 border-white/10 rounded-2xl px-6" value={lessonForm.date} onChange={(e) => setLessonForm({ ...lessonForm, date: e.target.value })} />
+                                        </div>
+                                        <div className="space-y-3">
+                                            <Label className="text-[10px] font-black uppercase tracking-widest text-mist ml-1">Heure de début</Label>
+                                            <Input type="time" className="h-14 bg-white/5 border-white/10 rounded-2xl px-6" value={lessonForm.startTime} onChange={(e) => setLessonForm({ ...lessonForm, startTime: e.target.value })} />
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-3">
+                                        <Label className="text-[10px] font-black uppercase tracking-widest text-mist ml-1">Capacité élèves</Label>
+                                        <Input type="number" className="h-14 bg-white/5 border-white/10 rounded-2xl px-6 font-black text-blue-400" value={lessonForm.capacity} onChange={(e) => setLessonForm({ ...lessonForm, capacity: parseInt(e.target.value) })} />
+                                    </div>
+
+                                    <button type="submit" disabled={isSubmitting} className="w-full h-16 bg-blue-500 text-snow rounded-[1.25rem] font-black uppercase tracking-[0.2em] text-[10px] shadow-xl shadow-blue-500/20 flex items-center justify-center gap-3">
+                                        {isSubmitting ? <Loader2 className="h-5 w-5 animate-spin" /> : <CalendarIcon className="h-5 w-5" />} Ouvrir le cours
+                                    </button>
+                                </form>
+                            )}
+                        </div>
+                    </Tabs>
+                </div>
             </DialogContent>
         </Dialog>
     );
