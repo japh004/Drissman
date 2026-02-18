@@ -1,7 +1,6 @@
 package com.drissman.api.controller;
 
-import com.drissman.api.dto.StudentProgressDto;
-import com.drissman.service.StudentProgressService;
+import com.drissman.service.StudentPortalService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,25 +17,25 @@ import java.util.UUID;
 @Slf4j
 public class StudentController {
 
-    private final StudentProgressService studentProgressService;
+    private final StudentPortalService studentPortalService;
 
-    @GetMapping("/progress")
-    public Mono<StudentProgressDto> getProgress(Principal principal) {
-        // Demo mode: return mock progress if no authenticated user
+    @GetMapping("/portal")
+    public Mono<com.drissman.api.dto.StudentPortalResponse> getPortalData(Principal principal) {
         if (principal == null) {
-            log.info("Demo mode: returning mock student progress");
-            return Mono.just(StudentProgressDto.builder()
-                    .codeProgress(75)
-                    .codeExamsCompleted(3)
-                    .codeTotalExams(4)
-                    .conduiteProgress(60)
-                    .conduiteHoursCompleted(12)
-                    .conduiteTotalHours(20)
-                    .nextExamDate("2026-02-15")
-                    .nextExamType("CODE")
-                    .build());
+            return Mono.error(new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.UNAUTHORIZED));
         }
         UUID userId = UUID.fromString(principal.getName());
-        return studentProgressService.getProgress(userId);
+        return studentPortalService.getPortalData(userId);
+    }
+
+    @GetMapping("/portal")
+    public Mono<com.drissman.api.dto.StudentPortalResponse> getPortalData(Principal principal) {
+        if (principal == null) {
+            return Mono.error(new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.UNAUTHORIZED));
+        }
+        UUID userId = UUID.fromString(principal.getName());
+        return studentPortalService.getPortalData(userId);
     }
 }

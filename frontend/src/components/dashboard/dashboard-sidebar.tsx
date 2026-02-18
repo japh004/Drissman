@@ -35,10 +35,10 @@ const adminNavigation = [
 
 // ─── Étudiant ───
 const studentNavigation = [
-    { name: "Mon Parcours", href: "/dashboard", icon: LayoutDashboard },
-    { name: "Mon Planning", href: "/dashboard/bookings", icon: Calendar },
-    { name: "Mes Cours", href: "/dashboard/theory", icon: BookOpen },
-    { name: "Mes Factures", href: "/dashboard/invoices", icon: FileText },
+    { name: "Tableau de Bord", href: "/dashboard", icon: LayoutDashboard },
+    { name: "Mon Parcours", href: "/dashboard/curriculum", icon: GraduationCap },
+    { name: "Emploi du Temps", href: "/dashboard/schedule", icon: Calendar },
+    { name: "Mes Inscriptions", href: "/dashboard/bookings", icon: Users },
     { name: "Paramètres", href: "/dashboard/settings", icon: Settings },
 ];
 

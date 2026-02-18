@@ -42,14 +42,12 @@ public class EnrollmentService {
         }
 
         public Mono<EnrollmentDto> createEnrollment(UUID userId, CreateEnrollmentRequest request) {
-                // If trainingPeriodId is provided, enroll via training period (new cohort
-                // model)
-                if (request.getTrainingPeriodId() != null) {
-                        return createViaTrainingPeriod(userId, request.getTrainingPeriodId())
-                                        .flatMap(this::toDto);
+                if (request.getTrainingPeriodId() == null) {
+                        return Mono.error(new RuntimeException(
+                                        "Une session de formation est requise pour l'inscription"));
                 }
-                // Fallback: direct offer enrollment (legacy support)
-                return createViaOffer(userId, request);
+                return createViaTrainingPeriod(userId, request.getTrainingPeriodId())
+                                .flatMap(this::toDto);
         }
 
         /**
@@ -106,29 +104,6 @@ public class EnrollmentService {
                                                                                 });
                                                         });
                                 });
-        }
-
-        /**
-         * Legacy model: enroll directly in an offer.
-         */
-        private Mono<EnrollmentDto> createViaOffer(UUID userId, CreateEnrollmentRequest request) {
-                return offerRepository.findById(request.getOfferId())
-                                .flatMap(offer -> {
-                                        Enrollment enrollment = Enrollment.builder()
-                                                        .userId(userId)
-                                                        .schoolId(request.getSchoolId() != null ? request.getSchoolId()
-                                                                        : offer.getSchoolId())
-                                                        .offerId(offer.getId())
-                                                        .hoursPurchased(offer.getHours())
-                                                        .hoursConsumed(0)
-                                                        .status(Enrollment.EnrollmentStatus.PENDING)
-                                                        .enrolledAt(LocalDateTime.now())
-                                                        .createdAt(LocalDateTime.now())
-                                                        .build();
-                                        return enrollmentRepository.save(enrollment)
-                                                        .flatMap(saved -> promoteVisitorToStudent(userId, saved));
-                                })
-                                .flatMap(this::toDto);
         }
 
         /**

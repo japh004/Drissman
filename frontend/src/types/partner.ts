@@ -78,4 +78,5 @@ export interface Enrollment {
     createdAt?: string;
     trainingPeriodId?: string;
     trainingPeriodName?: string;
+    schoolName?: string;
 }
