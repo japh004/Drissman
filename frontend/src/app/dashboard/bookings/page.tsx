@@ -4,7 +4,6 @@ import { useState, useMemo } from "react";
 import Link from "next/link";
 import { Check, X, Loader2, Search, SlidersHorizontal, Users, Clock, CheckCircle, Calendar, ArrowUpRight, TrendingUp, XCircle } from "lucide-react";
 import { usePartnerEnrollments, useMyEnrollments, useAuth } from "@/hooks";
-import { TabNavigation } from "@/components/dashboard/tab-navigation";
 import { formatPrice } from "@/lib/format";
 import { toast } from "sonner";
 import { enrollmentService } from "@/lib/api/enrollments";
@@ -82,20 +81,13 @@ function BookingsList({ bookings, loading, error, isSchoolAdmin, updateStatus }:
 
     return (
         <div className="space-y-8">
-            {isSchoolAdmin && (
-                <TabNavigation tabs={[
-                    { label: "Inscriptions", href: "/dashboard/bookings", count: totalCount },
-                    { label: "Factures", href: "/dashboard/invoices" },
-                ]} />
-            )}
-
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
                 <div>
-                    <h2 className="text-2xl font-bold text-snow">
-                        {isSchoolAdmin ? "Gestion des Inscriptions" : "Mes Inscriptions"}
-                    </h2>
-                    <p className="text-mist mt-1">
+                    <h1 className="text-3xl font-black text-snow uppercase tracking-tight">
+                        {isSchoolAdmin ? "Inscriptions" : "Mes Inscriptions"}
+                    </h1>
+                    <p className="text-mist font-bold mt-1">
                         {isSchoolAdmin
                             ? "Gérez les demandes d'inscription et les paiements."
                             : "Suivez vos inscriptions aux auto-écoles."}
@@ -275,8 +267,8 @@ function BookingsList({ bookings, loading, error, isSchoolAdmin, updateStatus }:
                                     key={f.value}
                                     onClick={() => setStatusFilter(f.value)}
                                     className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider border transition-all ${statusFilter === f.value
-                                            ? 'bg-signal/10 border-signal/30 text-signal'
-                                            : 'bg-white/[0.07] border-white/[0.12] text-mist hover:border-white/[0.20]'
+                                        ? 'bg-signal/10 border-signal/30 text-signal'
+                                        : 'bg-white/[0.07] border-white/[0.12] text-mist hover:border-white/[0.20]'
                                         }`}
                                 >
                                     {f.label} <span className="ml-1 opacity-60">{f.count}</span>

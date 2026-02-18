@@ -20,7 +20,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Modal } from "@/components/ui/modal";
-import { TabNavigation } from "@/components/dashboard/tab-navigation";
+
 
 interface AvailabilityFormData {
     dayOfWeek: string;
@@ -163,16 +163,11 @@ export default function AvailabilitiesPage() {
 
     return (
         <div className="space-y-8">
-            <TabNavigation tabs={[
-                { label: "Planning", href: "/dashboard/planning" },
-                { label: "Historique", href: "/dashboard/sessions" },
-                { label: "Disponibilités", href: "/dashboard/availabilities" },
-            ]} />
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-snow mb-2">Disponibilités</h1>
-                    <p className="text-mist">Définissez vos créneaux horaires pour les inscriptions.</p>
+                    <h1 className="text-3xl font-black text-snow uppercase tracking-tight">Disponibilités</h1>
+                    <p className="text-mist font-bold">Définissez vos créneaux horaires pour les inscriptions.</p>
                 </div>
                 <Button onClick={() => handleOpenCreate()} className="flex items-center gap-2">
                     <Plus className="h-4 w-4" />

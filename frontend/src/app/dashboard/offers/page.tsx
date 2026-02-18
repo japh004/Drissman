@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useOffers, useAuth } from "@/hooks";
 import {
-    Tag,
     Plus,
     Loader2,
     Edit2,
@@ -13,14 +12,14 @@ import {
     X,
     Check,
     Coins,
-    ChevronRight
+    ChevronRight,
+    GraduationCap
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Modal } from "@/components/ui/modal";
-import { TabNavigation } from "@/components/dashboard/tab-navigation";
 
 interface OfferFormData {
     name: string;
@@ -179,16 +178,11 @@ export default function OffersPage() {
 
     return (
         <div className="space-y-8">
-            <TabNavigation tabs={[
-                { label: "Offres", href: "/dashboard/offers" },
-                { label: "Programme", href: "/dashboard/curriculum" },
-                { label: "Cours de Code", href: "/dashboard/theory" },
-            ]} />
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div>
-                    <h1 className="text-3xl font-black text-snow uppercase tracking-tight">Gestion des Offres</h1>
-                    <p className="text-mist font-bold">Définissez vos tarifs et formules de formation.</p>
+                    <h1 className="text-3xl font-black text-snow uppercase tracking-tight">Formations</h1>
+                    <p className="text-mist font-bold">Gérez vos offres de formation et leurs tarifs.</p>
                 </div>
                 <button
                     onClick={handleOpenCreate}
@@ -203,9 +197,9 @@ export default function OffersPage() {
             {offers.length === 0 ? (
                 <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-16 text-center border-dashed">
                     <div className="h-16 w-16 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-6">
-                        <Tag className="h-8 w-8 text-mist" />
+                        <GraduationCap className="h-8 w-8 text-mist" />
                     </div>
-                    <h3 className="text-xl font-black text-snow mb-2">Aucune offre active</h3>
+                    <h3 className="text-xl font-black text-snow mb-2">Aucune formation</h3>
                     <p className="text-mist mb-8 max-w-sm mx-auto font-medium">Votre catalogue est vide. Créez votre première formule pour commencer à recevoir des inscriptions.</p>
                     <button
                         onClick={handleOpenCreate}
@@ -223,7 +217,7 @@ export default function OffersPage() {
                         >
                             <div className="flex items-start justify-between mb-4">
                                 <div className="p-3 rounded-2xl bg-white/5 text-signal group-hover:scale-110 transition-transform duration-500 overflow-hidden relative w-12 h-12 flex items-center justify-center">
-                                    <Tag className="h-5 w-5" />
+                                    <GraduationCap className="h-5 w-5" />
                                 </div>
                                 <div className="flex gap-2">
                                     <button
@@ -251,8 +245,10 @@ export default function OffersPage() {
                             <div className="flex-1">
                                 <h3 className="font-black text-snow text-xl group-hover:text-signal transition-colors">{offer.name}</h3>
                                 <div className="flex items-center gap-2 mt-2">
-                                    <div className="h-1.5 w-1.5 rounded-full bg-signal shadow-[0_0_8px_rgba(255,193,7,0.5)]" />
-                                    <span className="text-[10px] font-black text-mist uppercase tracking-widest">{offer.hours} heures de formation</span>
+                                    <span className="px-2 py-0.5 rounded-full bg-signal/10 border border-signal/20 text-signal text-[9px] font-black uppercase tracking-widest">
+                                        Permis {offer.permitType}
+                                    </span>
+                                    <span className="text-[10px] font-bold text-mist">{offer.hours}h de formation</span>
                                 </div>
                                 {offer.description && (
                                     <p className="text-sm text-mist mt-4 font-medium leading-relaxed line-clamp-2 italic">&quot;{offer.description}&quot;</p>

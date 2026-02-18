@@ -1,345 +1,306 @@
 "use client";
-// Build fix: Force fresh deployment
 
-import { Calendar, Clock, BookOpen, Star, ArrowRight, Loader2, Gift, Heart, Megaphone, Users, Trophy, Flame, Zap, ArrowUpRight, Target, CheckCircle } from "lucide-react";
+import {
+    Calendar,
+    Clock,
+    BookOpen,
+    ArrowRight,
+    Loader2,
+    Target,
+    CheckCircle,
+    GraduationCap,
+    AlertCircle,
+} from "lucide-react";
 import Link from "next/link";
-import { useBookings, useAuth, useStudentProgress } from "@/hooks";
+import { useBookings, useAuth, useStudentProgress, useMyEnrollments } from "@/hooks";
 
 export function StudentDashboard() {
     const { user } = useAuth();
+    const { progress, loading: progressLoading, error: progressError } = useStudentProgress();
     const { bookings, loading: bookingsLoading } = useBookings({ userId: user?.id });
-    const { progress, loading: progressLoading } = useStudentProgress();
+    const { enrollments, loading: enrollmentsLoading } = useMyEnrollments();
 
-    const isLoading = bookingsLoading || progressLoading;
+    const isLoading = progressLoading || bookingsLoading || enrollmentsLoading;
 
-    // Use real data if available, fallback to defaults
-    const codeProgress = progress?.codeProgress ?? 0;
-    const codeSubtitle = progress
-        ? `${progress.codeExamsCompleted} examens blancs sur ${progress.codeTotalExams}`
-        : "Chargement...";
+    if (isLoading) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[500px] space-y-6">
+                <div className="relative h-20 w-20">
+                    <div className="absolute inset-0 rounded-full border-4 border-signal/10"></div>
+                    <div className="absolute inset-0 rounded-full border-4 border-signal border-t-transparent animate-spin"></div>
+                    <div className="absolute inset-2 rounded-full border-4 border-signal/20 border-b-transparent animate-spin" style={{ animationDirection: 'reverse', animationDuration: '1.5s' }}></div>
+                </div>
+                <p className="text-mist font-bold animate-pulse uppercase tracking-[0.2em] text-[10px]">Chargement de votre parcours...</p>
+            </div>
+        );
+    }
 
-    const conduiteProgress = progress?.conduiteProgress ?? 0;
-    const conduiteSubtitle = progress
-        ? `${progress.conduiteHoursCompleted}h sur ${progress.conduiteTotalHours}h effectuées`
-        : "Chargement...";
+    if (progressError) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[400px] p-8 bg-red-500/5 rounded-[2rem] border border-red-500/10 text-center">
+                <AlertCircle className="h-12 w-12 text-red-500 mb-4" />
+                <h3 className="text-xl font-black text-snow mb-2">Erreur de chargement</h3>
+                <p className="text-mist max-w-sm mb-6">{progressError}</p>
+                <button onClick={() => window.location.reload()} className="px-6 py-2 bg-red-500 text-white font-bold rounded-xl text-xs uppercase">
+                    Réessayer
+                </button>
+            </div>
+        );
+    }
 
-    const nextExamDate = progress?.nextExamDate ?? "Non planifié";
-    const nextExamFormatted = nextExamDate !== "Non planifié"
-        ? new Date(nextExamDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
-        : nextExamDate;
+    // ─── Computed ───
+    const activeEnrollments = enrollments.filter(e => e.status === "ACTIVE");
+    const upcomingBookings = bookings
+        .filter(b => b.status === "CONFIRMED" || b.status === "PENDING")
+        .sort((a, b) => a.date.localeCompare(b.date))
+        .slice(0, 5);
 
-    // Formation journey milestones
-    const milestones = [
-        { label: "Inscription", done: true, icon: CheckCircle },
-        { label: "Code débuté", done: codeProgress > 0, icon: BookOpen },
-        { label: "Code validé", done: codeProgress >= 100, icon: Trophy },
-        { label: "Conduite débutée", done: conduiteProgress > 0, icon: Target },
-        { label: "Examen conduite", done: conduiteProgress >= 100, icon: Star },
-    ];
-    const completedMilestones = milestones.filter(m => m.done).length;
+    const codeProgress = progress?.codeProgress || 0;
+    const conduiteProgress = progress?.conduiteProgress || 0;
+    const overallProgress = Math.round((codeProgress + conduiteProgress) / 2);
 
     return (
         <div className="space-y-8">
-            {/* ═══ Hero Welcome Banner ═══ */}
+            {/* ═══ Welcome Banner ═══ */}
             <div className="relative overflow-hidden rounded-3xl p-8 md:p-10">
-                {/* Animated gradient background */}
-                <div className="absolute inset-0 bg-gradient-to-br from-signal/15 via-blue-500/10 to-purple-500/10" />
-                <div className="absolute inset-0 bg-gradient-to-tl from-transparent via-emerald-500/5 to-transparent animate-pulse" style={{ animationDuration: '5s' }} />
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/15 via-signal/10 to-purple-500/10" />
+                <div className="absolute top-6 right-6 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl" />
+                <div className="absolute bottom-0 left-1/3 w-48 h-48 bg-signal/10 rounded-full blur-3xl" />
 
-                {/* Decorative floating dots */}
-                <div className="absolute top-8 right-12 w-40 h-40 bg-signal/10 rounded-full blur-3xl" />
-                <div className="absolute bottom-0 left-1/4 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl" />
-                <div className="absolute top-6 right-1/4 w-2.5 h-2.5 bg-signal rounded-full animate-ping" style={{ animationDuration: '3s' }} />
-                <div className="absolute bottom-6 right-1/3 w-2 h-2 bg-purple-400 rounded-full animate-ping" style={{ animationDuration: '4s', animationDelay: '1s' }} />
-                <div className="absolute top-1/2 left-[45%] w-1.5 h-1.5 bg-emerald-400 rounded-full animate-ping" style={{ animationDuration: '3.5s', animationDelay: '0.5s' }} />
-
-                <div className="relative z-10">
-                    <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-                        <div>
-                            <div className="flex items-center gap-3 mb-3">
-                                <div className="h-12 w-12 rounded-2xl bg-signal/20 border border-signal/30 flex items-center justify-center shadow-lg shadow-signal/10">
-                                    <Flame className="h-6 w-6 text-signal" />
-                                </div>
-                                {/* Streak badge */}
-                                <div className="px-3 py-1.5 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-center gap-2">
-                                    <Flame className="h-3.5 w-3.5 text-orange-400" />
-                                    <span className="text-orange-400 text-[10px] font-black uppercase tracking-wider">7 jours actifs</span>
-                                </div>
+                <div className="relative z-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
+                    <div>
+                        <div className="flex items-center gap-3 mb-3">
+                            <div className="h-12 w-12 rounded-2xl bg-blue-500/20 border border-blue-500/30 flex items-center justify-center shadow-lg shadow-blue-500/10">
+                                <GraduationCap className="h-6 w-6 text-blue-400" />
                             </div>
-                            <h2 className="text-3xl md:text-4xl font-black text-snow tracking-tight">
-                                Bonjour, {user?.firstName} !
-                            </h2>
-                            <p className="text-mist mt-1 max-w-lg">
-                                Voici le suivi de votre formation. Continuez comme ça ! 🚀
+                        </div>
+                        <h2 className="text-3xl md:text-4xl font-black text-snow tracking-tight">
+                            Bonjour, {user?.firstName} !
+                        </h2>
+                        <p className="text-mist mt-2 max-w-lg font-medium">
+                            {overallProgress > 0
+                                ? `Progression globale : ${overallProgress}% · Continuez comme ça !`
+                                : "Bienvenue sur votre espace élève. Votre parcours commence ici !"}
+                        </p>
+                    </div>
+
+                    {progress?.nextExamDate && (
+                        <div className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-signal/10 border border-signal/20 text-signal text-xs font-black uppercase tracking-widest">
+                            <Target className="h-4 w-4" />
+                            Prochain examen : {new Date(progress.nextExamDate).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            {/* ═══ Progress Cards ═══ */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Code Progress */}
+                <div className="bg-white/[0.07] backdrop-blur-md border border-white/5 rounded-[2rem] p-6 hover:border-blue-500/20 transition-all">
+                    <div className="flex items-center justify-between mb-6">
+                        <div>
+                            <h3 className="text-lg font-black text-snow">Code de la Route</h3>
+                            <p className="text-[10px] text-mist font-black uppercase tracking-widest mt-1">
+                                {progress?.codeExamsCompleted || 0}/{progress?.codeTotalExams || 0} examens
                             </p>
                         </div>
-
-                        {/* Points badge */}
-                        <Link href="/dashboard/rewards" className="group bg-white/[0.10] backdrop-blur-md rounded-2xl px-6 py-4 border border-white/[0.14] hover:border-purple-500/30 transition-all">
-                            <div className="flex items-center gap-3">
-                                <div className="h-10 w-10 rounded-xl bg-purple-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
-                                    <Gift className="h-5 w-5 text-purple-400" />
-                                </div>
-                                <div>
-                                    <div className="text-[10px] text-mist font-semibold uppercase tracking-wider">Points bonus</div>
-                                    <div className="text-xl font-black text-purple-400">1 250</div>
-                                </div>
-                                <ArrowUpRight className="h-4 w-4 text-mist ml-2 group-hover:text-purple-400 transition-colors" />
-                            </div>
-                        </Link>
-                    </div>
-                </div>
-            </div>
-
-            {/* ═══ Formation Progress — SVG Ring Cards ═══ */}
-            <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-                {/* Code de la Route — with SVG ring */}
-                <div className="bg-white/[0.07] backdrop-blur-md rounded-2xl border border-white/[0.12] p-6 group hover:border-signal/20 transition-all duration-500 relative overflow-hidden">
-                    <div className="absolute -bottom-6 -right-6 w-32 h-32 bg-signal/5 rounded-full blur-2xl group-hover:bg-signal/10 transition-colors duration-500" />
-                    <div className="relative flex items-start justify-between">
-                        <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1">
-                                <BookOpen className="h-4 w-4 text-signal" />
-                                <span className="text-xs font-bold text-mist uppercase tracking-wide">Code de la Route</span>
-                            </div>
-                            {progressLoading ? (
-                                <Loader2 className="h-5 w-5 text-mist animate-spin mt-2" />
-                            ) : (
-                                <>
-                                    <p className="text-3xl font-black text-snow mt-2 tracking-tight">{codeProgress}%</p>
-                                    <p className="text-[11px] text-mist mt-1">{codeSubtitle}</p>
-                                </>
-                            )}
+                        <div className="relative h-16 w-16">
+                            <ProgressRing value={codeProgress} color="#60a5fa" />
                         </div>
-                        <ProgressRing value={codeProgress} color="#ffc107" size={72} loading={progressLoading} />
+                    </div>
+                    <div className="h-2 bg-white/5 rounded-full overflow-hidden">
+                        <div
+                            className="h-full bg-gradient-to-r from-blue-500 to-blue-400 rounded-full transition-all duration-1000"
+                            style={{ width: `${codeProgress}%` }}
+                        />
+                    </div>
+                    <div className="mt-3 flex justify-between text-xs">
+                        <span className="text-mist font-bold">{codeProgress}% complété</span>
+                        <span className="text-blue-400 font-bold">{100 - codeProgress}% restant</span>
                     </div>
                 </div>
 
-                {/* Conduite — with SVG ring */}
-                <div className="bg-white/[0.07] backdrop-blur-md rounded-2xl border border-white/[0.12] p-6 group hover:border-blue-500/20 transition-all duration-500 relative overflow-hidden">
-                    <div className="absolute -bottom-6 -right-6 w-32 h-32 bg-blue-500/5 rounded-full blur-2xl group-hover:bg-blue-500/10 transition-colors duration-500" />
-                    <div className="relative flex items-start justify-between">
-                        <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1">
-                                <Clock className="h-4 w-4 text-blue-400" />
-                                <span className="text-xs font-bold text-mist uppercase tracking-wide">Conduite</span>
-                            </div>
-                            {progressLoading ? (
-                                <Loader2 className="h-5 w-5 text-mist animate-spin mt-2" />
-                            ) : (
-                                <>
-                                    <p className="text-3xl font-black text-snow mt-2 tracking-tight">{conduiteProgress}%</p>
-                                    <p className="text-[11px] text-mist mt-1">{conduiteSubtitle}</p>
-                                </>
-                            )}
-                        </div>
-                        <ProgressRing value={conduiteProgress} color="#3b82f6" size={72} loading={progressLoading} />
-                    </div>
-                </div>
-
-                {/* Next Exam / Course — Visual countdown card */}
-                <div className="bg-gradient-to-br from-emerald-500/10 via-emerald-500/5 to-transparent rounded-2xl border border-emerald-500/20 p-6 group hover:border-emerald-500/40 transition-all duration-500 relative overflow-hidden">
-                    <div className="absolute top-3 right-3 w-16 h-16 bg-emerald-500/10 rounded-full blur-xl" />
-                    <div className="relative">
-                        <div className="flex items-center gap-2 mb-3">
-                            <Calendar className="h-4 w-4 text-emerald-400" />
-                            <span className="text-xs font-bold text-mist uppercase tracking-wide">Prochain RDV</span>
-                        </div>
-                        <p className="text-xl font-black text-snow tracking-tight">{nextExamFormatted}</p>
-                        {progress?.nextExamType && (
-                            <span className="inline-block mt-2 px-3 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-black uppercase tracking-wider">
-                                {progress.nextExamType}
-                            </span>
-                        )}
-                        <Link href="/search" className="mt-3 text-emerald-400 text-xs font-bold flex items-center gap-1 hover:gap-2 transition-all">
-                            Prendre rendez-vous <ArrowRight className="h-3.5 w-3.5" />
-                        </Link>
-                    </div>
-                </div>
-            </div>
-
-            {/* ═══ Formation Journey — Visual Timeline ═══ */}
-            <div className="bg-white/[0.07] backdrop-blur-md rounded-2xl border border-white/[0.12] p-7">
-                <div className="flex items-center justify-between mb-6">
-                    <div>
-                        <h3 className="text-base font-black text-snow uppercase tracking-wider">Parcours Formation</h3>
-                        <p className="text-[11px] text-mist mt-1">{completedMilestones}/{milestones.length} étapes complétées</p>
-                    </div>
-                    <div className="px-3 py-1.5 rounded-xl bg-signal/10 border border-signal/20">
-                        <span className="text-signal text-[10px] font-black uppercase tracking-wider">{Math.round((completedMilestones / milestones.length) * 100)}% complet</span>
-                    </div>
-                </div>
-
-                {/* Visual journey steps */}
-                <div className="relative">
-                    {/* Connection line */}
-                    <div className="absolute top-5 left-0 right-0 h-1 bg-white/[0.10] rounded-full" />
-                    <div
-                        className="absolute top-5 left-0 h-1 bg-gradient-to-r from-signal via-blue-500 to-emerald-500 rounded-full transition-all duration-1000"
-                        style={{ width: `${(completedMilestones / milestones.length) * 100}%` }}
-                    />
-
-                    <div className="relative flex justify-between">
-                        {milestones.map((milestone, i) => (
-                            <div key={i} className="flex flex-col items-center gap-2 relative" style={{ width: `${100 / milestones.length}%` }}>
-                                <div className={`h-10 w-10 rounded-xl flex items-center justify-center transition-all duration-500 ${milestone.done
-                                        ? 'bg-signal/20 border-2 border-signal text-signal shadow-lg shadow-signal/10'
-                                        : 'bg-white/[0.10] border-2 border-white/[0.1] text-mist/40'
-                                    }`}>
-                                    <milestone.icon className="h-4 w-4" />
-                                </div>
-                                <span className={`text-[9px] font-bold uppercase tracking-wider text-center leading-tight ${milestone.done ? 'text-snow' : 'text-mist/40'
-                                    }`}>
-                                    {milestone.label}
-                                </span>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </div>
-
-            {/* ═══ Two Column Layout ═══ */}
-            <div className="grid gap-6 lg:grid-cols-3">
-                {/* Recent Bookings (2/3) */}
-                <div className="lg:col-span-2 bg-white/[0.07] backdrop-blur-md rounded-2xl border border-white/[0.12] p-7">
+                {/* Conduite Progress */}
+                <div className="bg-white/[0.07] backdrop-blur-md border border-white/5 rounded-[2rem] p-6 hover:border-emerald-500/20 transition-all">
                     <div className="flex items-center justify-between mb-6">
-                        <h3 className="text-base font-black text-snow uppercase tracking-wider">Mes Inscriptions</h3>
-                        <Link href="/dashboard/bookings" className="text-[10px] text-signal font-black uppercase tracking-widest hover:underline flex items-center gap-1">
-                            Voir tout <ArrowUpRight className="h-3 w-3" />
+                        <div>
+                            <h3 className="text-lg font-black text-snow">Conduite</h3>
+                            <p className="text-[10px] text-mist font-black uppercase tracking-widest mt-1">
+                                {progress?.conduiteHoursCompleted || 0}/{progress?.conduiteTotalHours || 0} heures
+                            </p>
+                        </div>
+                        <div className="relative h-16 w-16">
+                            <ProgressRing value={conduiteProgress} color="#34d399" />
+                        </div>
+                    </div>
+                    <div className="h-2 bg-white/5 rounded-full overflow-hidden">
+                        <div
+                            className="h-full bg-gradient-to-r from-emerald-500 to-emerald-400 rounded-full transition-all duration-1000"
+                            style={{ width: `${conduiteProgress}%` }}
+                        />
+                    </div>
+                    <div className="mt-3 flex justify-between text-xs">
+                        <span className="text-mist font-bold">{conduiteProgress}% complété</span>
+                        <span className="text-emerald-400 font-bold">{100 - conduiteProgress}% restant</span>
+                    </div>
+                </div>
+            </div>
+
+            {/* ═══ Two-Column: Bookings + Enrollments ═══ */}
+            <div className="grid lg:grid-cols-5 gap-6">
+                {/* Upcoming Bookings */}
+                <div className="lg:col-span-3 bg-white/[0.07] backdrop-blur-md border border-white/5 rounded-[2rem] p-6">
+                    <div className="flex items-center justify-between mb-6">
+                        <div>
+                            <h3 className="text-lg font-black text-snow">Mon Planning</h3>
+                            <p className="text-[10px] text-mist font-black uppercase tracking-widest mt-1">Prochains rendez-vous</p>
+                        </div>
+                        <Link href="/dashboard/bookings" className="text-[10px] font-black text-signal uppercase tracking-widest hover:underline flex items-center gap-1">
+                            Tout voir <ArrowRight className="h-3 w-3" />
                         </Link>
                     </div>
 
-                    {bookingsLoading ? (
-                        <div className="flex justify-center py-8">
-                            <div className="relative h-10 w-10">
-                                <div className="absolute inset-0 rounded-full border-4 border-signal/10"></div>
-                                <div className="absolute inset-0 rounded-full border-4 border-signal border-t-transparent animate-spin"></div>
-                            </div>
+                    {upcomingBookings.length === 0 ? (
+                        <div className="text-center py-12">
+                            <Calendar className="h-10 w-10 text-mist/30 mx-auto mb-3" />
+                            <p className="text-mist font-bold text-sm">Aucun cours à venir</p>
+                            <p className="text-mist/60 text-xs mt-1">Inscrivez-vous à des cours depuis l&apos;onglet Mes Cours.</p>
                         </div>
-                    ) : bookings.length > 0 ? (
+                    ) : (
                         <div className="space-y-3">
-                            {bookings.slice(0, 3).map((booking, i) => (
-                                <div key={booking.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-2xl bg-white/[0.07] border border-white/[0.10] hover:border-signal/15 transition-all group/booking">
-                                    <div className="flex items-center gap-4">
-                                        <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-signal/20 to-signal/5 border border-signal/20 flex items-center justify-center text-signal group-hover/booking:scale-110 transition-transform">
-                                            <Calendar className="h-5 w-5" />
+                            {upcomingBookings.map((booking) => (
+                                <div key={booking.id} className="flex items-center gap-4 p-4 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/5 transition-all">
+                                    <div className="flex-shrink-0 text-center">
+                                        <div className="text-[10px] font-black text-signal uppercase tracking-widest">
+                                            {new Date(booking.date).toLocaleDateString("fr-FR", { weekday: "short" })}
                                         </div>
-                                        <div>
-                                            <div className="font-bold text-snow">{booking.school.name}</div>
-                                            <div className="text-[11px] text-mist flex items-center gap-2">
-                                                <span>{booking.offer.name}</span>
-                                            </div>
+                                        <div className="text-xl font-black text-snow">
+                                            {new Date(booking.date).getDate()}
                                         </div>
                                     </div>
-                                    <div className="flex items-center gap-4 mt-3 sm:mt-0">
-                                        <div className="text-right">
-                                            <div className="text-xs text-snow font-medium">{new Date(booking.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}</div>
-                                            <div className="text-[10px] text-mist">{booking.time || "Heure à confirmer"}</div>
+                                    <div className="h-10 w-px bg-white/10" />
+                                    <div className="flex-1 min-w-0">
+                                        <div className="font-bold text-snow text-sm truncate">
+                                            {booking.offer?.name || "Formation"}
                                         </div>
-                                        <span className={`px-3 py-1.5 rounded-xl text-[10px] font-bold border ${booking.status === 'CONFIRMED'
-                                            ? 'bg-green-500/10 text-green-400 border-green-500/20'
-                                            : 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20'
-                                            }`}>
-                                            {booking.status === 'CONFIRMED' ? '✓ Confirmé' : '⏳ En attente'}
-                                        </span>
+                                        <div className="flex items-center gap-3 text-xs text-mist mt-1">
+                                            <span className="flex items-center gap-1">
+                                                <Clock className="h-3 w-3" />
+                                                {booking.school?.name || "Auto-école"}
+                                            </span>
+                                            {booking.time && (
+                                                <span className="text-mist/60">{booking.time}</span>
+                                            )}
+                                        </div>
+                                    </div>
+                                    <div className={`px-2 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border ${booking.status === "CONFIRMED"
+                                        ? "text-emerald-400 bg-emerald-500/10 border-emerald-500/20"
+                                        : "text-orange-400 bg-orange-500/10 border-orange-500/20"
+                                        }`}>
+                                        {booking.status === "CONFIRMED" ? "Confirmé" : "En attente"}
                                     </div>
                                 </div>
                             ))}
                         </div>
-                    ) : (
-                        <div className="text-center py-12 bg-white/[0.07] rounded-2xl border border-dashed border-white/[0.14]">
-                            <Calendar className="h-10 w-10 text-mist/20 mx-auto mb-3" />
-                            <p className="text-mist mb-4">Vous n&apos;avez pas encore d&apos;inscription.</p>
-                            <Link href="/search" className="text-signal font-bold hover:underline text-sm">
-                                Explorer les auto-écoles →
-                            </Link>
-                        </div>
                     )}
                 </div>
 
-                {/* Right Column (1/3) */}
-                <div className="space-y-5">
-                    {/* Invite Friends — gradient card */}
-                    <div className="relative overflow-hidden bg-gradient-to-br from-purple-500/15 via-purple-500/5 to-transparent rounded-2xl border border-purple-500/20 p-6">
-                        <div className="absolute -top-4 -right-4 opacity-10">
-                            <Users className="h-24 w-24 text-purple-400" />
-                        </div>
-                        <div className="absolute bottom-0 right-0 w-20 h-20 bg-purple-500/10 rounded-full blur-xl" />
-                        <div className="relative">
-                            <div className="flex items-center gap-2 mb-2">
-                                <Heart className="h-4 w-4 text-purple-400" />
-                                <h4 className="font-black text-snow text-sm">Inviter des amis</h4>
-                            </div>
-                            <p className="text-[11px] text-mist mb-4">Gagnez <span className="text-purple-400 font-bold">200 points</span> par parrainage !</p>
-                            <button className="w-full px-4 py-2.5 rounded-xl bg-purple-500/20 border border-purple-500/30 text-purple-300 text-xs font-bold hover:bg-purple-500/30 transition-all flex items-center justify-center gap-2">
-                                <Zap className="h-3.5 w-3.5" />
-                                Partager mon lien
-                            </button>
+                {/* Active Enrollments */}
+                <div className="lg:col-span-2 bg-white/[0.07] backdrop-blur-md border border-white/5 rounded-[2rem] p-6">
+                    <div className="flex items-center justify-between mb-6">
+                        <div>
+                            <h3 className="text-lg font-black text-snow">Mes Formations</h3>
+                            <p className="text-[10px] text-mist font-black uppercase tracking-widest mt-1">Inscriptions actives</p>
                         </div>
                     </div>
 
-                    {/* Latest Announcements */}
-                    <div className="bg-white/[0.07] backdrop-blur-md rounded-2xl border border-white/[0.12] p-6">
-                        <div className="flex items-center gap-2 mb-4">
-                            <Megaphone className="h-4 w-4 text-signal" />
-                            <h4 className="font-black text-snow text-sm">Annonces</h4>
+                    {activeEnrollments.length === 0 ? (
+                        <div className="text-center py-12">
+                            <GraduationCap className="h-10 w-10 text-mist/30 mx-auto mb-3" />
+                            <p className="text-mist font-bold text-sm">Aucune formation active</p>
+                            <p className="text-mist/60 text-xs mt-1">Inscrivez-vous à une formation pour commencer.</p>
                         </div>
+                    ) : (
                         <div className="space-y-3">
-                            <div className="p-3 rounded-xl bg-white/[0.07] border border-white/[0.14] hover:border-white/[0.1] transition-colors">
-                                <div className="flex items-start gap-2">
-                                    <div className="mt-0.5 h-2 w-2 rounded-full bg-green-400 shrink-0" />
-                                    <div>
-                                        <p className="text-xs text-snow font-semibold">Nouvelles fonctionnalités</p>
-                                        <p className="text-[10px] text-mist mt-0.5">Système de récompenses et suivi amélioré.</p>
-                                        <span className="text-[9px] text-mist/50 mt-1 block">Il y a 2 jours</span>
+                            {activeEnrollments.slice(0, 4).map((enrollment) => (
+                                <div key={enrollment.id} className="p-4 rounded-xl bg-white/[0.04] border border-white/5 hover:bg-white/[0.08] transition-all">
+                                    <div className="flex items-start justify-between mb-2">
+                                        <h4 className="font-bold text-snow text-sm truncate flex-1">
+                                            {enrollment.offerName || "Formation"}
+                                        </h4>
+                                        <CheckCircle className="h-4 w-4 text-emerald-400 flex-shrink-0 ml-2" />
+                                    </div>
+                                    <div className="text-[10px] text-mist font-bold uppercase tracking-widest">
+                                        {enrollment.trainingPeriodName || "Formation en cours"}
                                     </div>
                                 </div>
-                            </div>
-                            <div className="p-3 rounded-xl bg-signal/5 border border-signal/10 hover:border-signal/20 transition-colors">
-                                <div className="flex items-start gap-2">
-                                    <div className="mt-0.5 h-2 w-2 rounded-full bg-signal shrink-0 animate-pulse" />
-                                    <div>
-                                        <p className="text-xs text-signal font-semibold">📢 Maintenance prévue</p>
-                                        <p className="text-[10px] text-mist mt-0.5">15 février de 2h à 4h du matin.</p>
-                                        <span className="text-[9px] text-mist/50 mt-1 block">Il y a 5 jours</span>
-                                    </div>
-                                </div>
-                            </div>
+                            ))}
                         </div>
-                    </div>
+                    )}
                 </div>
+            </div>
+
+            {/* ═══ Quick Links ═══ */}
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                {[
+                    { label: "Mon Planning", href: "/dashboard/bookings", icon: Calendar, desc: "Prochains cours" },
+                    { label: "Mes Cours", href: "/dashboard/theory", icon: BookOpen, desc: "Code & conduite" },
+                    { label: "Mes Factures", href: "/dashboard/invoices", icon: Target, desc: "Paiements" },
+                ].map((item) => (
+                    <Link
+                        key={item.label}
+                        href={item.href}
+                        className="group p-5 rounded-2xl bg-white/[0.04] border border-white/5 hover:border-signal/20 hover:bg-white/[0.08] transition-all"
+                    >
+                        <item.icon className="h-6 w-6 text-mist group-hover:text-signal transition-colors mb-3" />
+                        <div className="font-bold text-snow text-sm group-hover:text-signal transition-colors">{item.label}</div>
+                        <div className="text-[10px] text-mist font-bold uppercase tracking-widest mt-1">{item.desc}</div>
+                    </Link>
+                ))}
             </div>
         </div>
     );
 }
 
 /* ─── Progress Ring SVG Component ─── */
-function ProgressRing({ value, color, size = 72, loading }: { value: number; color: string; size?: number; loading?: boolean }) {
+function ProgressRing({ value, color, size = 64 }: { value: number; color: string; size?: number }) {
     const strokeWidth = 5;
-    const r = (size - strokeWidth * 2) / 2;
-    const circ = 2 * Math.PI * r;
-    const offset = loading ? circ : circ - (Math.min(100, value) / 100) * circ;
+    const radius = (size - strokeWidth) / 2;
+    const circumference = 2 * Math.PI * radius;
+    const offset = circumference - (value / 100) * circumference;
 
     return (
-        <svg width={size} height={size} className="transform -rotate-90 shrink-0">
-            {/* Track */}
-            <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="currentColor" strokeWidth={strokeWidth} className="text-white/[0.06]" />
-            {/* Value arc */}
+        <svg width={size} height={size} className="transform -rotate-90">
             <circle
-                cx={size / 2} cy={size / 2} r={r} fill="none"
-                stroke={color} strokeWidth={strokeWidth} strokeLinecap="round"
-                strokeDasharray={circ} strokeDashoffset={offset}
-                className="transition-all duration-1000 ease-out"
+                cx={size / 2}
+                cy={size / 2}
+                r={radius}
+                fill="none"
+                stroke="currentColor"
+                className="text-white/5"
+                strokeWidth={strokeWidth}
             />
-            {/* Center text */}
+            <circle
+                cx={size / 2}
+                cy={size / 2}
+                r={radius}
+                fill="none"
+                stroke={color}
+                strokeWidth={strokeWidth}
+                strokeDasharray={circumference}
+                strokeDashoffset={offset}
+                strokeLinecap="round"
+                className="transition-all duration-1000"
+            />
             <text
-                x={size / 2} y={size / 2}
-                textAnchor="middle" dominantBaseline="central"
-                className="fill-snow font-black"
-                fontSize={size > 60 ? 14 : 10}
+                x={size / 2}
+                y={size / 2}
+                textAnchor="middle"
+                dominantBaseline="central"
+                className="fill-snow text-xs font-black"
                 transform={`rotate(90, ${size / 2}, ${size / 2})`}
             >
-                {loading ? '…' : `${value}%`}
+                {value}%
             </text>
         </svg>
     );

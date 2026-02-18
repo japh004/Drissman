@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Search, School, Star, ArrowRight, Eye, UserPlus, Building2 } from "lucide-react";
+import { Search, School, ArrowRight, UserPlus, GraduationCap, Star } from "lucide-react";
 
 interface VisitorDashboardProps {
     user: {
@@ -14,139 +14,84 @@ interface VisitorDashboardProps {
 export function VisitorDashboard({ user }: VisitorDashboardProps) {
     return (
         <div className="space-y-8">
-            {/* Welcome Banner */}
-            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-signal/20 via-signal/5 to-transparent border border-signal/20 p-8">
-                <div className="absolute -top-20 -right-20 w-60 h-60 bg-signal/5 rounded-full blur-3xl" />
-                <div className="relative">
-                    <div className="flex items-center gap-3 mb-4">
-                        <div className="h-12 w-12 rounded-xl bg-signal/10 border border-signal/20 flex items-center justify-center">
-                            <Eye className="h-6 w-6 text-signal" />
-                        </div>
-                        <div>
-                            <h1 className="text-2xl font-bold text-snow">
-                                Bienvenue, {user.firstName} ! 👋
-                            </h1>
-                            <p className="text-mist text-sm">Espace Visiteur — Explorez Drissman</p>
+            {/* ═══ Welcome Banner ═══ */}
+            <div className="relative overflow-hidden rounded-3xl p-8 md:p-10">
+                <div className="absolute inset-0 bg-gradient-to-br from-signal/15 via-purple-500/10 to-blue-500/10" />
+                <div className="absolute top-6 right-6 w-32 h-32 bg-signal/10 rounded-full blur-3xl" />
+                <div className="absolute bottom-0 left-1/3 w-48 h-48 bg-purple-500/10 rounded-full blur-3xl" />
+
+                <div className="relative z-10">
+                    <div className="flex items-center gap-3 mb-3">
+                        <div className="h-12 w-12 rounded-2xl bg-signal/20 border border-signal/30 flex items-center justify-center shadow-lg shadow-signal/10">
+                            <Star className="h-6 w-6 text-signal" />
                         </div>
                     </div>
-                    <p className="text-mist max-w-2xl">
-                        En tant que visiteur, vous pouvez découvrir nos auto-écoles partenaires,
-                        comparer les offres et lire les avis. Inscrivez-vous en tant que
-                        candidat ou créez votre propre auto-école !
+                    <h2 className="text-3xl md:text-4xl font-black text-snow tracking-tight">
+                        Bienvenue, {user.firstName} !
+                    </h2>
+                    <p className="text-mist mt-2 max-w-xl font-medium">
+                        Explorez les auto-écoles partenaires et trouvez la formation qui vous correspond.
                     </p>
                 </div>
             </div>
 
-            {/* Quick Actions Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* ═══ Actions ═══ */}
+            <div className="grid md:grid-cols-2 gap-6">
                 <Link
                     href="/"
-                    className="group relative overflow-hidden rounded-xl bg-asphalt border border-white/5 p-6 hover:border-signal/30 transition-all duration-300"
+                    className="group relative overflow-hidden rounded-[2rem] p-8 bg-white/[0.07] backdrop-blur-md border border-white/5 hover:border-signal/30 transition-all duration-500"
                 >
-                    <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                    <div className="relative">
-                        <div className="h-12 w-12 rounded-xl bg-blue-500/10 flex items-center justify-center mb-4">
-                            <Search className="h-6 w-6 text-blue-400" />
+                    <div className="absolute inset-0 bg-gradient-to-br from-signal/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                    <div className="relative z-10">
+                        <div className="h-14 w-14 rounded-2xl bg-signal/10 border border-signal/20 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                            <Search className="h-7 w-7 text-signal" />
                         </div>
-                        <h3 className="text-lg font-bold text-snow mb-2">Rechercher</h3>
-                        <p className="text-sm text-mist mb-4">
-                            Trouvez l&apos;auto-école idéale près de chez vous.
+                        <h3 className="text-xl font-black text-snow mb-2 group-hover:text-signal transition-colors">Explorer les auto-écoles</h3>
+                        <p className="text-mist text-sm font-medium mb-6">
+                            Comparez les offres, consultez les avis, et trouvez l&apos;auto-école idéale près de chez vous.
                         </p>
-                        <span className="inline-flex items-center gap-1 text-sm font-medium text-blue-400 group-hover:gap-2 transition-all">
-                            Explorer <ArrowRight className="h-4 w-4" />
+                        <span className="inline-flex items-center gap-2 text-signal text-xs font-black uppercase tracking-widest">
+                            Découvrir <ArrowRight className="h-3 w-3 group-hover:translate-x-1 transition-transform" />
                         </span>
                     </div>
                 </Link>
 
-                <Link
-                    href="/#schools"
-                    className="group relative overflow-hidden rounded-xl bg-asphalt border border-white/5 p-6 hover:border-signal/30 transition-all duration-300"
-                >
-                    <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                    <div className="relative">
-                        <div className="h-12 w-12 rounded-xl bg-emerald-500/10 flex items-center justify-center mb-4">
-                            <School className="h-6 w-6 text-emerald-400" />
+                <div className="group relative overflow-hidden rounded-[2rem] p-8 bg-white/[0.07] backdrop-blur-md border border-white/5">
+                    <div className="relative z-10">
+                        <div className="h-14 w-14 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center mb-6">
+                            <GraduationCap className="h-7 w-7 text-blue-400" />
                         </div>
-                        <h3 className="text-lg font-bold text-snow mb-2">Auto-Écoles</h3>
-                        <p className="text-sm text-mist mb-4">
-                            Consultez la liste de nos partenaires certifiés.
+                        <h3 className="text-xl font-black text-snow mb-2">Prêt à commencer ?</h3>
+                        <p className="text-mist text-sm font-medium mb-6">
+                            Inscrivez-vous à une formation pour accéder à votre espace élève avec planning, cours et suivi de progression.
                         </p>
-                        <span className="inline-flex items-center gap-1 text-sm font-medium text-emerald-400 group-hover:gap-2 transition-all">
-                            Voir tout <ArrowRight className="h-4 w-4" />
-                        </span>
-                    </div>
-                </Link>
-
-                <Link
-                    href="/#testimonials"
-                    className="group relative overflow-hidden rounded-xl bg-asphalt border border-white/5 p-6 hover:border-signal/30 transition-all duration-300"
-                >
-                    <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                    <div className="relative">
-                        <div className="h-12 w-12 rounded-xl bg-amber-500/10 flex items-center justify-center mb-4">
-                            <Star className="h-6 w-6 text-amber-400" />
-                        </div>
-                        <h3 className="text-lg font-bold text-snow mb-2">Avis & Témoignages</h3>
-                        <p className="text-sm text-mist mb-4">
-                            Lisez les retours de nos candidats satisfaits.
-                        </p>
-                        <span className="inline-flex items-center gap-1 text-sm font-medium text-amber-400 group-hover:gap-2 transition-all">
-                            Lire les avis <ArrowRight className="h-4 w-4" />
-                        </span>
-                    </div>
-                </Link>
-            </div>
-
-            {/* Dual Conversion CTAs */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* CTA: Devenir Candidat */}
-                <div className="rounded-2xl bg-gradient-to-r from-signal/10 via-signal/5 to-transparent border border-signal/20 p-8">
-                    <div className="flex items-start gap-4">
-                        <div className="h-14 w-14 rounded-xl bg-signal/10 border border-signal/20 flex items-center justify-center flex-shrink-0">
-                            <UserPlus className="h-7 w-7 text-signal" />
-                        </div>
-                        <div>
-                            <h2 className="text-xl font-bold text-snow mb-1">
-                                Vous êtes candidat ?
-                            </h2>
-                            <p className="text-mist text-sm mb-6">
-                                Achetez un pack de formation pour réserver des leçons de conduite,
-                                suivre votre progression et obtenir votre permis.
-                            </p>
-                            <Link
-                                href="/"
-                                className="inline-flex items-center gap-2 px-6 py-3 bg-signal hover:bg-signal/90 text-asphalt font-bold rounded-xl shadow-[0_0_20px_rgba(255,193,7,0.3)] transition-all text-sm whitespace-nowrap"
-                            >
-                                <UserPlus className="h-4 w-4" />
-                                Acheter une formation
-                            </Link>
+                        <div className="flex items-center gap-3 text-xs text-mist font-bold">
+                            <UserPlus className="h-4 w-4 text-blue-400" />
+                            Inscrivez-vous auprès d&apos;une auto-école pour commencer
                         </div>
                     </div>
                 </div>
+            </div>
 
-                {/* CTA: Créer son Auto-École */}
-                <div className="rounded-2xl bg-gradient-to-r from-emerald-500/10 via-emerald-500/5 to-transparent border border-emerald-500/20 p-8">
-                    <div className="flex items-start gap-4">
-                        <div className="h-14 w-14 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center flex-shrink-0">
-                            <Building2 className="h-7 w-7 text-emerald-400" />
+            {/* ═══ How it works ═══ */}
+            <div className="bg-white/[0.04] border border-white/5 rounded-[2rem] p-8">
+                <h3 className="text-lg font-black text-snow mb-6">Comment ça marche ?</h3>
+                <div className="grid md:grid-cols-3 gap-6">
+                    {[
+                        { step: "1", title: "Explorez", desc: "Parcourez les auto-écoles et comparez les offres de formation.", icon: Search },
+                        { step: "2", title: "Inscrivez-vous", desc: "Choisissez une formation et inscrivez-vous en ligne.", icon: School },
+                        { step: "3", title: "Progressez", desc: "Suivez vos cours, votre planning et votre progression.", icon: GraduationCap },
+                    ].map((item) => (
+                        <div key={item.step} className="flex items-start gap-4">
+                            <div className="flex-shrink-0 h-10 w-10 rounded-xl bg-signal/10 border border-signal/20 flex items-center justify-center">
+                                <span className="text-signal font-black text-sm">{item.step}</span>
+                            </div>
+                            <div>
+                                <h4 className="font-bold text-snow text-sm">{item.title}</h4>
+                                <p className="text-mist text-xs mt-1 font-medium">{item.desc}</p>
+                            </div>
                         </div>
-                        <div>
-                            <h2 className="text-xl font-bold text-snow mb-1">
-                                Vous êtes une auto-école ?
-                            </h2>
-                            <p className="text-mist text-sm mb-6">
-                                Créez votre auto-école sur Drissman pour digitaliser votre activité,
-                                gérer vos offres et votre personnel.
-                            </p>
-                            <Link
-                                href="/register?plan=partner"
-                                className="inline-flex items-center gap-2 px-6 py-3 bg-emerald-500 hover:bg-emerald-500/90 text-white font-bold rounded-xl shadow-[0_0_20px_rgba(16,185,129,0.3)] transition-all text-sm whitespace-nowrap"
-                            >
-                                <Building2 className="h-4 w-4" />
-                                Créer mon auto-école
-                            </Link>
-                        </div>
-                    </div>
+                    ))}
                 </div>
             </div>
         </div>

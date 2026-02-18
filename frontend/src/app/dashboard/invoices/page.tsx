@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { Invoice } from "@/lib/api";
-import { TabNavigation } from "@/components/dashboard/tab-navigation";
+
 
 const STATUS_CONFIG: Record<string, { label: string; icon: any; className: string }> = {
     PENDING: {
@@ -237,12 +237,6 @@ export default function InvoicesPage() {
     if (invoices.length === 0) {
         return (
             <div className="space-y-8">
-                {isSchoolAdmin && (
-                    <TabNavigation tabs={[
-                        { label: "Inscriptions", href: "/dashboard/bookings" },
-                        { label: "Factures", href: "/dashboard/invoices" },
-                    ]} />
-                )}
                 <EmptyState
                     title="Aucune facture"
                     description={isSchoolAdmin
@@ -257,13 +251,6 @@ export default function InvoicesPage() {
 
     return (
         <div className="space-y-8">
-            {isSchoolAdmin && (
-                <TabNavigation tabs={[
-                    { label: "Inscriptions", href: "/dashboard/bookings" },
-                    { label: "Factures", href: "/dashboard/invoices", count: invoices.length },
-                ]} />
-            )}
-
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
                 <div>
@@ -390,8 +377,8 @@ export default function InvoicesPage() {
                                 key={f.value}
                                 onClick={() => setStatusFilter(f.value)}
                                 className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider border transition-all ${statusFilter === f.value
-                                        ? 'bg-signal/10 border-signal/30 text-signal'
-                                        : 'bg-white/[0.07] border-white/[0.12] text-mist hover:border-white/[0.20]'
+                                    ? 'bg-signal/10 border-signal/30 text-signal'
+                                    : 'bg-white/[0.07] border-white/[0.12] text-mist hover:border-white/[0.20]'
                                     }`}
                             >
                                 {f.label} <span className="ml-1 opacity-60">{f.count}</span>
