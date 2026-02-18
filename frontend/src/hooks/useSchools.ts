@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { schoolsService, School, Offer } from '@/lib/api';
+import { partnerService } from '@/lib/api/partners';
 
 export function useSchools(city?: string) {
     const [schools, setSchools] = useState<School[]>([]);
@@ -33,24 +34,33 @@ export function useSchool(id: string) {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    useEffect(() => {
-        async function fetchSchool() {
-            try {
-                setLoading(true);
-                setError(null);
-                const data = await schoolsService.getById(id);
-                setSchool(data);
-            } catch (err) {
-                setError(err instanceof Error ? err.message : 'Erreur de chargement');
-            } finally {
-                setLoading(false);
-            }
-        }
-
-        if (id) {
-            fetchSchool();
+    const fetchSchool = useCallback(async () => {
+        try {
+            setLoading(true);
+            setError(null);
+            const data = await schoolsService.getById(id);
+            setSchool(data);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Erreur de chargement');
+        } finally {
+            setLoading(false);
         }
     }, [id]);
 
-    return { school, loading, error };
+    useEffect(() => {
+        if (id) {
+            fetchSchool();
+        }
+    }, [id, fetchSchool]);
+
+    const updateSchool = async (data: any) => {
+        try {
+            await partnerService.updateSchool(data);
+            await fetchSchool();
+        } catch (err) {
+            throw err;
+        }
+    };
+
+    return { school, loading, error, updateSchool, refetch: fetchSchool };
 }
