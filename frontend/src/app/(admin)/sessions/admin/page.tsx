@@ -4,7 +4,7 @@ import { useSessions } from "@/hooks";
 import { useState } from "react";
 import { Loader2, CalendarDays, Plus, Clock, MapPin, User, CheckCircle, XCircle } from "lucide-react";
 import { SessionStatus } from "@/types/partner";
-import SessionFormModal from "./SessionFormModal";
+import SessionFormModal from "../SessionFormModal";
 
 export default function AdminSessionsPage() {
     const { sessions, loading, error, updateStatus } = useSessions();
