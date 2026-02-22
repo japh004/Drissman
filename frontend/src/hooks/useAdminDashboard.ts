@@ -27,6 +27,9 @@ export interface AdminDashboardStats {
     totalOffers: number;
     totalModules: number;
     todaySessions: number;
+    totalRevenue: number;
+    monthlyRevenue: number;
+    pendingValidations: number;
     recentActivities: RecentActivity[];
     upcomingSessions: UpcomingSession[];
 }
