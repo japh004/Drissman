@@ -6,27 +6,26 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.UUID;
-
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class CreateMonitorRequest {
-    private UUID schoolId;
 
     @NotBlank(message = "Le prénom est obligatoire")
     private String firstName;
 
-    @NotBlank(message = "Le nom est obligatoire")
+    @NotBlank(message = "Le nom de famille est obligatoire")
     private String lastName;
 
-    @NotBlank(message = "Le numéro de licence est obligatoire")
+    @NotBlank(message = "Le numéro de permis/licence est obligatoire")
     private String licenseNumber;
 
-    @NotBlank(message = "L'email est obligatoire")
-    private String email;
-
+    @NotBlank(message = "Le numéro de téléphone est obligatoire")
     private String phoneNumber;
-    private String status; // ACTIVE, INACTIVE, ON_LEAVE
+
+    // Optional email and password if the admin wants to immediately provision an
+    // account for them
+    private String email;
+    private String password;
 }

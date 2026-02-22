@@ -3,16 +3,16 @@ import { partnerService } from '@/lib/api/partners';
 import { Session, CreateSessionRequest, SessionStatus } from '@/types/partner';
 import { toast } from 'sonner';
 
-export function useSessions(schoolId: string) {
+export function useSessions() {
     const [sessions, setSessions] = useState<Session[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
     const fetchSessions = useCallback(async () => {
-        if (!schoolId) return;
+        if (false) return; // Legacy school check removed
         setLoading(true);
         try {
-            const data = await partnerService.getSessions(schoolId);
+            const data = await partnerService.getSessions();
             setSessions(data);
             setError(null);
         } catch (err: any) {
@@ -20,7 +20,7 @@ export function useSessions(schoolId: string) {
         } finally {
             setLoading(false);
         }
-    }, [schoolId]);
+    }, []);
 
     useEffect(() => {
         fetchSessions();

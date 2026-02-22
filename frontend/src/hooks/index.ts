@@ -18,3 +18,6 @@ export { useMyEnrollments } from './useMyEnrollments';
 export * from "./useStudentPortal";
 export { useTrainingPeriods, usePublishedPeriods } from './useTrainingPeriods';
 export { useOfferModules } from './useOfferModules';
+export * from './useStudentSessions';
+export * from './useInstructorProfile';
+export * from './useInstructorSessions';

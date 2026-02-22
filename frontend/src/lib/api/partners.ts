@@ -22,62 +22,62 @@ export const partnerService = {
         if (error) throw new Error(error);
     },
 
-    async getMonitors(schoolId: string): Promise<Monitor[]> {
-        const { data, error } = await api.get<Monitor[]>(`/monitors/school/${schoolId}`);
+    async getMonitors(): Promise<Monitor[]> {
+        const { data, error } = await api.get<Monitor[]>(`/schools/admin/monitors`);
         if (error) throw new Error(error);
         return data || [];
     },
 
     async createMonitor(payload: CreateMonitorRequest): Promise<Monitor> {
-        const { data, error } = await api.post<Monitor>('/monitors', payload);
+        const { data, error } = await api.post<Monitor>('/schools/admin/monitors', payload);
         if (error) throw new Error(error);
         return data!;
     },
 
     async updateMonitor(id: string, payload: CreateMonitorRequest): Promise<Monitor> {
-        const { data, error } = await api.put<Monitor>(`/monitors/${id}`, payload);
+        const { data, error } = await api.put<Monitor>(`/schools/admin/monitors/${id}`, payload);
         if (error) throw new Error(error);
         return data!;
     },
 
     async deleteMonitor(id: string): Promise<void> {
-        const { error } = await api.delete(`/monitors/${id}`);
+        const { error } = await api.delete(`/schools/admin/monitors/${id}`);
         if (error) throw new Error(error);
     },
 
     // Sessions (Lessons)
-    async getSessions(schoolId: string): Promise<Session[]> {
-        const { data, error } = await api.get<Session[]>(`/sessions/school/${schoolId}`);
+    async getSessions(): Promise<Session[]> {
+        const { data, error } = await api.get<Session[]>(`/schools/admin/sessions`);
         if (error) throw new Error(error);
         return data || [];
     },
 
     async createSession(payload: CreateSessionRequest): Promise<Session> {
-        const { data, error } = await api.post<Session>('/sessions', payload);
+        const { data, error } = await api.post<Session>('/schools/admin/sessions', payload);
         if (error) throw new Error(error);
         return data!;
     },
 
     async updateSessionStatus(id: string, status: SessionStatus): Promise<Session> {
-        const { data, error } = await api.patch<Session>(`/sessions/${id}/status?status=${status}`);
+        const { data, error } = await api.patch<Session>(`/schools/admin/sessions/${id}/status?status=${status}`);
         if (error) throw new Error(error);
         return data!;
     },
 
     async deleteSession(id: string): Promise<void> {
-        const { error } = await api.delete(`/sessions/${id}`);
+        const { error } = await api.delete(`/schools/admin/sessions/${id}`);
         if (error) throw new Error(error);
     },
 
     // Enrollments
-    async getEnrollments(schoolId: string): Promise<Enrollment[]> {
-        const { data, error } = await api.get<Enrollment[]>(`/partner/enrollments?schoolId=${schoolId}`);
+    async getEnrollments(): Promise<Enrollment[]> {
+        const { data, error } = await api.get<Enrollment[]>(`/schools/admin/enrollments`);
         if (error) throw new Error(error);
         return data || [];
     },
 
     async updateEnrollmentStatus(id: string, status: Enrollment['status']): Promise<Enrollment> {
-        const { data, error } = await api.patch<Enrollment>(`/partner/enrollments/${id}/status?status=${status}`);
+        const { data, error } = await api.patch<Enrollment>(`/schools/admin/enrollments/${id}/status?status=${status}`);
         if (error) throw new Error(error);
         return data!;
     },

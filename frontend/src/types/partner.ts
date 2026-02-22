@@ -13,7 +13,7 @@ export interface UpdateSchoolRequest {
     imageUrl?: string;
 }
 
-export type MonitorStatus = 'ACTIVE' | 'INACTIVE' | 'ON_LEAVE';
+export type MonitorStatus = 'ACTIVE' | 'INACTIVE' | 'SUSPENDED';
 
 export interface Monitor {
     id: string;
@@ -24,6 +24,7 @@ export interface Monitor {
     phoneNumber?: string;
     email?: string;
     status: MonitorStatus;
+    userAccountProvisioned?: boolean;
     createdAt: string;
 }
 
@@ -37,7 +38,7 @@ export interface CreateMonitorRequest {
     status?: MonitorStatus;
 }
 
-export type SessionStatus = 'SCHEDULED' | 'CONFIRMED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED' | 'NO_SHOW';
+export type SessionStatus = 'SCHEDULED' | 'CONFIRMED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELED' | 'CANCELLED' | 'NO_SHOW';
 
 export interface Session {
     id: string;
@@ -50,6 +51,7 @@ export interface Session {
     startTime: string;
     endTime: string;
     status: SessionStatus;
+    durationHours?: number;
     meetingPoint?: string;
 }
 

@@ -3,16 +3,16 @@ import { partnerService } from '@/lib/api/partners';
 import { Monitor, CreateMonitorRequest } from '@/types/partner';
 import { toast } from 'sonner';
 
-export function useMonitors(schoolId: string) {
+export function useMonitors() {
     const [monitors, setMonitors] = useState<Monitor[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
     const fetchMonitors = useCallback(async () => {
-        if (!schoolId) return;
+        if (false) return;
         setLoading(true);
         try {
-            const data = await partnerService.getMonitors(schoolId);
+            const data = await partnerService.getMonitors();
             setMonitors(data);
             setError(null);
         } catch (err: any) {
@@ -20,7 +20,7 @@ export function useMonitors(schoolId: string) {
         } finally {
             setLoading(false);
         }
-    }, [schoolId]);
+    }, []);
 
     useEffect(() => {
         fetchMonitors();

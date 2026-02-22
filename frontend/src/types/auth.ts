@@ -3,7 +3,7 @@ export interface User {
     email: string;
     firstName: string;
     lastName: string;
-    role: 'STUDENT' | 'SCHOOL_ADMIN' | 'MONITOR' | 'VISITOR';
+    role: 'CANDIDAT' | 'SCHOOL_ADMIN' | 'MONITOR';
     schoolId?: string;
 }
 
@@ -22,6 +22,6 @@ export interface LoginPayload {
 export interface RegisterPayload extends LoginPayload {
     firstName: string;
     lastName: string;
-    role: 'STUDENT' | 'SCHOOL_ADMIN' | 'MONITOR' | 'VISITOR';
+    role: 'CANDIDAT' | 'SCHOOL_ADMIN' | 'MONITOR';
     schoolName?: string;
 }

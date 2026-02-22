@@ -1,6 +1,6 @@
 package com.drissman.api.dto;
 
-import jakarta.validation.constraints.NotNull;
+import com.drissman.domain.entity.Session.SessionStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -14,22 +14,15 @@ import java.util.UUID;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class CreateSessionRequest {
-
-    @NotNull(message = "L'ID de l'inscription est obligatoire")
+public class SessionDto {
+    private UUID id;
     private UUID enrollmentId;
-
-    // Optional at creation time
     private UUID monitorId;
-
-    @NotNull(message = "La date est obligatoire")
     private LocalDate date;
-
-    @NotNull(message = "L'heure de début est obligatoire")
     private LocalTime startTime;
-
-    @NotNull(message = "L'heure de fin est obligatoire")
     private LocalTime endTime;
-
+    private SessionStatus status;
     private String meetingPoint;
+    private String pedagogicalNotes;
+    private int durationHours;
 }

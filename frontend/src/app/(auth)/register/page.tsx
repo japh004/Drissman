@@ -28,7 +28,7 @@ function RegisterForm() {
         setLoading(true);
 
         try {
-            const backendRole = role === 'partner' ? 'SCHOOL_ADMIN' : role === 'visitor' ? 'VISITOR' : 'STUDENT';
+            const backendRole = role === 'partner' ? 'SCHOOL_ADMIN' : 'CANDIDAT';
             await register(email, password, firstName, lastName, backendRole, schoolName);
             toast.success("Compte créé avec succès !");
             router.push("/dashboard");

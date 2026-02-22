@@ -46,20 +46,4 @@ public class ReviewController {
         return reviewService.findBySchoolId(schoolId);
     }
 
-    /**
-     * Verify a review (admin only)
-     */
-    @PatchMapping("/{id}/verify")
-    public Mono<ReviewDto> verify(@PathVariable UUID id) {
-        return reviewService.verifyReview(id);
-    }
-
-    /**
-     * Delete a review
-     */
-    @DeleteMapping("/{id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public Mono<Void> delete(@PathVariable UUID id) {
-        return reviewService.delete(id);
-    }
 }
