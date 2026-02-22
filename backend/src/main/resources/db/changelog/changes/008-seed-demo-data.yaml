@@ -3,6 +3,7 @@ databaseChangeLog:
       id: 008-seed-demo-data
       author: drissman
       context: dev
+      validCheckSum: ANY
       changes:
         # Demo Schools
         - insert:
