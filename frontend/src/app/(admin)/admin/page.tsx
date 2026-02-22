@@ -29,15 +29,20 @@ export default function AdminDashboardPage() {
         },
     ];
 
-    const chartData = [
+    const currentMonthLabel = format(new Date(), "MMM", { locale: fr });
+    const isTestAccount = user?.email?.includes('excellence.cm') || user?.email?.includes('admin@');
+
+    const chartData = isTestAccount ? [
         { name: "Sep", revenus: 1200000 },
         { name: "Oct", revenus: 1500000 },
         { name: "Nov", revenus: 1000000 },
         { name: "Dec", revenus: 2000000 },
         { name: "Jan", revenus: 1800000 },
-        { name: "Fév", revenus: stats?.monthlyRevenue || 0 },
+        { name: currentMonthLabel, revenus: stats?.monthlyRevenue || 0 },
+    ] : [
+        { name: "Précédent", revenus: 0 },
+        { name: currentMonthLabel, revenus: stats?.monthlyRevenue || 0 }
     ];
-
     return (
         <div className="space-y-8">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
