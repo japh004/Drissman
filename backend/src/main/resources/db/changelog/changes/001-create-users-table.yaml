@@ -37,7 +37,7 @@ databaseChangeLog:
               - column:
                   name: role
                   type: varchar(50)
-                  defaultValue: STUDENT
+                  defaultValue: CANDIDAT
                   constraints:
                     nullable: false
               - column:

@@ -35,7 +35,7 @@ public class AuthService {
                     try {
                         roleTemp = User.Role.valueOf(request.getRole().toUpperCase());
                     } catch (IllegalArgumentException | NullPointerException e) {
-                        roleTemp = User.Role.STUDENT; // Fallback to STUDENT if role is invalid or not yet in enum
+                        roleTemp = User.Role.CANDIDAT; // Fallback to CANDIDAT if role is invalid or not yet in enum
                     }
                     final User.Role userRole = roleTemp;
 
@@ -61,7 +61,7 @@ public class AuthService {
                                 })
                                 .map(this::createAuthResponse);
                     } else {
-                        // STUDENT and VISITOR: simple user creation without school
+                        // CANDIDAT: simple user creation without school
                         User user = User.builder()
                                 .email(request.getEmail())
                                 .password(passwordEncoder.encode(request.getPassword()))

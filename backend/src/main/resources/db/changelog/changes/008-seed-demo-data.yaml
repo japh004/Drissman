@@ -191,7 +191,7 @@ databaseChangeLog:
                   value: "Demo"
               - column:
                   name: role
-                  value: "STUDENT"
+                  value: "CANDIDAT"
         - insert:
             tableName: users
             columns:

@@ -21,6 +21,6 @@ public class RegisterRequest {
     @NotBlank
     private String lastName;
 
-    private String role = "STUDENT";
+    private String role = "CANDIDAT";
     private String schoolName;
 }
