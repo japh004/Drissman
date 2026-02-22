@@ -19,6 +19,7 @@ export interface Offer {
     price: number;
     hours: number;
     permitType: string;
+    imageUrl?: string;
 }
 
 export interface SchoolFilters {
