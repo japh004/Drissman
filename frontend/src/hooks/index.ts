@@ -21,3 +21,4 @@ export { useOfferModules } from './useOfferModules';
 export * from './useStudentSessions';
 export * from './useInstructorProfile';
 export * from './useInstructorSessions';
+export * from './useAdminDashboard';
