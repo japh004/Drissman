@@ -16,6 +16,9 @@ public class AdminDashboardDto {
     private Integer totalOffers;
     private Integer totalModules;
     private Integer todaySessions;
+    private Long totalRevenue;
+    private Long monthlyRevenue;
+    private Integer pendingValidations;
     private List<RecentActivityDto> recentActivities;
     private List<UpcomingSessionDto> upcomingSessions;
 }

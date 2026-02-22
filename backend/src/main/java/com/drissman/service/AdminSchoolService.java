@@ -150,15 +150,46 @@ public class AdminSchoolService {
                                 })
                                 .collectList();
 
-                return Mono.zip(activeCandidates, totalOffers, totalModules, todaySessionsCount, recentActivities,
-                                upcomingSessions)
+                Mono<Long> totalRevenue = enrollmentRepository.findBySchoolId(schoolId)
+                                .filter(e -> e.getStatus() == Enrollment.EnrollmentStatus.ACTIVE
+                                                || e.getStatus() == Enrollment.EnrollmentStatus.COMPLETED)
+                                .flatMap(e -> offerRepository.findById(e.getOfferId()))
+                                .map(offer -> offer.getPrice() != null ? offer.getPrice().longValue() : 0L)
+                                .reduce(0L, Long::sum);
+
+                Mono<Long> monthlyRevenue = enrollmentRepository.findBySchoolId(schoolId)
+                                .filter(e -> e.getStatus() == Enrollment.EnrollmentStatus.ACTIVE
+                                                || e.getStatus() == Enrollment.EnrollmentStatus.COMPLETED)
+                                .filter(e -> e.getCreatedAt() != null
+                                                && e.getCreatedAt().getMonth() == LocalDate.now().getMonth()
+                                                && e.getCreatedAt().getYear() == LocalDate.now().getYear())
+                                .flatMap(e -> offerRepository.findById(e.getOfferId()))
+                                .map(offer -> offer.getPrice() != null ? offer.getPrice().longValue() : 0L)
+                                .reduce(0L, Long::sum);
+
+                Mono<Integer> pendingValidations = sessionRepository.findBySchoolId(schoolId)
+                                .filter(s -> s.getDate() != null && s.getDate().isBefore(LocalDate.now()))
+                                .filter(s -> s.getStatus() == Session.SessionStatus.SCHEDULED
+                                                || s.getStatus() == Session.SessionStatus.CONFIRMED
+                                                || s.getStatus() == Session.SessionStatus.IN_PROGRESS)
+                                .count()
+                                .map(Long::intValue);
+
+                var metricsZip = Mono.zip(activeCandidates, totalOffers, totalModules);
+                var revenueZip = Mono.zip(todaySessionsCount, totalRevenue, monthlyRevenue);
+                var complexZip = Mono.zip(pendingValidations, recentActivities, upcomingSessions);
+
+                return Mono.zip(metricsZip, revenueZip, complexZip)
                                 .map(tuple -> AdminDashboardDto.builder()
-                                                .activeCandidates(tuple.getT1())
-                                                .totalOffers(tuple.getT2())
-                                                .totalModules(tuple.getT3())
-                                                .todaySessions(tuple.getT4())
-                                                .recentActivities(tuple.getT5())
-                                                .upcomingSessions(tuple.getT6())
+                                                .activeCandidates(tuple.getT1().getT1())
+                                                .totalOffers(tuple.getT1().getT2())
+                                                .totalModules(tuple.getT1().getT3())
+                                                .todaySessions(tuple.getT2().getT1())
+                                                .totalRevenue(tuple.getT2().getT2())
+                                                .monthlyRevenue(tuple.getT2().getT3())
+                                                .pendingValidations(tuple.getT3().getT1())
+                                                .recentActivities(tuple.getT3().getT2())
+                                                .upcomingSessions(tuple.getT3().getT3())
                                                 .build());
         }
 }
