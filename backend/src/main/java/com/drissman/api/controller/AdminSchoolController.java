@@ -4,24 +4,23 @@ import com.drissman.api.dto.PartnerStatsDto;
 import com.drissman.api.dto.UpdateSchoolRequest;
 import com.drissman.domain.repository.UserRepository;
 
-import com.drissman.service.PartnerService;
+import com.drissman.service.AdminSchoolService;
 import com.drissman.service.SchoolService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.security.Principal;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/partner")
+@RequestMapping("/api/schools/admin")
 @RequiredArgsConstructor
 @Slf4j
-public class PartnerController {
+public class AdminSchoolController {
 
-    private final PartnerService partnerService;
+    private final AdminSchoolService adminSchoolService;
     private final SchoolService schoolService;
     private final UserRepository userRepository;
 
@@ -55,9 +54,24 @@ public class PartnerController {
                                 .enrollmentGrowth(0)
                                 .build());
                     }
-                    return partnerService.getStats(user.getSchoolId());
+                    return adminSchoolService.getStats(user.getSchoolId());
                 })
                 .switchIfEmpty(Mono.error(new RuntimeException("Utilisateur non trouvé")));
+    }
+
+    @PatchMapping
+    public Mono<Void> updateSchool(Principal principal, @RequestBody UpdateSchoolRequest request) {
+        if (principal == null)
+            return Mono.empty();
+
+        UUID userId = UUID.fromString(principal.getName());
+        return userRepository.findById(userId)
+                .flatMap(user -> {
+                    if (user.getSchoolId() == null)
+                        return Mono.empty();
+                    return schoolService.update(user.getSchoolId(), request)
+                            .then();
+                });
     }
 
 }

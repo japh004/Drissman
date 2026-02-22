@@ -23,49 +23,49 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class AuthServiceTest {
 
-    @Mock
-    private UserRepository userRepository;
+        @Mock
+        private UserRepository userRepository;
 
-    @Mock
-    private SchoolRepository schoolRepository;
+        @Mock
+        private SchoolRepository schoolRepository;
 
-    @Mock
-    private PasswordEncoder passwordEncoder;
+        @Mock
+        private PasswordEncoder passwordEncoder;
 
-    @Mock
-    private JwtTokenProvider jwtTokenProvider;
+        @Mock
+        private JwtTokenProvider jwtTokenProvider;
 
-    @InjectMocks
-    private AuthService authService;
+        @InjectMocks
+        private AuthService authService;
 
-    @Test
-    void registerVisitor_shouldSucceed() {
-        RegisterRequest request = new RegisterRequest();
-        request.setEmail("visitor@example.com");
-        request.setPassword("password123");
-        request.setFirstName("John");
-        request.setLastName("Visitor");
-        request.setRole("visitor"); // Lowercase as sent by frontend
+        @Test
+        void registerCandidat_shouldSucceed() {
+                RegisterRequest request = new RegisterRequest();
+                request.setEmail("candidat@example.com");
+                request.setPassword("password123");
+                request.setFirstName("John");
+                request.setLastName("Visitor");
+                request.setRole("candidat"); // Lowercase as sent by frontend
 
-        when(userRepository.existsByEmail(request.getEmail())).thenReturn(Mono.just(false));
-        when(passwordEncoder.encode(request.getPassword())).thenReturn("encodedPassword");
+                when(userRepository.existsByEmail(request.getEmail())).thenReturn(Mono.just(false));
+                when(passwordEncoder.encode(request.getPassword())).thenReturn("encodedPassword");
 
-        User savedUser = User.builder()
-                .id(UUID.randomUUID())
-                .email(request.getEmail())
-                .firstName(request.getFirstName())
-                .lastName(request.getLastName())
-                .role(User.Role.VISITOR)
-                .build();
+                User savedUser = User.builder()
+                                .id(UUID.randomUUID())
+                                .email(request.getEmail())
+                                .firstName(request.getFirstName())
+                                .lastName(request.getLastName())
+                                .role(User.Role.CANDIDAT)
+                                .build();
 
-        when(userRepository.save(any(User.class))).thenReturn(Mono.just(savedUser));
-        when(jwtTokenProvider.generateToken(any(), any(), any())).thenReturn("mockToken");
+                when(userRepository.save(any(User.class))).thenReturn(Mono.just(savedUser));
+                when(jwtTokenProvider.generateToken(any(), any(), any())).thenReturn("mockToken");
 
-        Mono<AuthResponse> result = authService.register(request);
+                Mono<AuthResponse> result = authService.register(request);
 
-        StepVerifier.create(result)
-                .expectNextMatches(response -> response.getToken().equals("mockToken") &&
-                        response.getUser().getRole().equals("VISITOR"))
-                .verifyComplete();
-    }
+                StepVerifier.create(result)
+                                .expectNextMatches(response -> response.getToken().equals("mockToken") &&
+                                                response.getUser().getRole().equals("CANDIDAT"))
+                                .verifyComplete();
+        }
 }

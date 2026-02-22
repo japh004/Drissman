@@ -18,7 +18,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-public class PartnerService {
+public class AdminSchoolService {
 
         private final EnrollmentRepository enrollmentRepository;
         private final OfferRepository offerRepository;
