@@ -14,7 +14,16 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.UUID;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Comparator;
+
+import com.drissman.api.dto.AdminDashboardDto;
+import com.drissman.api.dto.RecentActivityDto;
+import com.drissman.api.dto.UpcomingSessionDto;
+import com.drissman.domain.repository.ModuleRepository;
 
 @Service
 @RequiredArgsConstructor
@@ -25,6 +34,7 @@ public class AdminSchoolService {
         private final UserRepository userRepository;
         private final SessionRepository sessionRepository;
         private final InvoiceRepository invoiceRepository;
+        private final ModuleRepository moduleRepository;
 
         public Mono<PartnerStatsDto> getStats(UUID schoolId) {
                 if (schoolId == null) {
@@ -54,6 +64,101 @@ public class AdminSchoolService {
                                                 .upcomingLessons(tuple.getT2().intValue())
                                                 .revenueGrowth(0.0)
                                                 .enrollmentGrowth(0)
+                                                .build());
+        }
+
+        public Mono<AdminDashboardDto> getDashboardStats(UUID schoolId) {
+                if (schoolId == null) {
+                        return Mono.empty();
+                }
+
+                Mono<Integer> activeCandidates = enrollmentRepository.findBySchoolId(schoolId)
+                                .filter(e -> e.getStatus() == Enrollment.EnrollmentStatus.ACTIVE
+                                                || e.getStatus() == Enrollment.EnrollmentStatus.PENDING)
+                                .count()
+                                .map(Long::intValue);
+
+                Mono<Integer> totalOffers = offerRepository.findBySchoolId(schoolId)
+                                .count()
+                                .map(Long::intValue);
+
+                Mono<Integer> totalModules = moduleRepository.findBySchoolIdOrderByOrderIndexAsc(schoolId)
+                                .count()
+                                .map(Long::intValue);
+
+                Mono<Integer> todaySessionsCount = sessionRepository.findBySchoolId(schoolId)
+                                .filter(s -> s.getDate() != null && s.getDate().equals(LocalDate.now()))
+                                .filter(s -> s.getStatus() != Session.SessionStatus.CANCELLED)
+                                .count()
+                                .map(Long::intValue);
+
+                Mono<List<RecentActivityDto>> recentActivities = enrollmentRepository.findBySchoolId(schoolId)
+                                .sort(Comparator.comparing((Enrollment e) -> e.getCreatedAt() != null ? e.getCreatedAt()
+                                                : LocalDateTime.MIN).reversed())
+                                .take(5)
+                                .flatMap(e -> userRepository.findById(e.getUserId())
+                                                .map(user -> RecentActivityDto.builder()
+                                                                .id(e.getId().toString())
+                                                                .title("Nouvelle inscription")
+                                                                .description(user.getFirstName() + " "
+                                                                                + user.getLastName() + " s'est inscrit")
+                                                                .type("ENROLLMENT")
+                                                                .timestamp(e.getCreatedAt() != null ? e.getCreatedAt()
+                                                                                : LocalDateTime.now())
+                                                                .build()))
+                                .collectList();
+
+                Mono<List<UpcomingSessionDto>> upcomingSessions = sessionRepository.findBySchoolId(schoolId)
+                                .filter(s -> s.getDate() != null && !s.getDate().isBefore(LocalDate.now()))
+                                .filter(s -> s.getStatus() == Session.SessionStatus.SCHEDULED
+                                                || s.getStatus() == Session.SessionStatus.CONFIRMED)
+                                .sort(Comparator.comparing(Session::getDate)
+                                                .thenComparing(s -> s.getStartTime() != null ? s.getStartTime()
+                                                                : java.time.LocalTime.MIN))
+                                .take(5)
+                                .flatMap(s -> {
+                                        Mono<String> studentNameMono = enrollmentRepository
+                                                        .findById(s.getEnrollmentId())
+                                                        .flatMap(e -> userRepository.findById(e.getUserId()))
+                                                        .map(u -> u.getFirstName() + " " + u.getLastName())
+                                                        .defaultIfEmpty("Élève inconnu");
+
+                                        Mono<String> monitorNameMono = s.getMonitorId() != null
+                                                        ? userRepository.findById(s.getMonitorId())
+                                                                        .map(u -> u.getFirstName() + " "
+                                                                                        + u.getLastName())
+                                                                        .defaultIfEmpty("Non assigné")
+                                                        : Mono.just("Non assigné");
+
+                                        return Mono.zip(studentNameMono, monitorNameMono)
+                                                        .map(names -> UpcomingSessionDto.builder()
+                                                                        .id(s.getId().toString())
+                                                                        .monitorName(names.getT2())
+                                                                        .studentName(names.getT1())
+                                                                        .date(s.getDate())
+                                                                        .startTime(s.getStartTime() != null
+                                                                                        ? s.getStartTime().toString()
+                                                                                        : "")
+                                                                        .endTime(s.getEndTime() != null
+                                                                                        ? s.getEndTime().toString()
+                                                                                        : "")
+                                                                        .meetingPoint(s.getMeetingPoint())
+                                                                        .status(s.getStatus() != null
+                                                                                        ? s.getStatus().name()
+                                                                                        : "SCHEDULED")
+                                                                        .build());
+                                })
+                                .collectList();
+
+                return Mono.zip(activeCandidates, totalOffers, totalModules, todaySessionsCount, recentActivities,
+                                upcomingSessions)
+                                .map(tuple -> AdminDashboardDto.builder()
+                                                .activeCandidates(tuple.getT1())
+                                                .totalOffers(tuple.getT2())
+                                                .totalModules(tuple.getT3())
+                                                .todaySessions(tuple.getT4())
+                                                .recentActivities(tuple.getT5())
+                                                .upcomingSessions(tuple.getT6())
                                                 .build());
         }
 }

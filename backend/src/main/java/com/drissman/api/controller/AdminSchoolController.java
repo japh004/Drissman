@@ -2,6 +2,7 @@ package com.drissman.api.controller;
 
 import com.drissman.api.dto.PartnerStatsDto;
 import com.drissman.api.dto.UpdateSchoolRequest;
+import com.drissman.api.dto.AdminDashboardDto;
 import com.drissman.domain.repository.UserRepository;
 
 import com.drissman.service.AdminSchoolService;
@@ -24,6 +25,22 @@ public class AdminSchoolController {
     private final SchoolService schoolService;
     private final UserRepository userRepository;
 
+    @GetMapping("/dashboard")
+    public Mono<AdminDashboardDto> getDashboardStats(Principal principal) {
+        if (principal == null) {
+            return Mono.empty();
+        }
+
+        UUID userId = UUID.fromString(principal.getName());
+        return userRepository.findById(userId)
+                .flatMap(user -> {
+                    if (user.getSchoolId() == null) {
+                        return Mono.empty();
+                    }
+                    return adminSchoolService.getDashboardStats(user.getSchoolId());
+                });
+    }
+
     @GetMapping("/stats")
     public Mono<PartnerStatsDto> getStats(Principal principal) {
         // Demo mode: return mock stats if no authenticated user
@@ -34,7 +51,7 @@ public class AdminSchoolController {
                     .enrollments(127)
                     .successRate("94%")
                     .upcomingLessons(23)
-                    .revenueGrowth(12)
+                    .revenueGrowth(12.0)
                     .enrollmentGrowth(8)
                     .build());
         }
@@ -50,7 +67,7 @@ public class AdminSchoolController {
                                 .enrollments(0)
                                 .successRate("0%")
                                 .upcomingLessons(0)
-                                .revenueGrowth(0)
+                                .revenueGrowth(0.0)
                                 .enrollmentGrowth(0)
                                 .build());
                     }
