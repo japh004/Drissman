@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks";
 import { Save, Building2, Phone, Mail, MapPin, Globe, Upload, CheckCircle } from "lucide-react";
 import { toast } from "sonner";
@@ -10,7 +10,7 @@ export default function SettingsPage() {
     const [saving, setSaving] = useState(false);
     const [saved, setSaved] = useState(false);
 
-    // Empty defaults — will be populated from API when connected
+    // Empty defaults — will be populated from localStorage or API
     const [schoolName, setSchoolName] = useState("");
     const [address, setAddress] = useState("");
     const [city, setCity] = useState("");
@@ -20,14 +20,37 @@ export default function SettingsPage() {
     const [website, setWebsite] = useState("");
     const [description, setDescription] = useState("");
 
+    // Load saved settings on mount
+    useEffect(() => {
+        try {
+            const stored = localStorage.getItem("school_settings");
+            if (stored) {
+                const s = JSON.parse(stored);
+                setSchoolName(s.name || "");
+                setAddress(s.address || "");
+                setCity(s.city || "");
+                setRegion(s.region || "");
+                setPhone(s.phone || "");
+                setEmail(s.email || "");
+                setWebsite(s.website || "");
+                setDescription(s.description || "");
+            }
+        } catch { /* ignore */ }
+    }, []);
+
     const handleSave = async () => {
         if (!schoolName.trim()) { toast.error("Le nom de l'auto-école est obligatoire"); return; }
         setSaving(true);
-        // Simulate save — will connect to PUT /api/schools/me
-        await new Promise(r => setTimeout(r, 800));
+        await new Promise(r => setTimeout(r, 500));
+
+        // Save to localStorage so the catalogue can read it
+        localStorage.setItem("school_settings", JSON.stringify({
+            name: schoolName, address, city, region, phone, email, website, description
+        }));
+
         setSaving(false);
         setSaved(true);
-        toast.success("Paramètres enregistrés avec succès");
+        toast.success("Paramètres enregistrés — votre école apparaîtra dans le catalogue !");
         setTimeout(() => setSaved(false), 3000);
     };
 
