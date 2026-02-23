@@ -23,4 +23,5 @@ public class RegisterRequest {
 
     private String role = "CANDIDAT";
     private String schoolName;
+    private String phone;
 }

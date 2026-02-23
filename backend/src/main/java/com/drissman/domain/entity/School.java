@@ -30,9 +30,13 @@ public class School {
 
     private String city;
 
+    private String region;
+
     private String phone;
 
     private String email;
+
+    private String website;
 
     private BigDecimal rating;
 
@@ -42,6 +46,10 @@ public class School {
     private Double latitude;
 
     private Double longitude;
+
+    @Column("is_verified")
+    @Builder.Default
+    private Boolean isVerified = false;
 
     @Column("is_demo")
     @Builder.Default

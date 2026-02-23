@@ -12,8 +12,8 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 /**
- * Monitor entity - Represents a driving instructor employed by an auto-école.
- * Maps to UML class: Moniteur
+ * Monitor entity — driving instructor employed by an auto-école.
+ * Separate from User table: managed exclusively by the School Admin.
  */
 @Data
 @Builder
@@ -34,14 +34,27 @@ public class Monitor {
     @Column("last_name")
     private String lastName;
 
-    @Column("license_number")
-    private String licenseNumber;
+    private String email;
+
+    private String password;
 
     @Column("phone_number")
     private String phoneNumber;
 
+    private String specialties;
+
+    @Column("avatar_url")
+    private String avatarUrl;
+
+    @Column("license_number")
+    private String licenseNumber;
+
     @Column("user_id")
     private UUID userId;
+
+    @Column("is_active")
+    @Builder.Default
+    private Boolean isActive = true;
 
     private MonitorStatus status;
 

@@ -24,14 +24,20 @@ public class JwtTokenProvider {
         this.expiration = expiration;
     }
 
-    public String generateToken(UUID userId, String email, String role) {
+    public String generateToken(UUID userId, String email, String role, UUID schoolId) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + expiration);
 
-        return Jwts.builder()
+        var builder = Jwts.builder()
                 .subject(userId.toString())
                 .claim("email", email)
-                .claim("role", role)
+                .claim("role", role);
+
+        if (schoolId != null) {
+            builder.claim("schoolId", schoolId.toString());
+        }
+
+        return builder
                 .issuedAt(now)
                 .expiration(expiryDate)
                 .signWith(secretKey)

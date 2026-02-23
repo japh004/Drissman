@@ -54,6 +54,7 @@ public class AuthService {
                                             .password(passwordEncoder.encode(request.getPassword()))
                                             .firstName(request.getFirstName())
                                             .lastName(request.getLastName())
+                                            .phone(request.getPhone())
                                             .role(userRole)
                                             .schoolId(savedSchool.getId())
                                             .build();
@@ -67,6 +68,7 @@ public class AuthService {
                                 .password(passwordEncoder.encode(request.getPassword()))
                                 .firstName(request.getFirstName())
                                 .lastName(request.getLastName())
+                                .phone(request.getPhone())
                                 .role(userRole)
                                 .build();
 
@@ -91,7 +93,8 @@ public class AuthService {
         String token = jwtTokenProvider.generateToken(
                 user.getId(),
                 user.getEmail(),
-                user.getRole().name());
+                user.getRole().name(),
+                user.getSchoolId());
 
         return AuthResponse.builder()
                 .user(AuthResponse.UserDto.builder()

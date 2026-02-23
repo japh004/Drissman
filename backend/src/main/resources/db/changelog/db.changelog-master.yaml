@@ -65,3 +65,5 @@ databaseChangeLog:
       file: db/changelog/changes/032-create-offer-modules-table.yaml
   - include:
       file: db/changelog/changes/033-add-training-period-to-lessons.yaml
+  - include:
+      file: db/changelog/changes/034-v2-entity-fields.yaml

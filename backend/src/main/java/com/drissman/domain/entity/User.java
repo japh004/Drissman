@@ -31,14 +31,26 @@ public class User {
     @Column("last_name")
     private String lastName;
 
+    private String phone;
+
     @Column("role")
     private Role role;
 
     @Column("school_id")
     private UUID schoolId;
 
+    @Column("avatar_url")
+    private String avatarUrl;
+
+    @Column("is_active")
+    @Builder.Default
+    private Boolean isActive = true;
+
     @Column("created_at")
     private LocalDateTime createdAt;
+
+    @Column("updated_at")
+    private LocalDateTime updatedAt;
 
     public enum Role {
         CANDIDAT,
