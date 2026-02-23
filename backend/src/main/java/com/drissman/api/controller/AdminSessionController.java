@@ -1,6 +1,8 @@
 package com.drissman.api.controller;
 
 import com.drissman.api.dto.CreateSessionRequest;
+import com.drissman.api.dto.AvailableOfferDto;
+import com.drissman.api.dto.SessionEnrollmentOptionDto;
 import com.drissman.api.dto.SessionDto;
 import com.drissman.domain.entity.User;
 import com.drissman.domain.repository.UserRepository;
@@ -14,6 +16,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.security.Principal;
+import java.time.LocalDate;
 import java.util.UUID;
 
 @RestController
@@ -47,6 +50,23 @@ public class AdminSessionController {
             @PathVariable UUID monitorId) {
         return getSchoolId(principal)
                 .flatMapMany(schoolId -> sessionService.getSessionsForMonitor(schoolId, monitorId));
+    }
+
+    @GetMapping("/available-offers")
+    public Flux<AvailableOfferDto> getAvailableOffers(
+            Principal principal,
+            @RequestParam LocalDate date) {
+        return getSchoolId(principal)
+                .flatMapMany(schoolId -> sessionService.getAvailableOffersForDate(schoolId, date));
+    }
+
+    @GetMapping("/available-enrollments")
+    public Flux<SessionEnrollmentOptionDto> getAvailableEnrollments(
+            Principal principal,
+            @RequestParam UUID offerId,
+            @RequestParam LocalDate date) {
+        return getSchoolId(principal)
+                .flatMapMany(schoolId -> sessionService.getAvailableEnrollments(schoolId, offerId, date));
     }
 
     @DeleteMapping("/{id}")

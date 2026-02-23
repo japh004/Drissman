@@ -1,8 +1,10 @@
 package com.drissman.api.controller;
 
 import com.drissman.api.dto.CreateEnrollmentRequest;
+import com.drissman.api.dto.CandidateSessionViewDto;
 import com.drissman.api.dto.EnrollmentViewDto;
 import com.drissman.service.EnrollmentAppService;
+import com.drissman.service.SessionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -19,6 +21,7 @@ import java.util.UUID;
 public class EnrollmentController {
 
     private final EnrollmentAppService enrollmentAppService;
+    private final SessionService sessionService;
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
@@ -37,5 +40,13 @@ public class EnrollmentController {
             return Flux.error(new RuntimeException("Authentification requise"));
         }
         return enrollmentAppService.getEnrollmentsForStudent(UUID.fromString(principal.getName()));
+    }
+
+    @GetMapping("/me/sessions")
+    public Flux<CandidateSessionViewDto> getMySessions(Principal principal) {
+        if (principal == null) {
+            return Flux.error(new RuntimeException("Authentification requise"));
+        }
+        return sessionService.getSessionsForStudent(UUID.fromString(principal.getName()));
     }
 }

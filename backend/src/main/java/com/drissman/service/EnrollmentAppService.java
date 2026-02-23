@@ -146,6 +146,8 @@ public class EnrollmentAppService {
                             .offerName(offer.getName())
                             .price(offer.getPrice() != null ? offer.getPrice() : 0)
                             .hours(enrollment.getHoursPurchased())
+                            .hoursConsumed(enrollment.getHoursConsumed() != null ? enrollment.getHoursConsumed() : 0)
+                            .hoursRemaining(enrollment.getRemainingHours() != null ? enrollment.getRemainingHours() : 0)
                             .permitType(offer.getPermitType() != null ? offer.getPermitType() : "B")
                             .schoolId(enrollment.getSchoolId())
                             .schoolName(school.getName())

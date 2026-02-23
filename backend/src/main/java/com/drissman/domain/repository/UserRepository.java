@@ -9,5 +9,8 @@ import java.util.UUID;
 public interface UserRepository extends ReactiveCrudRepository<User, UUID> {
     Mono<User> findByEmail(String email);
 
+    @org.springframework.data.r2dbc.repository.Query("SELECT * FROM users WHERE LOWER(email) = LOWER(:email) LIMIT 1")
+    Mono<User> findFirstByEmailIgnoreCase(String email);
+
     Mono<Boolean> existsByEmail(String email);
 }

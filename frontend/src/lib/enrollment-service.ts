@@ -6,6 +6,8 @@ export interface EnrollmentDto {
     offerName: string;
     price: number;
     hours: number;
+    hoursConsumed: number;
+    hoursRemaining: number;
     permitType: string;
     schoolId: string;
     schoolName: string;
@@ -13,6 +15,20 @@ export interface EnrollmentDto {
     studentName: string;
     status: "PENDING" | "ACTIVE" | "SUSPENDED" | "COMPLETED" | "CANCELLED";
     enrolledAt: string;
+}
+
+export interface CandidateSessionDto {
+    sessionId: string;
+    enrollmentId: string;
+    offerId: string;
+    offerName: string;
+    monitorName: string;
+    date: string;
+    startTime: string;
+    endTime: string;
+    meetingPoint: string;
+    status: "SCHEDULED" | "CONFIRMED" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED" | "NO_SHOW";
+    durationHours: number;
 }
 
 export interface InvoiceDto {
@@ -60,6 +76,9 @@ export const enrollmentService = {
 
     getMyEnrollments: (token: string) =>
         apiClient.get<EnrollmentDto[]>("/enrollments/me", token),
+
+    getMySessions: (token: string) =>
+        apiClient.get<CandidateSessionDto[]>("/enrollments/me/sessions", token),
 
     getAdminEnrollments: (token: string) =>
         apiClient.get<EnrollmentDto[]>("/schools/admin/enrollments", token),

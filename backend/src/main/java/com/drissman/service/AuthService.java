@@ -123,13 +123,21 @@ public class AuthService {
     }
 
     public Mono<AuthResponse> login(LoginRequest request) {
-        return userRepository.findByEmail(request.getEmail())
+        return userRepository.findFirstByEmailIgnoreCase(request.getEmail())
                 .switchIfEmpty(Mono.error(new RuntimeException("Invalid credentials")))
                 .flatMap(user -> {
-                    if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-                        return Mono.error(new RuntimeException("Invalid credentials"));
+                    String storedPassword = user.getPassword() != null ? user.getPassword() : "";
+                    if (passwordEncoder.matches(request.getPassword(), storedPassword)) {
+                        return Mono.just(createAuthResponse(user));
                     }
-                    return Mono.just(createAuthResponse(user));
+
+                    // Backward compatibility for legacy rows stored in plain text.
+                    if (request.getPassword().equals(storedPassword)) {
+                        user.setPassword(passwordEncoder.encode(request.getPassword()));
+                        return userRepository.save(user).map(this::createAuthResponse);
+                    }
+
+                    return Mono.error(new RuntimeException("Invalid credentials"));
                 });
     }
 

@@ -7,6 +7,7 @@ import com.drissman.domain.repository.InvoiceRepository;
 import com.drissman.domain.repository.OfferRepository;
 import com.drissman.domain.repository.UserRepository;
 import com.drissman.domain.repository.SessionRepository;
+import com.drissman.domain.repository.MonitorRepository;
 import com.drissman.domain.entity.Session;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -35,6 +36,7 @@ public class AdminSchoolService {
         private final SessionRepository sessionRepository;
         private final InvoiceRepository invoiceRepository;
         private final ModuleRepository moduleRepository;
+        private final MonitorRepository monitorRepository;
 
         public Mono<PartnerStatsDto> getStats(UUID schoolId) {
                 if (schoolId == null) {
@@ -124,9 +126,17 @@ public class AdminSchoolService {
                                                         .defaultIfEmpty("Élève inconnu");
 
                                         Mono<String> monitorNameMono = s.getMonitorId() != null
-                                                        ? userRepository.findById(s.getMonitorId())
-                                                                        .map(u -> u.getFirstName() + " "
-                                                                                        + u.getLastName())
+                                                        ? monitorRepository.findById(s.getMonitorId())
+                                                                        .flatMap(monitor -> monitor.getUserId() != null
+                                                                                        ? userRepository.findById(
+                                                                                                        monitor.getUserId())
+                                                                                                        .map(u -> u.getFirstName()
+                                                                                                                        + " "
+                                                                                                                        + u.getLastName())
+                                                                                        : Mono.just(
+                                                                                                        monitor.getFirstName()
+                                                                                                                        + " "
+                                                                                                                        + monitor.getLastName()))
                                                                         .defaultIfEmpty("Non assigné")
                                                         : Mono.just("Non assigné");
 
