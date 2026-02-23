@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useLocalStorage } from "@/hooks";
 import { Plus, Search, BookOpen, MoreVertical, Edit2, Trash2, Eye, Filter, Package, ChevronRight, ChevronLeft, Check, Layers } from "lucide-react";
 import { toast } from "sonner";
+import Link from "next/link";
 
 interface Module {
     id: string;
@@ -26,11 +27,7 @@ interface Offer {
 
 function formatPrice(amount: number) { return new Intl.NumberFormat("fr-FR").format(amount); }
 
-// Shared modules store — reads from the same key as the Modules page
-const useLocalModules = (): [Module[], (m: Module) => void] => {
-    const [mods, setMods] = useLocalStorage<Module[]>("modules", []);
-    return [mods, (m: Module) => setMods(prev => [...prev, m])];
-};
+
 
 export default function OffersPage() {
     const [offers, setOffers] = useLocalStorage<Offer[]>("offers", []);
@@ -40,7 +37,7 @@ export default function OffersPage() {
     // Wizard state
     const [showWizard, setShowWizard] = useState(false);
     const [step, setStep] = useState(1);
-    const [localModules, addLocalModule] = useLocalModules();
+    const [allModules] = useLocalStorage<Module[]>("modules", []);
 
     // Step 1 fields
     const [formName, setFormName] = useState("");
@@ -52,10 +49,6 @@ export default function OffersPage() {
 
     // Step 2 fields
     const [selectedModuleIds, setSelectedModuleIds] = useState<string[]>([]);
-    const [showInlineModule, setShowInlineModule] = useState(false);
-    const [inlineName, setInlineName] = useState("");
-    const [inlineCat, setInlineCat] = useState("CODE");
-    const [inlineHours, setInlineHours] = useState(10);
 
     const filteredOffers = offers.filter(o => o.name.toLowerCase().includes(searchQuery.toLowerCase()));
 
@@ -64,20 +57,11 @@ export default function OffersPage() {
         setFormName(""); setFormDesc(""); setFormPrice(0);
         setFormHours(0); setFormPermit("B"); setFormStatus("DRAFT");
         setSelectedModuleIds([]);
-        setShowInlineModule(false);
     };
 
     const openWizard = () => { resetWizard(); setShowWizard(true); };
 
-    const handleCreateInlineModule = () => {
-        if (!inlineName.trim()) { toast.error("Nom du module obligatoire"); return; }
-        const m: Module = { id: crypto.randomUUID(), name: inlineName.trim(), category: inlineCat, requiredHours: inlineHours };
-        addLocalModule(m);
-        setSelectedModuleIds(prev => [...prev, m.id]);
-        setInlineName(""); setInlineCat("CODE"); setInlineHours(10);
-        setShowInlineModule(false);
-        toast.success(`Module "${m.name}" créé`);
-    };
+
 
     const validateStep1 = () => {
         if (!formName.trim()) { toast.error("Le nom de l'offre est obligatoire"); return false; }
@@ -94,7 +78,7 @@ export default function OffersPage() {
             hours: formHours,
             permitType: formPermit,
             status: formStatus,
-            modules: localModules.filter(m => selectedModuleIds.includes(m.id)),
+            modules: allModules.filter(m => selectedModuleIds.includes(m.id)),
             enrollmentsCount: 0,
         };
         setOffers(prev => [newOffer, ...prev]);
@@ -298,43 +282,24 @@ export default function OffersPage() {
                             <div className="space-y-4">
                                 <div className="flex items-center justify-between">
                                     <h2 className="text-lg font-black text-snow">Modules inclus</h2>
-                                    <button onClick={() => setShowInlineModule(!showInlineModule)}
+                                    <Link href="/admin/modules"
                                         className="text-xs text-signal font-bold hover:text-signal/80 transition-colors flex items-center gap-1">
                                         <Plus className="h-3 w-3" /> Créer un module
-                                    </button>
+                                    </Link>
                                 </div>
 
-                                {/* Inline module creation */}
-                                {showInlineModule && (
-                                    <div className="bg-signal/5 rounded-xl border border-signal/20 p-4 space-y-3">
-                                        <input type="text" value={inlineName} onChange={e => setInlineName(e.target.value)} placeholder="Nom du module"
-                                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-snow placeholder:text-mist/30 focus:outline-none focus:border-signal/50 text-sm" />
-                                        <div className="grid grid-cols-2 gap-2">
-                                            <select value={inlineCat} onChange={e => setInlineCat(e.target.value)}
-                                                className="bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-snow text-xs">
-                                                <option value="CODE" className="bg-asphalt">📖 Code</option>
-                                                <option value="CONDUITE" className="bg-asphalt">🚗 Conduite</option>
-                                                <option value="EXAMEN_BLANC" className="bg-asphalt">📝 Examen Blanc</option>
-                                            </select>
-                                            <input type="number" value={inlineHours} onChange={e => setInlineHours(parseInt(e.target.value) || 0)} placeholder="Heures"
-                                                className="bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-snow text-xs" />
-                                        </div>
-                                        <div className="flex gap-2">
-                                            <button onClick={() => setShowInlineModule(false)} className="flex-1 py-2 rounded-lg bg-white/5 text-mist text-xs font-bold">Annuler</button>
-                                            <button onClick={handleCreateInlineModule} className="flex-1 py-2 rounded-lg bg-signal text-asphalt text-xs font-black">Ajouter</button>
-                                        </div>
-                                    </div>
-                                )}
-
-                                {localModules.length === 0 ? (
+                                {allModules.length === 0 ? (
                                     <div className="text-center py-8">
                                         <Layers className="h-10 w-10 text-mist/20 mx-auto mb-2" />
                                         <p className="text-sm text-mist/40">Aucun module disponible</p>
-                                        <p className="text-xs text-mist/30 mt-1">Créez d&apos;abord des modules ci-dessus ou sur la page Modules</p>
+                                        <p className="text-xs text-mist/30 mt-1">Créez d&apos;abord des modules sur la page Modules</p>
+                                        <Link href="/admin/modules" className="inline-flex items-center gap-1 mt-3 text-xs font-bold text-signal hover:text-signal/80 transition-colors">
+                                            <Plus className="h-3 w-3" /> Aller à la page Modules
+                                        </Link>
                                     </div>
                                 ) : (
                                     <div className="space-y-2">
-                                        {localModules.map(m => {
+                                        {allModules.map(m => {
                                             const checked = selectedModuleIds.includes(m.id);
                                             const cat = catConfig[m.category] || catConfig.CODE;
                                             return (
@@ -390,7 +355,7 @@ export default function OffersPage() {
                                     {selectedModuleIds.length > 0 && (
                                         <div className="pt-3 border-t border-white/5 space-y-2">
                                             <p className="text-xs font-bold text-mist/40 uppercase tracking-wider">Modules inclus</p>
-                                            {localModules.filter(m => selectedModuleIds.includes(m.id)).map(m => (
+                                            {allModules.filter(m => selectedModuleIds.includes(m.id)).map(m => (
                                                 <div key={m.id} className="flex items-center gap-2 text-xs text-mist/60">
                                                     <span>{catConfig[m.category]?.icon || "📖"}</span>
                                                     <span>{m.name}</span>
