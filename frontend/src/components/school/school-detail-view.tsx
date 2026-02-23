@@ -1,9 +1,12 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Star, MapPin, Phone, ArrowLeft, Car, Clock } from "lucide-react";
+import { Star, MapPin, Phone, ArrowLeft, Car, Clock, BookOpen, Check, Loader2 } from "lucide-react";
 import { DrivingSchool } from "@/lib/data";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { useAuth } from "@/hooks";
+import { toast } from "sonner";
 
 interface SchoolDetailViewProps {
     school: DrivingSchool & {
@@ -14,7 +17,65 @@ interface SchoolDetailViewProps {
     };
 }
 
+interface Enrollment {
+    id: string;
+    offerId: string;
+    offerName: string;
+    schoolId: string;
+    schoolName: string;
+    price: number;
+    hours: number;
+    permitType: string;
+    modules: { id: string; name: string; category: string; requiredHours: number }[];
+    status: "PENDING" | "ACTIVE" | "COMPLETED" | "REFUSED";
+    enrolledAt: string;
+    studentId: string;
+    studentName: string;
+}
+
 export function SchoolDetailView({ school }: SchoolDetailViewProps) {
+    const { user, isAuthenticated } = useAuth();
+    const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
+    const [confirmOfferId, setConfirmOfferId] = useState<string | null>(null);
+
+    // Load enrollments from localStorage
+    useEffect(() => {
+        try {
+            const stored = localStorage.getItem("candidat_enrollments");
+            if (stored) setEnrollments(JSON.parse(stored));
+        } catch { /* ignore */ }
+    }, []);
+
+    const saveEnrollments = (updated: Enrollment[]) => {
+        setEnrollments(updated);
+        localStorage.setItem("candidat_enrollments", JSON.stringify(updated));
+    };
+
+    const isEnrolled = (offerId: string) => enrollments.some(e => e.offerId === offerId);
+
+    const handleEnroll = (offer: any) => {
+        if (!user) return;
+        const enrollment: Enrollment = {
+            id: crypto.randomUUID(),
+            offerId: offer.id,
+            offerName: offer.title || offer.name,
+            schoolId: school.id,
+            schoolName: school.name,
+            price: offer.price,
+            hours: offer.hours || 35,
+            permitType: offer.type || offer.permitType || "B",
+            modules: offer.modules || [],
+            status: "PENDING",
+            enrolledAt: new Date().toISOString(),
+            studentId: user.id || "",
+            studentName: `${user.firstName} ${user.lastName}`,
+        };
+        const updated = [...enrollments, enrollment];
+        saveEnrollments(updated);
+        setConfirmOfferId(null);
+        toast.success(`Inscription envoyée pour "${enrollment.offerName}" ! En attente de validation par l'auto-école.`);
+    };
+
     return (
         <div className="min-h-screen bg-asphalt text-snow">
             {/* Hero Header */}
@@ -85,44 +146,72 @@ export function SchoolDetailView({ school }: SchoolDetailViewProps) {
                     <div>
                         <h2 className="text-2xl font-black mb-6">Nos Formules</h2>
                         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {school.offers.map((offer) => (
-                                <div
-                                    key={offer.id}
-                                    className="bg-white/5 rounded-2xl p-6 border border-white/5 hover:border-signal/30 transition-all group"
-                                >
-                                    <div className="flex justify-between items-start mb-4">
-                                        <h3 className="text-lg font-black group-hover:text-signal transition-colors">
-                                            {offer.title}
-                                        </h3>
-                                        <span className="bg-signal/10 text-signal text-xs font-bold px-2.5 py-1 rounded-lg">
-                                            {offer.type}
-                                        </span>
-                                    </div>
-                                    <p className="text-white/60 text-sm mb-4">{offer.description}</p>
-                                    <ul className="space-y-2 mb-6">
-                                        {offer.features.map((f) => (
-                                            <li key={f} className="text-sm text-white/70 flex items-center gap-2">
-                                                <span className="h-1.5 w-1.5 rounded-full bg-signal" />
-                                                {f}
-                                            </li>
-                                        ))}
-                                    </ul>
-                                    <div className="pt-4 border-t border-white/5 flex justify-between items-center">
-                                        <div>
-                                            <span className="text-2xl font-black text-signal">
-                                                {new Intl.NumberFormat('fr-FR').format(offer.price)}
+                            {school.offers.map((offer) => {
+                                const enrolled = isEnrolled(offer.id);
+                                const confirming = confirmOfferId === offer.id;
+                                return (
+                                    <div
+                                        key={offer.id}
+                                        className={`bg-white/5 rounded-2xl p-6 border transition-all group ${enrolled ? "border-green-500/20 bg-green-500/[0.02]" : "border-white/5 hover:border-signal/30"}`}
+                                    >
+                                        <div className="flex justify-between items-start mb-4">
+                                            <h3 className="text-lg font-black group-hover:text-signal transition-colors">
+                                                {offer.title}
+                                            </h3>
+                                            <span className="bg-signal/10 text-signal text-xs font-bold px-2.5 py-1 rounded-lg">
+                                                {offer.type}
                                             </span>
-                                            <span className="text-xs text-white/40 ml-1">FCFA</span>
                                         </div>
-                                        <Link
-                                            href="/register"
-                                            className="bg-signal text-asphalt font-bold py-2 px-5 rounded-xl text-sm hover:bg-white transition-all"
-                                        >
-                                            S&apos;inscrire
-                                        </Link>
+                                        <p className="text-white/60 text-sm mb-4">{offer.description}</p>
+                                        <ul className="space-y-2 mb-6">
+                                            {offer.features.map((f) => (
+                                                <li key={f} className="text-sm text-white/70 flex items-center gap-2">
+                                                    <span className="h-1.5 w-1.5 rounded-full bg-signal" />
+                                                    {f}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                        <div className="pt-4 border-t border-white/5 flex justify-between items-center">
+                                            <div>
+                                                <span className="text-2xl font-black text-signal">
+                                                    {new Intl.NumberFormat('fr-FR').format(offer.price)}
+                                                </span>
+                                                <span className="text-xs text-white/40 ml-1">FCFA</span>
+                                            </div>
+                                            {enrolled ? (
+                                                <span className="flex items-center gap-1.5 text-sm font-bold text-green-400 bg-green-500/10 px-4 py-2 rounded-xl">
+                                                    <Check className="h-4 w-4" /> Inscrit
+                                                </span>
+                                            ) : !isAuthenticated || user?.role !== "CANDIDAT" ? (
+                                                <Link
+                                                    href="/login"
+                                                    className="bg-signal text-asphalt font-bold py-2 px-5 rounded-xl text-sm hover:bg-white transition-all"
+                                                >
+                                                    S&apos;inscrire
+                                                </Link>
+                                            ) : confirming ? (
+                                                <div className="flex items-center gap-2">
+                                                    <button onClick={() => setConfirmOfferId(null)}
+                                                        className="text-xs font-bold text-mist px-3 py-2 rounded-xl hover:bg-white/5 transition-all">
+                                                        Annuler
+                                                    </button>
+                                                    <button onClick={() => handleEnroll(offer)}
+                                                        className="text-sm font-bold text-asphalt bg-signal px-5 py-2 rounded-xl hover:bg-signal/80 transition-all shadow-lg shadow-signal/20">
+                                                        Confirmer
+                                                    </button>
+                                                </div>
+                                            ) : (
+                                                <button
+                                                    onClick={() => setConfirmOfferId(offer.id)}
+                                                    className="bg-signal text-asphalt font-bold py-2 px-5 rounded-xl text-sm hover:bg-white transition-all"
+                                                >
+                                                    S&apos;inscrire
+                                                </button>
+                                            )}
+                                        </div>
                                     </div>
-                                </div>
-                            ))}
+                                );
+                            })}
                         </div>
                     </div>
                 )}
