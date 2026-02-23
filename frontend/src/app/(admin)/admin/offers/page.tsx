@@ -45,7 +45,6 @@ export default function OffersPage() {
     const [formPrice, setFormPrice] = useState(0);
     const [formHours, setFormHours] = useState(0);
     const [formPermit, setFormPermit] = useState("B");
-    const [formStatus, setFormStatus] = useState<"DRAFT" | "ACTIVE">("DRAFT");
 
     // Step 2 fields
     const [selectedModuleIds, setSelectedModuleIds] = useState<string[]>([]);
@@ -55,7 +54,7 @@ export default function OffersPage() {
     const resetWizard = () => {
         setStep(1);
         setFormName(""); setFormDesc(""); setFormPrice(0);
-        setFormHours(0); setFormPermit("B"); setFormStatus("DRAFT");
+        setFormHours(0); setFormPermit("B");
         setSelectedModuleIds([]);
     };
 
@@ -77,7 +76,7 @@ export default function OffersPage() {
             price: formPrice,
             hours: formHours,
             permitType: formPermit,
-            status: formStatus,
+            status: "DRAFT", // Toujours créer en brouillon par défaut
             modules: allModules.filter(m => selectedModuleIds.includes(m.id)),
             enrollmentsCount: 0,
         };
@@ -93,6 +92,33 @@ export default function OffersPage() {
         setOffers(prev => prev.filter(o => o.id !== id));
         setActiveMenu(null);
         toast.success("Offre supprimée");
+    };
+
+    const handlePublish = (id: string) => {
+        try {
+            const rawSessions = localStorage.getItem("sessions") || "[]";
+            const sessionsTracker = JSON.parse(rawSessions);
+            const isLinkedToSession = sessionsTracker.some((session: any) =>
+                session.formations?.some((f: any) => f.offerId === id)
+            );
+
+            if (!isLinkedToSession) {
+                toast.error("Cette offre doit être associée à une session de formation avant d'être publiée.");
+                return;
+            }
+
+            setOffers(prev => prev.map(o => o.id === id ? { ...o, status: "ACTIVE" } : o));
+            setActiveMenu(null);
+            toast.success("Offre publiée et rattachée au catalogue.");
+        } catch {
+            toast.error("Erreur technique lors de la vérification de la publication.");
+        }
+    };
+
+    const handleUnpublish = (id: string) => {
+        setOffers(prev => prev.map(o => o.id === id ? { ...o, status: "DRAFT" } : o));
+        setActiveMenu(null);
+        toast.info("Offre retirée du catalogue en ligne.");
     };
 
     const statusBadge = (status: string) => {
@@ -166,6 +192,12 @@ export default function OffersPage() {
                                     </button>
                                     {activeMenu === offer.id && (
                                         <div className="absolute right-0 mt-1 bg-asphalt/95 backdrop-blur-xl border border-white/10 rounded-xl shadow-xl py-1 w-36 z-10">
+                                            {offer.status === "DRAFT" && (
+                                                <button onClick={() => handlePublish(offer.id)} className="w-full flex items-center gap-2 px-3 py-2 text-xs text-green-400 hover:bg-white/5 transition-colors"><Check className="h-3.5 w-3.5" /> Publier</button>
+                                            )}
+                                            {offer.status === "ACTIVE" && (
+                                                <button onClick={() => handleUnpublish(offer.id)} className="w-full flex items-center gap-2 px-3 py-2 text-xs text-yellow-400 hover:bg-white/5 transition-colors"><ChevronLeft className="h-3.5 w-3.5" /> Retirer</button>
+                                            )}
                                             <button className="w-full flex items-center gap-2 px-3 py-2 text-xs text-mist hover:bg-white/5 hover:text-snow transition-colors"><Eye className="h-3.5 w-3.5" /> Aperçu</button>
                                             <button className="w-full flex items-center gap-2 px-3 py-2 text-xs text-mist hover:bg-white/5 hover:text-snow transition-colors"><Edit2 className="h-3.5 w-3.5" /> Modifier</button>
                                             <button onClick={() => handleDelete(offer.id)} className="w-full flex items-center gap-2 px-3 py-2 text-xs text-red-400/70 hover:bg-red-500/10 hover:text-red-400 transition-colors"><Trash2 className="h-3.5 w-3.5" /> Supprimer</button>
@@ -256,21 +288,13 @@ export default function OffersPage() {
                                     </div>
                                 </div>
                                 <div className="grid grid-cols-2 gap-3">
-                                    <div className="space-y-1.5">
+                                    <div className="space-y-1.5 col-span-2">
                                         <label className="text-xs font-bold text-mist uppercase tracking-wider">Type de permis</label>
                                         <select value={formPermit} onChange={e => setFormPermit(e.target.value)}
                                             className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-snow focus:outline-none focus:border-signal/50 focus:ring-2 focus:ring-signal/20 text-sm">
                                             <option value="A" className="bg-asphalt">🏍️ Permis A</option>
                                             <option value="B" className="bg-asphalt">🚗 Permis B</option>
                                             <option value="C" className="bg-asphalt">🚛 Permis C</option>
-                                        </select>
-                                    </div>
-                                    <div className="space-y-1.5">
-                                        <label className="text-xs font-bold text-mist uppercase tracking-wider">Statut</label>
-                                        <select value={formStatus} onChange={e => setFormStatus(e.target.value as "DRAFT" | "ACTIVE")}
-                                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-snow focus:outline-none focus:border-signal/50 focus:ring-2 focus:ring-signal/20 text-sm">
-                                            <option value="DRAFT" className="bg-asphalt">Brouillon</option>
-                                            <option value="ACTIVE" className="bg-asphalt">Actif (visible)</option>
                                         </select>
                                     </div>
                                 </div>
@@ -366,7 +390,7 @@ export default function OffersPage() {
                                     )}
 
                                     <div className="pt-3 border-t border-white/5 flex items-center gap-2">
-                                        {statusBadge(formStatus)}
+                                        {statusBadge("DRAFT")}
                                         <span className="bg-white/10 text-white text-[10px] font-bold px-2 py-0.5 rounded-lg">Permis {formPermit}</span>
                                     </div>
                                 </div>

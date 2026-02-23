@@ -29,13 +29,6 @@ interface TrainingSession {
     totalEnrolled: number;
 }
 
-const availableFormations = [
-    { offerId: "a", offerName: "Permis B Classique", permitType: "B", price: 65000 },
-    { offerId: "b", offerName: "Code Illimité", permitType: "B", price: 15000 },
-    { offerId: "c", offerName: "Permis Accéléré", permitType: "B", price: 120000 },
-    { offerId: "d", offerName: "Permis Moto A", permitType: "A", price: 45000 },
-];
-
 const statusConfig: Record<SessionStatus, { label: string; class: string }> = {
     DRAFT: { label: "Brouillon", class: "bg-gray-500/10 text-gray-400" },
     PUBLISHED: { label: "Publiée", class: "bg-green-500/10 text-green-400" },
@@ -50,6 +43,16 @@ const emptyForm = { name: "", description: "", startDate: "", endDate: "", enrol
 
 export default function SessionsPage() {
     const [sessions, setSessions] = useLocalStorage<TrainingSession[]>("sessions", []);
+    const [allOffers] = useLocalStorage<any[]>("offers", []);
+
+    // Available offers are those created by admin that are not archived
+    const availableFormations = allOffers.filter(o => o.status !== "ARCHIVED").map(o => ({
+        offerId: o.id,
+        offerName: o.name,
+        permitType: o.permitType || "B",
+        price: o.price
+    }));
+
     const [searchQuery, setSearchQuery] = useState("");
     const [expandedId, setExpandedId] = useState<string | null>(null);
     const [showModal, setShowModal] = useState(false);

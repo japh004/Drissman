@@ -35,9 +35,9 @@ function loadAdminSchools(): DrivingSchool[] {
     if (typeof window === "undefined") return [];
     try {
         // Load admin-created offers
-        const offersRaw = localStorage.getItem("drissman_offers");
+        const offersRaw = localStorage.getItem("offers");
         const adminOffers: AdminOffer[] = offersRaw ? JSON.parse(offersRaw) : [];
-        const activeOffers = adminOffers.filter(o => o.status === "ACTIVE" || o.status === "DRAFT");
+        const activeOffers = adminOffers.filter(o => o.status === "ACTIVE");
 
         // Load school settings (name, address, etc.)
         const settingsRaw = localStorage.getItem("school_settings");
