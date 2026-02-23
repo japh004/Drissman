@@ -1,6 +1,7 @@
 "use client";
 
 import { GraduationCap, DollarSign, CalendarDays, Clock, BookOpen, Users2, TrendingUp, Activity, Layers, BarChart3 } from "lucide-react";
+import { PageTransition, StaggerContainer, StaggerItem } from "@/components/ui/motion";
 
 function StatCard({ title, value, icon: Icon, color, subtitle }: { title: string; value: string | number; icon: React.ElementType; color: string; subtitle?: string }) {
     const colorMap: Record<string, string> = {
@@ -37,27 +38,27 @@ export default function AdminDashboardPage() {
     };
 
     return (
-        <div className="space-y-6">
+        <PageTransition className="space-y-6">
             <div>
                 <h1 className="text-2xl font-black text-snow">Tableau de Bord</h1>
                 <p className="text-sm text-mist mt-0.5">Vue synthétique de votre auto-école</p>
             </div>
 
             {/* Primary KPIs */}
-            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <StatCard title="Élèves actifs" value={stats.activeStudents} icon={GraduationCap} color="blue" subtitle="Inscriptions ACTIVE" />
-                <StatCard title="CA Mensuel" value={`${new Intl.NumberFormat("fr-FR").format(stats.monthlyRevenue)} F`} icon={DollarSign} color="green" subtitle="Factures PAID ce mois" />
-                <StatCard title="Séances du jour" value={stats.todaySessions} icon={CalendarDays} color="signal" subtitle="Sessions programmées" />
-                <StatCard title="En attente" value={stats.pendingEnrollments} icon={Clock} color="purple" subtitle="Inscriptions PENDING" />
-            </div>
+            <StaggerContainer className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <StaggerItem><StatCard title="Élèves actifs" value={stats.activeStudents} icon={GraduationCap} color="blue" subtitle="Inscriptions ACTIVE" /></StaggerItem>
+                <StaggerItem><StatCard title="CA Mensuel" value={`${new Intl.NumberFormat("fr-FR").format(stats.monthlyRevenue)} F`} icon={DollarSign} color="green" subtitle="Factures PAID ce mois" /></StaggerItem>
+                <StaggerItem><StatCard title="Séances du jour" value={stats.todaySessions} icon={CalendarDays} color="signal" subtitle="Sessions programmées" /></StaggerItem>
+                <StaggerItem><StatCard title="En attente" value={stats.pendingEnrollments} icon={Clock} color="purple" subtitle="Inscriptions PENDING" /></StaggerItem>
+            </StaggerContainer>
 
             {/* Secondary KPIs */}
-            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <StatCard title="Formules actives" value={stats.totalOffers} icon={BookOpen} color="blue" />
-                <StatCard title="Moniteurs actifs" value={stats.activeMonitors} icon={Users2} color="green" />
-                <StatCard title="Total inscriptions" value={stats.totalEnrollments} icon={TrendingUp} color="signal" />
-                <StatCard title="Taux de réussite" value={`${stats.completionRate}%`} icon={BarChart3} color="purple" />
-            </div>
+            <StaggerContainer className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4" staggerDelay={0.08}>
+                <StaggerItem><StatCard title="Formules actives" value={stats.totalOffers} icon={BookOpen} color="blue" /></StaggerItem>
+                <StaggerItem><StatCard title="Moniteurs actifs" value={stats.activeMonitors} icon={Users2} color="green" /></StaggerItem>
+                <StaggerItem><StatCard title="Total inscriptions" value={stats.totalEnrollments} icon={TrendingUp} color="signal" /></StaggerItem>
+                <StaggerItem><StatCard title="Taux de réussite" value={`${stats.completionRate}%`} icon={BarChart3} color="purple" /></StaggerItem>
+            </StaggerContainer>
 
             {/* Two-column layout */}
             <div className="grid lg:grid-cols-2 gap-6">
@@ -109,6 +110,6 @@ export default function AdminDashboardPage() {
                     ))}
                 </div>
             </div>
-        </div>
+        </PageTransition>
     );
 }
