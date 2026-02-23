@@ -26,9 +26,9 @@ interface Offer {
 
 function formatPrice(amount: number) { return new Intl.NumberFormat("fr-FR").format(amount); }
 
-// Inline modules store — shared with modules page in a real app
+// Shared modules store — reads from the same key as the Modules page
 const useLocalModules = (): [Module[], (m: Module) => void] => {
-    const [mods, setMods] = useLocalStorage<Module[]>("offer_modules", []);
+    const [mods, setMods] = useLocalStorage<Module[]>("modules", []);
     return [mods, (m: Module) => setMods(prev => [...prev, m])];
 };
 
