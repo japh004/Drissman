@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useLocalStorage } from "@/hooks";
 import { Plus, Search, BookOpen, MoreVertical, Edit2, Trash2, Eye, Filter, Package, ChevronRight, ChevronLeft, Check, Layers } from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
+import { isOfferLinkedToAnySession, makeAutoSessionForOffer, syncOfferPublication, TrainingSessionLite } from "@/lib/offer-publication";
 
 interface Module {
     id: string;
@@ -31,6 +32,7 @@ function formatPrice(amount: number) { return new Intl.NumberFormat("fr-FR").for
 
 export default function OffersPage() {
     const [offers, setOffers] = useLocalStorage<Offer[]>("offers", []);
+    const [sessions, setSessions] = useLocalStorage<TrainingSessionLite[]>("sessions", []);
     const [searchQuery, setSearchQuery] = useState("");
     const [activeMenu, setActiveMenu] = useState<string | null>(null);
 
@@ -68,6 +70,14 @@ export default function OffersPage() {
         return true;
     };
 
+    useEffect(() => {
+        const synced = syncOfferPublication(offers, sessions) as Offer[];
+        const changed = JSON.stringify(synced) !== JSON.stringify(offers);
+        if (changed) {
+            setOffers(synced);
+        }
+    }, [offers, sessions, setOffers]);
+
     const handleCreate = () => {
         const newOffer: Offer = {
             id: crypto.randomUUID(),
@@ -76,43 +86,38 @@ export default function OffersPage() {
             price: formPrice,
             hours: formHours,
             permitType: formPermit,
-            status: "DRAFT", // Toujours créer en brouillon par défaut
+            status: "ACTIVE",
             modules: allModules.filter(m => selectedModuleIds.includes(m.id)),
             enrollmentsCount: 0,
         };
+        const autoSession = makeAutoSessionForOffer(newOffer);
         setOffers(prev => [newOffer, ...prev]);
+        setSessions(prev => [autoSession, ...prev]);
         setShowWizard(false);
         resetWizard();
-        toast.success(`Offre "${newOffer.name}" créée avec succès`);
+        toast.success(`Offre "${newOffer.name}" creee et ajoutee automatiquement au catalogue.`);
     };
 
     const handleDelete = (id: string) => {
         const offer = offers.find(o => o.id === id);
         if (offer && offer.enrollmentsCount > 0) { toast.error("Impossible de supprimer une offre avec des inscrits"); return; }
         setOffers(prev => prev.filter(o => o.id !== id));
+        setSessions(prev => prev
+            .map(session => ({ ...session, formations: session.formations.filter(f => f.offerId !== id) }))
+            .filter(session => session.formations.length > 0));
         setActiveMenu(null);
         toast.success("Offre supprimée");
     };
 
     const handlePublish = (id: string) => {
-        try {
-            const rawSessions = localStorage.getItem("sessions") || "[]";
-            const sessionsTracker = JSON.parse(rawSessions);
-            const isLinkedToSession = sessionsTracker.some((session: any) =>
-                session.formations?.some((f: any) => f.offerId === id)
-            );
-
-            if (!isLinkedToSession) {
-                toast.error("Cette offre doit être associée à une session de formation avant d'être publiée.");
-                return;
-            }
-
-            setOffers(prev => prev.map(o => o.id === id ? { ...o, status: "ACTIVE" } : o));
-            setActiveMenu(null);
-            toast.success("Offre publiée et rattachée au catalogue.");
-        } catch {
-            toast.error("Erreur technique lors de la vérification de la publication.");
+        const linked = isOfferLinkedToAnySession(id, sessions);
+        if (!linked) {
+            toast.error("Cette offre doit etre associee a une session de formation avant publication.");
+            return;
         }
+        setOffers(prev => prev.map(o => o.id === id ? { ...o, status: "ACTIVE" } : o));
+        setActiveMenu(null);
+        toast.success("Offre publiee et rattachee au catalogue.");
     };
 
     const handleUnpublish = (id: string) => {

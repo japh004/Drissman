@@ -34,7 +34,7 @@ interface Enrollment {
 }
 
 export function SchoolDetailView({ school }: SchoolDetailViewProps) {
-    const { user, isAuthenticated } = useAuth();
+    const { user, isAuthenticated, upgradeVisitor } = useAuth();
     const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
     const [confirmOfferId, setConfirmOfferId] = useState<string | null>(null);
 
@@ -53,8 +53,19 @@ export function SchoolDetailView({ school }: SchoolDetailViewProps) {
 
     const isEnrolled = (offerId: string) => enrollments.some(e => e.offerId === offerId);
 
-    const handleEnroll = (offer: any) => {
+    const handleEnroll = async (offer: any) => {
         if (!user) return;
+        let effectiveUser = user;
+        if (user.role === "VISITOR") {
+            try {
+                const upgraded = await upgradeVisitor({ targetRole: "CANDIDAT" });
+                effectiveUser = upgraded.user;
+                toast.success("Votre compte visiteur a ete converti en compte eleve.");
+            } catch (err: any) {
+                toast.error(err?.message || "Impossible de convertir le compte visiteur.");
+                return;
+            }
+        }
         const enrollment: Enrollment = {
             id: crypto.randomUUID(),
             offerId: offer.id,
@@ -67,8 +78,8 @@ export function SchoolDetailView({ school }: SchoolDetailViewProps) {
             modules: offer.modules || [],
             status: "PENDING",
             enrolledAt: new Date().toISOString(),
-            studentId: user.id || "",
-            studentName: `${user.firstName} ${user.lastName}`,
+            studentId: effectiveUser.id || "",
+            studentName: `${effectiveUser.firstName} ${effectiveUser.lastName}`,
         };
         const updated = [...enrollments, enrollment];
         saveEnrollments(updated);
@@ -182,7 +193,14 @@ export function SchoolDetailView({ school }: SchoolDetailViewProps) {
                                                 <span className="flex items-center gap-1.5 text-sm font-bold text-green-400 bg-green-500/10 px-4 py-2 rounded-xl">
                                                     <Check className="h-4 w-4" /> Inscrit
                                                 </span>
-                                            ) : !isAuthenticated || user?.role !== "CANDIDAT" ? (
+                                            ) : !isAuthenticated ? (
+                                                <Link
+                                                    href="/login"
+                                                    className="bg-signal text-asphalt font-bold py-2 px-5 rounded-xl text-sm hover:bg-white transition-all"
+                                                >
+                                                    S&apos;inscrire
+                                                </Link>
+                                            ) : (user?.role !== "CANDIDAT" && user?.role !== "VISITOR") ? (
                                                 <Link
                                                     href="/login"
                                                     className="bg-signal text-asphalt font-bold py-2 px-5 rounded-xl text-sm hover:bg-white transition-all"

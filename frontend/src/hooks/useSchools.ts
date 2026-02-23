@@ -35,9 +35,15 @@ function loadAdminSchools(): DrivingSchool[] {
     if (typeof window === "undefined") return [];
     try {
         // Load admin-created offers
-        const offersRaw = localStorage.getItem("offers");
+        const offersRaw = localStorage.getItem("drissman_offers") || localStorage.getItem("offers");
         const adminOffers: AdminOffer[] = offersRaw ? JSON.parse(offersRaw) : [];
-        const activeOffers = adminOffers.filter(o => o.status === "ACTIVE");
+        const sessionsRaw = localStorage.getItem("drissman_sessions") || localStorage.getItem("sessions");
+        const sessions = sessionsRaw ? JSON.parse(sessionsRaw) : [];
+
+        const activeOffers = adminOffers.filter((offer) =>
+            offer.status === "ACTIVE" &&
+            sessions.some((session: any) => session.formations?.some((f: any) => f.offerId === offer.id))
+        );
 
         // Load school settings (name, address, etc.)
         const settingsRaw = localStorage.getItem("school_settings");

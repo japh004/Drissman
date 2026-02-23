@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useLocalStorage } from "@/hooks";
 import { Plus, Search, Calendar, Users, BookOpen, ChevronDown, ChevronUp, Edit2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { syncOfferPublication } from "@/lib/offer-publication";
 
 type SessionStatus = "DRAFT" | "PUBLISHED" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED";
 
@@ -43,7 +44,7 @@ const emptyForm = { name: "", description: "", startDate: "", endDate: "", enrol
 
 export default function SessionsPage() {
     const [sessions, setSessions] = useLocalStorage<TrainingSession[]>("sessions", []);
-    const [allOffers] = useLocalStorage<any[]>("offers", []);
+    const [allOffers, setOffers] = useLocalStorage<any[]>("offers", []);
 
     // Available offers are those created by admin that are not archived
     const availableFormations = allOffers.filter(o => o.status !== "ARCHIVED").map(o => ({
@@ -82,6 +83,7 @@ export default function SessionsPage() {
         };
 
         setSessions(prev => [newSession, ...prev]);
+        setOffers(prev => syncOfferPublication(prev, [newSession, ...sessions]));
         setForm(emptyForm);
         setShowModal(false);
         setExpandedId(newSession.id);
@@ -91,7 +93,9 @@ export default function SessionsPage() {
     const handleDelete = (id: string) => {
         const session = sessions.find(s => s.id === id);
         if (session && session.totalEnrolled > 0) { toast.error("Impossible de supprimer une session avec des inscrits"); return; }
-        setSessions(prev => prev.filter(s => s.id !== id));
+        const nextSessions = sessions.filter(s => s.id !== id);
+        setSessions(nextSessions);
+        setOffers(prev => syncOfferPublication(prev, nextSessions));
         toast.success("Session supprimée");
     };
 
