@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
     Loader2, LayoutDashboard, BookOpen, Layers, Users2,
-    CalendarDays, GraduationCap, Receipt, Settings,
+    CalendarDays, CalendarClock, GraduationCap, Receipt, Settings,
     LogOut, Menu, X, Car, ChevronRight
 } from "lucide-react";
 
@@ -15,7 +15,8 @@ const navItems = [
     { name: "Offres", href: "/admin/offers", icon: BookOpen },
     { name: "Modules", href: "/admin/modules", icon: Layers },
     { name: "Moniteurs", href: "/admin/monitors", icon: Users2 },
-    { name: "Sessions", href: "/admin/sessions", icon: CalendarDays },
+    { name: "Planning", href: "/admin/planning", icon: CalendarClock },
+    { name: "Promotions", href: "/admin/sessions", icon: CalendarDays },
     { name: "Élèves", href: "/admin/students", icon: GraduationCap },
     { name: "Factures", href: "/admin/invoices", icon: Receipt },
     { name: "Paramètres", href: "/admin/settings", icon: Settings },

@@ -1,120 +1,113 @@
 "use client";
 
-import { useAuth } from "@/hooks";
-import {
-    Users, GraduationCap, DollarSign, CalendarDays,
-    TrendingUp, ArrowUpRight, Clock, BookOpen, Inbox
-} from "lucide-react";
+import { GraduationCap, DollarSign, CalendarDays, Clock, BookOpen, Users2, TrendingUp, Activity, Layers, BarChart3 } from "lucide-react";
 
-function formatCurrency(amount: number) {
-    return new Intl.NumberFormat("fr-FR").format(amount);
-}
-
-export default function AdminDashboard() {
-    const { user } = useAuth();
-
-    return (
-        <div className="space-y-8">
-            {/* Header */}
-            <div>
-                <h1 className="text-3xl font-black text-snow">
-                    Bonjour, {user?.firstName} 👋
-                </h1>
-                <p className="text-mist mt-1">
-                    Voici un aperçu de votre auto-école aujourd&apos;hui.
-                </p>
-            </div>
-
-            {/* KPI Cards — zeroed out for real accounts */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <StatCard title="Élèves actifs" value={0} icon={GraduationCap} color="blue" />
-                <StatCard title="CA Mensuel" value="0 F" icon={DollarSign} color="green" />
-                <StatCard title="Séances aujourd'hui" value={0} icon={CalendarDays} color="signal" />
-                <StatCard title="Inscriptions en attente" value={0} icon={Clock} color="orange" />
-            </div>
-
-            {/* Mini stats row */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <MiniStat label="Formules" value={0} icon={BookOpen} />
-                <MiniStat label="Moniteurs" value={0} icon={Users} />
-                <MiniStat label="Inscriptions" value={0} icon={TrendingUp} />
-                <MiniStat label="Taux réussite" value="—" icon={ArrowUpRight} />
-            </div>
-
-            {/* Two-column layout */}
-            <div className="grid lg:grid-cols-5 gap-6">
-                {/* Upcoming sessions — empty state */}
-                <div className="lg:col-span-3 bg-white/[0.03] rounded-2xl border border-white/[0.06] p-6">
-                    <h2 className="text-lg font-black text-snow mb-4">Séances du jour</h2>
-                    <div className="flex flex-col items-center justify-center py-8 text-center">
-                        <CalendarDays className="h-10 w-10 text-mist/20 mb-3" />
-                        <p className="text-sm text-mist/50">Aucune séance programmée aujourd&apos;hui</p>
-                        <p className="text-xs text-mist/30 mt-1">Créez des sessions dans l&apos;onglet Sessions</p>
-                    </div>
-                </div>
-
-                {/* Recent activity — empty state */}
-                <div className="lg:col-span-2 bg-white/[0.03] rounded-2xl border border-white/[0.06] p-6">
-                    <h2 className="text-lg font-black text-snow mb-4">Activité récente</h2>
-                    <div className="flex flex-col items-center justify-center py-8 text-center">
-                        <Inbox className="h-10 w-10 text-mist/20 mb-3" />
-                        <p className="text-sm text-mist/50">Aucune activité récente</p>
-                        <p className="text-xs text-mist/30 mt-1">Les événements apparaîtront ici</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
-}
-
-// -- Sub-components --
-
-interface StatCardProps {
-    title: string;
-    value: string | number;
-    icon: React.ComponentType<{ className?: string }>;
-    trend?: string;
-    color: "blue" | "green" | "signal" | "orange";
-    alert?: boolean;
-}
-
-function StatCard({ title, value, icon: Icon, trend, color, alert }: StatCardProps) {
-    const colorMap = {
+function StatCard({ title, value, icon: Icon, color, subtitle }: { title: string; value: string | number; icon: React.ElementType; color: string; subtitle?: string }) {
+    const colorMap: Record<string, string> = {
         blue: "from-blue-500/10 to-blue-600/5 border-blue-500/20 text-blue-400",
         green: "from-green-500/10 to-green-600/5 border-green-500/20 text-green-400",
         signal: "from-signal/10 to-amber-500/5 border-signal/20 text-signal",
-        orange: "from-orange-500/10 to-orange-600/5 border-orange-500/20 text-orange-400",
+        purple: "from-purple-500/10 to-purple-600/5 border-purple-500/20 text-purple-400",
+        red: "from-red-500/10 to-red-600/5 border-red-500/20 text-red-400",
     };
+    const classes = colorMap[color] || colorMap.blue;
 
     return (
-        <div className={`bg-gradient-to-br ${colorMap[color]} rounded-2xl border p-5 relative overflow-hidden group hover:scale-[1.02] transition-transform`}>
-            <div className="flex items-start justify-between mb-3">
-                <Icon className="h-5 w-5 opacity-60" />
-                {alert && (
-                    <span className="h-2.5 w-2.5 rounded-full bg-orange-400 animate-pulse" />
-                )}
-            </div>
+        <div className={`bg-gradient-to-br ${classes} rounded-2xl border p-5`}>
+            <Icon className={`h-5 w-5 opacity-60 mb-2`} />
             <p className="text-2xl font-black text-snow">{value}</p>
-            <div className="flex items-center justify-between mt-1">
-                <p className="text-xs text-mist/60">{title}</p>
-                {trend && (
-                    <span className="text-xs font-bold text-green-400 flex items-center gap-0.5">
-                        <ArrowUpRight className="h-3 w-3" />
-                        {trend}
-                    </span>
-                )}
-            </div>
+            <p className="text-xs text-mist/60">{title}</p>
+            {subtitle && <p className="text-[10px] text-mist/30 mt-0.5">{subtitle}</p>}
         </div>
     );
 }
 
-function MiniStat({ label, value, icon: Icon }: { label: string; value: string | number; icon: React.ComponentType<{ className?: string }> }) {
+export default function AdminDashboardPage() {
+    // KPIs will be populated from GET /api/admin/stats
+    // For now, show 0 values — ready for API connection
+    const stats = {
+        activeStudents: 0,
+        monthlyRevenue: 0,
+        todaySessions: 0,
+        pendingEnrollments: 0,
+        totalOffers: 0,
+        activeMonitors: 0,
+        totalEnrollments: 0,
+        completionRate: 0,
+    };
+
     return (
-        <div className="bg-white/[0.03] rounded-xl border border-white/[0.06] p-4 flex items-center gap-3">
-            <Icon className="h-4 w-4 text-mist/40" />
+        <div className="space-y-6">
             <div>
-                <p className="text-lg font-black text-snow leading-none">{value}</p>
-                <p className="text-[10px] text-mist/50 uppercase tracking-wider mt-0.5">{label}</p>
+                <h1 className="text-2xl font-black text-snow">Tableau de Bord</h1>
+                <p className="text-sm text-mist mt-0.5">Vue synthétique de votre auto-école</p>
+            </div>
+
+            {/* Primary KPIs */}
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <StatCard title="Élèves actifs" value={stats.activeStudents} icon={GraduationCap} color="blue" subtitle="Inscriptions ACTIVE" />
+                <StatCard title="CA Mensuel" value={`${new Intl.NumberFormat("fr-FR").format(stats.monthlyRevenue)} F`} icon={DollarSign} color="green" subtitle="Factures PAID ce mois" />
+                <StatCard title="Séances du jour" value={stats.todaySessions} icon={CalendarDays} color="signal" subtitle="Sessions programmées" />
+                <StatCard title="En attente" value={stats.pendingEnrollments} icon={Clock} color="purple" subtitle="Inscriptions PENDING" />
+            </div>
+
+            {/* Secondary KPIs */}
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <StatCard title="Formules actives" value={stats.totalOffers} icon={BookOpen} color="blue" />
+                <StatCard title="Moniteurs actifs" value={stats.activeMonitors} icon={Users2} color="green" />
+                <StatCard title="Total inscriptions" value={stats.totalEnrollments} icon={TrendingUp} color="signal" />
+                <StatCard title="Taux de réussite" value={`${stats.completionRate}%`} icon={BarChart3} color="purple" />
+            </div>
+
+            {/* Two-column layout */}
+            <div className="grid lg:grid-cols-2 gap-6">
+                {/* Today's sessions */}
+                <div className="bg-white/[0.03] rounded-2xl border border-white/[0.06] p-6">
+                    <div className="flex items-center gap-2 mb-4">
+                        <CalendarDays className="h-4 w-4 text-signal" />
+                        <h2 className="text-sm font-bold text-snow">Séances du jour</h2>
+                    </div>
+                    <div className="flex flex-col items-center justify-center py-8 text-center">
+                        <CalendarDays className="h-10 w-10 text-mist/20 mb-3" />
+                        <p className="text-sm text-mist/50">Aucune séance programmée aujourd&apos;hui</p>
+                        <p className="text-[10px] text-mist/30 mt-1">Planifiez des créneaux via la page Planning</p>
+                    </div>
+                </div>
+
+                {/* Recent activity */}
+                <div className="bg-white/[0.03] rounded-2xl border border-white/[0.06] p-6">
+                    <div className="flex items-center gap-2 mb-4">
+                        <Activity className="h-4 w-4 text-signal" />
+                        <h2 className="text-sm font-bold text-snow">Activité récente</h2>
+                    </div>
+                    <div className="flex flex-col items-center justify-center py-8 text-center">
+                        <Activity className="h-10 w-10 text-mist/20 mb-3" />
+                        <p className="text-sm text-mist/50">Aucune activité récente</p>
+                        <p className="text-[10px] text-mist/30 mt-1">Les événements apparaîtront ici : inscriptions, paiements, séances...</p>
+                    </div>
+                </div>
+            </div>
+
+            {/* Quick links / Getting started */}
+            <div className="bg-white/[0.03] rounded-2xl border border-white/[0.06] p-6">
+                <h2 className="text-sm font-bold text-snow mb-4">🚀 Guide de démarrage</h2>
+                <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                    {[
+                        { step: "1", label: "Créer des modules", href: "/admin/modules", icon: Layers, desc: "Blocs pédagogiques (Code, Conduite...)" },
+                        { step: "2", label: "Créer une offre", href: "/admin/offers", icon: BookOpen, desc: "Formule commerciale + modules inclus" },
+                        { step: "3", label: "Ajouter un moniteur", href: "/admin/monitors", icon: Users2, desc: "Sous-compte avec login" },
+                        { step: "4", label: "Planifier des séances", href: "/admin/planning", icon: CalendarDays, desc: "Créneaux horaires + moniteur" },
+                    ].map(item => (
+                        <a key={item.step} href={item.href}
+                            className="group p-4 rounded-xl border border-white/[0.06] hover:border-signal/20 hover:bg-signal/[0.02] transition-all">
+                            <div className="flex items-center gap-2 mb-2">
+                                <span className="h-6 w-6 rounded-full bg-signal/10 text-signal text-[10px] font-black flex items-center justify-center">{item.step}</span>
+                                <span className="text-sm font-bold text-snow group-hover:text-signal transition-colors">{item.label}</span>
+                            </div>
+                            <p className="text-[10px] text-mist/40">{item.desc}</p>
+                        </a>
+                    ))}
+                </div>
             </div>
         </div>
     );

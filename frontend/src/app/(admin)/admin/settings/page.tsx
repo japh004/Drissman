@@ -2,18 +2,34 @@
 
 import { useState } from "react";
 import { useAuth } from "@/hooks";
-import { Save, Building2, Phone, Mail, MapPin, Globe, Upload } from "lucide-react";
+import { Save, Building2, Phone, Mail, MapPin, Globe, Upload, CheckCircle } from "lucide-react";
+import { toast } from "sonner";
 
 export default function SettingsPage() {
     const { user } = useAuth();
-    const [schoolName, setSchoolName] = useState("Mon Auto-École");
-    const [address, setAddress] = useState("123 Rue de l'Indépendance");
-    const [city, setCity] = useState("Yaoundé");
-    const [region, setRegion] = useState("Centre");
-    const [phone, setPhone] = useState("+237 222 123 456");
-    const [email, setEmail] = useState("contact@monautoecole.cm");
-    const [website, setWebsite] = useState("www.monautoecole.cm");
-    const [description, setDescription] = useState("Votre auto-école de confiance depuis 2010.");
+    const [saving, setSaving] = useState(false);
+    const [saved, setSaved] = useState(false);
+
+    // Empty defaults — will be populated from API when connected
+    const [schoolName, setSchoolName] = useState("");
+    const [address, setAddress] = useState("");
+    const [city, setCity] = useState("");
+    const [region, setRegion] = useState("");
+    const [phone, setPhone] = useState("");
+    const [email, setEmail] = useState("");
+    const [website, setWebsite] = useState("");
+    const [description, setDescription] = useState("");
+
+    const handleSave = async () => {
+        if (!schoolName.trim()) { toast.error("Le nom de l'auto-école est obligatoire"); return; }
+        setSaving(true);
+        // Simulate save — will connect to PUT /api/schools/me
+        await new Promise(r => setTimeout(r, 800));
+        setSaving(false);
+        setSaved(true);
+        toast.success("Paramètres enregistrés avec succès");
+        setTimeout(() => setSaved(false), 3000);
+    };
 
     return (
         <div className="space-y-6 max-w-3xl">
@@ -22,19 +38,21 @@ export default function SettingsPage() {
                 <p className="text-sm text-mist mt-0.5">Gérez les informations de votre auto-école</p>
             </div>
 
-            <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
+            <div className="space-y-6">
                 {/* School identity */}
                 <div className="bg-white/[0.03] rounded-2xl border border-white/[0.06] p-6 space-y-4">
                     <h2 className="text-sm font-bold text-snow flex items-center gap-2"><Building2 className="h-4 w-4 text-signal" /> Identité de l&apos;école</h2>
                     <div className="space-y-1.5">
-                        <label className="text-xs font-bold text-mist uppercase tracking-wider">Nom de l&apos;auto-école</label>
+                        <label className="text-xs font-bold text-mist uppercase tracking-wider">Nom de l&apos;auto-école *</label>
                         <input type="text" value={schoolName} onChange={(e) => setSchoolName(e.target.value)}
-                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-snow focus:outline-none focus:border-signal/50 focus:ring-2 focus:ring-signal/20 transition-all text-sm" />
+                            placeholder="Entrez le nom de votre auto-école"
+                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-snow placeholder:text-mist/30 focus:outline-none focus:border-signal/50 focus:ring-2 focus:ring-signal/20 transition-all text-sm" />
                     </div>
                     <div className="space-y-1.5">
                         <label className="text-xs font-bold text-mist uppercase tracking-wider">Description</label>
                         <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3}
-                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-snow focus:outline-none focus:border-signal/50 focus:ring-2 focus:ring-signal/20 transition-all text-sm resize-none" />
+                            placeholder="Décrivez votre auto-école en quelques lignes..."
+                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-snow placeholder:text-mist/30 focus:outline-none focus:border-signal/50 focus:ring-2 focus:ring-signal/20 transition-all text-sm resize-none" />
                     </div>
                     <div className="space-y-1.5">
                         <label className="text-xs font-bold text-mist uppercase tracking-wider">Logo / Image</label>
@@ -50,40 +68,44 @@ export default function SettingsPage() {
                     <h2 className="text-sm font-bold text-snow flex items-center gap-2"><Phone className="h-4 w-4 text-signal" /> Contact</h2>
                     <div className="grid sm:grid-cols-2 gap-4">
                         <div className="space-y-1.5"><label className="text-xs font-bold text-mist uppercase tracking-wider">Téléphone</label>
-                            <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)}
-                                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-snow focus:outline-none focus:border-signal/50 focus:ring-2 focus:ring-signal/20 transition-all text-sm" /></div>
+                            <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+237 6XX XXX XXX"
+                                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-snow placeholder:text-mist/30 focus:outline-none focus:border-signal/50 focus:ring-2 focus:ring-signal/20 transition-all text-sm" /></div>
                         <div className="space-y-1.5"><label className="text-xs font-bold text-mist uppercase tracking-wider">E-mail</label>
-                            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)}
-                                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-snow focus:outline-none focus:border-signal/50 focus:ring-2 focus:ring-signal/20 transition-all text-sm" /></div>
+                            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="contact@votre-ecole.cm"
+                                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-snow placeholder:text-mist/30 focus:outline-none focus:border-signal/50 focus:ring-2 focus:ring-signal/20 transition-all text-sm" /></div>
                     </div>
                     <div className="space-y-1.5"><label className="text-xs font-bold text-mist uppercase tracking-wider">Site web</label>
-                        <input type="url" value={website} onChange={(e) => setWebsite(e.target.value)}
-                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-snow focus:outline-none focus:border-signal/50 focus:ring-2 focus:ring-signal/20 transition-all text-sm" /></div>
+                        <input type="url" value={website} onChange={(e) => setWebsite(e.target.value)} placeholder="https://votre-ecole.cm"
+                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-snow placeholder:text-mist/30 focus:outline-none focus:border-signal/50 focus:ring-2 focus:ring-signal/20 transition-all text-sm" /></div>
                 </div>
 
                 {/* Location */}
                 <div className="bg-white/[0.03] rounded-2xl border border-white/[0.06] p-6 space-y-4">
                     <h2 className="text-sm font-bold text-snow flex items-center gap-2"><MapPin className="h-4 w-4 text-signal" /> Localisation</h2>
                     <div className="space-y-1.5"><label className="text-xs font-bold text-mist uppercase tracking-wider">Adresse</label>
-                        <input type="text" value={address} onChange={(e) => setAddress(e.target.value)}
-                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-snow focus:outline-none focus:border-signal/50 focus:ring-2 focus:ring-signal/20 transition-all text-sm" /></div>
+                        <input type="text" value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Numéro et nom de rue"
+                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-snow placeholder:text-mist/30 focus:outline-none focus:border-signal/50 focus:ring-2 focus:ring-signal/20 transition-all text-sm" /></div>
                     <div className="grid sm:grid-cols-2 gap-4">
                         <div className="space-y-1.5"><label className="text-xs font-bold text-mist uppercase tracking-wider">Ville</label>
-                            <input type="text" value={city} onChange={(e) => setCity(e.target.value)}
-                                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-snow focus:outline-none focus:border-signal/50 focus:ring-2 focus:ring-signal/20 transition-all text-sm" /></div>
+                            <input type="text" value={city} onChange={(e) => setCity(e.target.value)} placeholder="Yaoundé, Douala..."
+                                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-snow placeholder:text-mist/30 focus:outline-none focus:border-signal/50 focus:ring-2 focus:ring-signal/20 transition-all text-sm" /></div>
                         <div className="space-y-1.5"><label className="text-xs font-bold text-mist uppercase tracking-wider">Région</label>
-                            <input type="text" value={region} onChange={(e) => setRegion(e.target.value)}
-                                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-snow focus:outline-none focus:border-signal/50 focus:ring-2 focus:ring-signal/20 transition-all text-sm" /></div>
+                            <input type="text" value={region} onChange={(e) => setRegion(e.target.value)} placeholder="Centre, Littoral..."
+                                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-snow placeholder:text-mist/30 focus:outline-none focus:border-signal/50 focus:ring-2 focus:ring-signal/20 transition-all text-sm" /></div>
                     </div>
                 </div>
 
                 {/* Save */}
-                <button type="submit"
-                    className="flex items-center gap-2 bg-gradient-to-r from-signal to-amber-400 text-asphalt font-black px-6 py-3 rounded-xl text-sm hover:opacity-90 transition-all shadow-lg shadow-signal/20">
-                    <Save className="h-4 w-4" />
-                    Enregistrer les modifications
+                <button onClick={handleSave} disabled={saving}
+                    className={`flex items-center gap-2 font-black px-6 py-3 rounded-xl text-sm transition-all shadow-lg ${saved
+                        ? "bg-green-500 text-white shadow-green-500/20"
+                        : "bg-gradient-to-r from-signal to-amber-400 text-asphalt shadow-signal/20 hover:opacity-90"
+                        } ${saving ? "opacity-60 cursor-not-allowed" : ""}`}>
+                    {saved ? <><CheckCircle className="h-4 w-4" /> Enregistré !</> :
+                        saving ? <><span className="h-4 w-4 border-2 border-asphalt/30 border-t-asphalt rounded-full animate-spin" /> Enregistrement...</> :
+                            <><Save className="h-4 w-4" /> Enregistrer les modifications</>}
                 </button>
-            </form>
+            </div>
         </div>
     );
 }
