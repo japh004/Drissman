@@ -56,7 +56,15 @@ export default function StudentsPage() {
                     studentId: e.studentId,
                     studentName: e.studentName,
                 }));
-                setEnrollments(mapped);
+                setEnrollments(prev => {
+                    // If API is temporarily empty but local already has data (fallback mode),
+                    // keep local entries to avoid "disappearing" enrollments.
+                    if (mapped.length === 0 && prev.length > 0) return prev;
+
+                    const map = new Map<string, CandidatEnrollment>();
+                    [...prev, ...mapped].forEach(item => map.set(item.id, item));
+                    return Array.from(map.values());
+                });
             } catch {
                 // keep local fallback
             }

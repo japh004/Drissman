@@ -11,6 +11,7 @@ interface Enrollment {
     id: string;
     offerName: string;
     price: number;
+    schoolId?: string;
     status: "PENDING" | "ACTIVE" | "COMPLETED" | "REFUSED";
     enrolledAt: string;
     studentName: string;
@@ -47,7 +48,7 @@ function StatCard({ title, value, icon: Icon, color, subtitle }: { title: string
 }
 
 export default function AdminDashboardPage() {
-    const { token } = useAuth();
+    const { user, token } = useAuth();
     const [enrollments] = useLocalStorage<Enrollment[]>("candidat_enrollments", []);
     const [planningSlots] = useLocalStorage<SessionSlot[]>("planning_slots", []);
     const [serverStats, setServerStats] = useLocalStorage<AdminDashboardDto | null>("admin_dashboard_cache", null);
@@ -69,11 +70,17 @@ export default function AdminDashboardPage() {
         const today = new Date().toISOString().split("T")[0];
         const now = new Date();
 
-        const activeStudents = enrollments.filter(e => e.status === "ACTIVE").length;
-        const pendingEnrollments = enrollments.filter(e => e.status === "PENDING").length;
+        const scopedEnrollments = enrollments.filter(e => {
+            const schoolId = e.schoolId;
+            if (!user?.schoolId) return true;
+            return !schoolId || schoolId === user.schoolId || schoolId === "admin-school";
+        });
+
+        const activeStudents = scopedEnrollments.filter(e => e.status === "ACTIVE").length;
+        const pendingEnrollments = scopedEnrollments.filter(e => e.status === "PENDING").length;
         const todaySessions = planningSlots.filter(s => s.date === today && s.status !== "CANCELLED").length;
 
-        const monthlyRevenue = enrollments
+        const monthlyRevenue = scopedEnrollments
             .filter(e => e.status === "ACTIVE" || e.status === "COMPLETED")
             .filter(e => {
                 const d = new Date(e.enrolledAt);
@@ -86,7 +93,7 @@ export default function AdminDashboardPage() {
             .sort((a, b) => a.startTime.localeCompare(b.startTime))
             .slice(0, 5);
 
-        const recentActivities = [...enrollments]
+        const recentActivities = [...scopedEnrollments]
             .sort((a, b) => new Date(b.enrolledAt).getTime() - new Date(a.enrolledAt).getTime())
             .slice(0, 5)
             .map(e => ({
@@ -97,13 +104,13 @@ export default function AdminDashboardPage() {
             }));
 
         return { activeStudents, pendingEnrollments, todaySessions, monthlyRevenue, todaySlotList, recentActivities };
-    }, [enrollments, planningSlots]);
+    }, [enrollments, planningSlots, user]);
 
     const stats = {
-        activeStudents: serverStats?.activeCandidates ?? localStats.activeStudents,
+        activeStudents: localStats.activeStudents || serverStats?.activeCandidates || 0,
         monthlyRevenue: serverStats?.monthlyRevenue ?? localStats.monthlyRevenue,
         todaySessions: serverStats?.todaySessions ?? localStats.todaySessions,
-        pendingEnrollments: serverStats?.pendingValidations ?? localStats.pendingEnrollments,
+        pendingEnrollments: localStats.pendingEnrollments,
     };
 
     const recentActivities = serverStats?.recentActivities?.length
