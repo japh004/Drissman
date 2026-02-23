@@ -4,10 +4,11 @@ import { useAuth } from "@/hooks";
 import { useRouter, usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Loader2, LayoutDashboard, CalendarDays, TrendingUp, User, LogOut, Car, Menu, X } from "lucide-react";
+import { Loader2, LayoutDashboard, CalendarDays, TrendingUp, User, LogOut, Car, Menu, X, BookOpen } from "lucide-react";
 
 const navItems = [
     { name: "Dashboard", href: "/candidat", icon: LayoutDashboard },
+    { name: "Catalogue", href: "/candidat/catalogue", icon: BookOpen },
     { name: "Mon Planning", href: "/candidat/planning", icon: CalendarDays },
     { name: "Ma Progression", href: "/candidat/progression", icon: TrendingUp },
     { name: "Mon Profil", href: "/candidat/profile", icon: User },

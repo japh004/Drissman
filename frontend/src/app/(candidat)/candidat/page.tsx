@@ -128,9 +128,9 @@ export default function CandidatDashboard() {
                     <div className="flex flex-col items-center justify-center py-6 text-center">
                         <BookOpen className="h-10 w-10 text-mist/15 mb-3" />
                         <p className="text-sm text-mist/50">Pas encore inscrit à une formule</p>
-                        <Link href="/search"
+                        <Link href="/candidat/catalogue"
                             className="mt-3 flex items-center gap-1 text-xs font-bold text-signal bg-signal/10 px-4 py-2 rounded-xl hover:bg-signal/20 transition-all">
-                            Parcourir les offres <ArrowRight className="h-3 w-3" />
+                            Parcourir le catalogue <ArrowRight className="h-3 w-3" />
                         </Link>
                     </div>
                 )}
