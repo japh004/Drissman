@@ -1,22 +1,36 @@
 "use client";
 
-import { useAuth } from "@/hooks";
+import { useAuth, useLocalStorage } from "@/hooks";
 import { CalendarDays, Clock, BookOpen, TrendingUp, ArrowRight, Sparkles, Trophy } from "lucide-react";
 import Link from "next/link";
 import { PageTransition, StaggerContainer, StaggerItem } from "@/components/ui/motion";
 
+interface Enrollment {
+    id: string;
+    offerId: string;
+    offerName: string;
+    price: number;
+    hours: number;
+    permitType: string;
+    modules: { id: string; name: string; category: string; requiredHours: number }[];
+    status: "PENDING" | "ACTIVE" | "COMPLETED" | "REFUSED";
+    enrolledAt: string;
+}
+
 export default function CandidatDashboard() {
     const { user } = useAuth();
+    const [enrollments] = useLocalStorage<Enrollment[]>("candidat_enrollments", []);
 
-    // Ready for API — zero values for now
+    const activeEnrollment = enrollments.find(e => e.status === "ACTIVE" || e.status === "PENDING");
+    const hasEnrollment = !!activeEnrollment;
+
     const stats = {
         hoursCompleted: 0,
-        hoursRequired: 0,
+        hoursRequired: activeEnrollment?.hours || 0,
         sessionsThisWeek: 0,
         globalProgress: 0,
     };
 
-    const hasEnrollment = false; // Will be true when student has an active enrollment
     const nextSession = null; // Will be populated from API
     const recentSessions: { module: string; date: string; icon: string }[] = [];
 
@@ -99,15 +113,25 @@ export default function CandidatDashboard() {
             {/* My offer / enrollment */}
             <div className="bg-white/[0.03] rounded-2xl border border-white/[0.06] p-6">
                 <h2 className="text-lg font-black text-snow mb-4">Ma Formule</h2>
-                {hasEnrollment ? (
+                {hasEnrollment && activeEnrollment ? (
                     <div className="flex items-center gap-4">
-                        {/* Will render enrollment/offer data */}
+                        <div className="bg-blue-500/10 p-3 rounded-xl"><BookOpen className="h-6 w-6 text-blue-400" /></div>
+                        <div className="flex-1">
+                            <p className="text-sm font-bold text-snow">{activeEnrollment.offerName}</p>
+                            <p className="text-xs text-mist/60">Permis {activeEnrollment.permitType} · {activeEnrollment.modules.length} module{activeEnrollment.modules.length > 1 ? "s" : ""} · {activeEnrollment.hours}h</p>
+                        </div>
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-lg ${activeEnrollment.status === "ACTIVE" ? "bg-green-500/10 text-green-400" : "bg-signal/10 text-signal"}`}>
+                            {activeEnrollment.status === "ACTIVE" ? "✓ Validé" : "⏳ En attente"}
+                        </span>
                     </div>
                 ) : (
                     <div className="flex flex-col items-center justify-center py-6 text-center">
                         <BookOpen className="h-10 w-10 text-mist/15 mb-3" />
                         <p className="text-sm text-mist/50">Pas encore inscrit à une formule</p>
-                        <p className="text-[10px] text-mist/30 mt-1">Contactez votre auto-école pour vous inscrire à une offre de formation</p>
+                        <Link href="/candidat/offers"
+                            className="mt-3 flex items-center gap-1 text-xs font-bold text-signal bg-signal/10 px-4 py-2 rounded-xl hover:bg-signal/20 transition-all">
+                            Voir les offres <ArrowRight className="h-3 w-3" />
+                        </Link>
                     </div>
                 )}
             </div>
