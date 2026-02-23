@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
-import { authService, AuthUser, RegisterPayload, LoginPayload, AuthResponse } from "@/lib/auth-service";
+import { authService, AuthUser, RegisterPayload, LoginPayload, AuthResponse, UpgradeVisitorPayload } from "@/lib/auth-service";
 
 interface AuthContextType {
     user: AuthUser | null;
@@ -10,6 +10,7 @@ interface AuthContextType {
     isLoading: boolean;
     login: (payload: LoginPayload) => Promise<AuthResponse>;
     register: (payload: RegisterPayload) => Promise<AuthResponse>;
+    upgradeVisitor: (payload: UpgradeVisitorPayload) => Promise<AuthResponse>;
     logout: () => void;
 }
 
@@ -60,6 +61,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return response;
     }, [saveSession]);
 
+    const upgradeVisitor = useCallback(async (payload: UpgradeVisitorPayload): Promise<AuthResponse> => {
+        if (!token) {
+            throw new Error("Session expirÃ©e. Veuillez vous reconnecter.");
+        }
+        const response = await authService.upgradeVisitor(payload, token);
+        saveSession(response);
+        return response;
+    }, [token, saveSession]);
+
     const logout = useCallback(() => {
         setToken(null);
         setUser(null);
@@ -76,6 +86,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 isLoading,
                 login,
                 register,
+                upgradeVisitor,
                 logout,
             }}
         >

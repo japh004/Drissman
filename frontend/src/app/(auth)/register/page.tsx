@@ -5,15 +5,15 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/hooks";
 import { toast } from "sonner";
-import { Loader2, Eye, EyeOff, Mail, Lock, User, Phone, Building2, Car, GraduationCap, ArrowLeft } from "lucide-react";
+import { Loader2, Eye, EyeOff, Mail, Lock, User, Phone, Building2, Car, GraduationCap, ArrowLeft, Compass } from "lucide-react";
 
-type AccountType = "CANDIDAT" | "SCHOOL_ADMIN";
+type AccountType = "VISITOR" | "CANDIDAT" | "SCHOOL_ADMIN";
 
 export default function RegisterPage() {
     const router = useRouter();
     const { register } = useAuth();
     const [step, setStep] = useState<"choose" | "form">("choose");
-    const [accountType, setAccountType] = useState<AccountType>("CANDIDAT");
+    const [accountType, setAccountType] = useState<AccountType>("VISITOR");
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -52,10 +52,18 @@ export default function RegisterPage() {
                 schoolName: accountType === "SCHOOL_ADMIN" ? schoolName : undefined,
             });
             toast.success("Compte créé avec succès !");
-            if (response.user.role === "SCHOOL_ADMIN") {
-                router.push("/admin");
-            } else {
-                router.push("/search");
+            switch (response.user.role) {
+                case "SCHOOL_ADMIN":
+                    router.push("/admin");
+                    break;
+                case "CANDIDAT":
+                    router.push("/candidat");
+                    break;
+                case "VISITOR":
+                    router.push("/visitor");
+                    break;
+                default:
+                    router.push("/");
             }
         } catch (err: any) {
             toast.error(err.message || "Erreur lors de l'inscription");
@@ -96,6 +104,24 @@ export default function RegisterPage() {
                             </div>
 
                             <div className="space-y-4">
+                                {/* Visitor option */}
+                                <button
+                                    onClick={() => handleChoose("VISITOR")}
+                                    className="w-full group bg-white/5 border border-white/10 rounded-2xl p-6 text-left hover:border-signal/40 hover:bg-signal/5 transition-all"
+                                >
+                                    <div className="flex items-start gap-4">
+                                        <div className="bg-emerald-500/10 p-3 rounded-xl group-hover:bg-emerald-500/20 transition-colors">
+                                            <Compass className="h-6 w-6 text-emerald-400" />
+                                        </div>
+                                        <div>
+                                            <h3 className="text-snow font-bold mb-1">Visiteur</h3>
+                                            <p className="text-mist/70 text-xs leading-relaxed">
+                                                J&apos;explore la plateforme et je choisis plus tard entre Ã©lÃ¨ve ou auto-Ã©cole.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </button>
+
                                 {/* Candidat option */}
                                 <button
                                     onClick={() => handleChoose("CANDIDAT")}
@@ -146,7 +172,9 @@ export default function RegisterPage() {
 
                             <div className="text-center mb-6">
                                 <div className="inline-flex items-center gap-2 bg-signal/10 text-signal text-xs font-bold px-3 py-1.5 rounded-full mb-3">
-                                    {accountType === "CANDIDAT" ? (
+                                    {accountType === "VISITOR" ? (
+                                        <><Compass className="h-3.5 w-3.5" /> Compte Visiteur</>
+                                    ) : accountType === "CANDIDAT" ? (
                                         <><GraduationCap className="h-3.5 w-3.5" /> Compte Élève</>
                                     ) : (
                                         <><Building2 className="h-3.5 w-3.5" /> Compte Auto-école</>

@@ -5,7 +5,7 @@ export interface AuthUser {
     email: string;
     firstName: string;
     lastName: string;
-    role: "SCHOOL_ADMIN" | "CANDIDAT" | "MONITOR";
+    role: "VISITOR" | "SCHOOL_ADMIN" | "CANDIDAT" | "MONITOR";
     schoolId?: string;
 }
 
@@ -20,7 +20,7 @@ export interface RegisterPayload {
     firstName: string;
     lastName: string;
     phone?: string;
-    role: "CANDIDAT" | "SCHOOL_ADMIN";
+    role: "VISITOR" | "CANDIDAT" | "SCHOOL_ADMIN";
     schoolName?: string;
 }
 
@@ -29,10 +29,18 @@ export interface LoginPayload {
     password: string;
 }
 
+export interface UpgradeVisitorPayload {
+    targetRole: "CANDIDAT" | "SCHOOL_ADMIN";
+    schoolName?: string;
+}
+
 export const authService = {
     register: (payload: RegisterPayload) =>
         apiClient.post<AuthResponse>("/auth/register", payload),
 
     login: (payload: LoginPayload) =>
         apiClient.post<AuthResponse>("/auth/login", payload),
+
+    upgradeVisitor: (payload: UpgradeVisitorPayload, token: string) =>
+        apiClient.post<AuthResponse>("/auth/upgrade-visitor", payload, token),
 };

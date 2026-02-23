@@ -36,6 +36,9 @@ export default function LoginPage() {
                 case "MONITOR":
                     router.push("/monitor");
                     break;
+                case "VISITOR":
+                    router.push("/visitor");
+                    break;
                 default:
                     router.push("/");
             }

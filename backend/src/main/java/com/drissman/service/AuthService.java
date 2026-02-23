@@ -3,6 +3,7 @@ package com.drissman.service;
 import com.drissman.api.dto.AuthResponse;
 import com.drissman.api.dto.LoginRequest;
 import com.drissman.api.dto.RegisterRequest;
+import com.drissman.api.dto.UpgradeVisitorRoleRequest;
 import com.drissman.domain.entity.School;
 import com.drissman.domain.entity.User;
 import com.drissman.domain.repository.SchoolRepository;
@@ -35,7 +36,7 @@ public class AuthService {
                     try {
                         roleTemp = User.Role.valueOf(request.getRole().toUpperCase());
                     } catch (IllegalArgumentException | NullPointerException e) {
-                        roleTemp = User.Role.CANDIDAT; // Fallback to CANDIDAT if role is invalid or not yet in enum
+                        roleTemp = User.Role.VISITOR; // Fallback to VISITOR if role is invalid or not yet in enum
                     }
                     final User.Role userRole = roleTemp;
 
@@ -62,7 +63,7 @@ public class AuthService {
                                 })
                                 .map(this::createAuthResponse);
                     } else {
-                        // CANDIDAT: simple user creation without school
+                        // VISITOR/CANDIDAT/MONITOR: simple user creation without school
                         User user = User.builder()
                                 .email(request.getEmail())
                                 .password(passwordEncoder.encode(request.getPassword()))
@@ -75,6 +76,49 @@ public class AuthService {
                         return userRepository.save(user)
                                 .map(this::createAuthResponse);
                     }
+                });
+    }
+
+    public Mono<AuthResponse> upgradeVisitorRole(java.util.UUID userId, UpgradeVisitorRoleRequest request) {
+        return userRepository.findById(userId)
+                .switchIfEmpty(Mono.error(new RuntimeException("Utilisateur non trouvÃ©")))
+                .flatMap(user -> {
+                    if (user.getRole() != User.Role.VISITOR) {
+                        return Mono.error(new RuntimeException("Seul un compte visiteur peut changer de rÃ´le"));
+                    }
+
+                    User.Role targetRole;
+                    try {
+                        targetRole = User.Role.valueOf(request.getTargetRole().toUpperCase());
+                    } catch (IllegalArgumentException | NullPointerException e) {
+                        return Mono.error(new RuntimeException("RÃ´le cible invalide"));
+                    }
+
+                    if (targetRole != User.Role.CANDIDAT && targetRole != User.Role.SCHOOL_ADMIN) {
+                        return Mono.error(new RuntimeException("Le compte visiteur peut devenir CANDIDAT ou SCHOOL_ADMIN"));
+                    }
+
+                    if (targetRole == User.Role.CANDIDAT) {
+                        user.setRole(User.Role.CANDIDAT);
+                        user.setSchoolId(null);
+                        return userRepository.save(user).map(this::createAuthResponse);
+                    }
+
+                    School school = School.builder()
+                            .name(request.getSchoolName() != null && !request.getSchoolName().isBlank()
+                                    ? request.getSchoolName()
+                                    : "Ma Nouvelle Auto-Ã‰cole")
+                            .address("Adresse Ã  complÃ©ter")
+                            .city("YaoundÃ©")
+                            .build();
+
+                    return schoolRepository.save(school)
+                            .flatMap(savedSchool -> {
+                                user.setRole(User.Role.SCHOOL_ADMIN);
+                                user.setSchoolId(savedSchool.getId());
+                                return userRepository.save(user);
+                            })
+                            .map(this::createAuthResponse);
                 });
     }
 

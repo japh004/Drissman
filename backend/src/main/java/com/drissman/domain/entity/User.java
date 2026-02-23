@@ -53,6 +53,7 @@ public class User {
     private LocalDateTime updatedAt;
 
     public enum Role {
+        VISITOR,
         CANDIDAT,
         SCHOOL_ADMIN,
         MONITOR

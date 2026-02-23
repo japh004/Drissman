@@ -29,6 +29,9 @@ export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) 
                 case "MONITOR":
                     router.replace("/monitor");
                     break;
+                case "VISITOR":
+                    router.replace("/visitor");
+                    break;
                 default:
                     router.replace("/");
             }
