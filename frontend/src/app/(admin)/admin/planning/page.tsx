@@ -1,8 +1,8 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { useLocalStorage } from "@/hooks";
-import { Plus, Search, Calendar, Clock, Users, MapPin, ChevronLeft, ChevronRight, AlertCircle } from "lucide-react";
+import { Plus, Users, MapPin, ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 
 type SlotStatus = "SCHEDULED" | "CONFIRMED" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED";
@@ -22,12 +22,25 @@ interface SessionSlot {
     notes: string;
 }
 
+interface ModuleItem {
+    id: string;
+    name: string;
+    category: "CODE" | "CONDUITE" | "EXAMEN_BLANC";
+}
+
+interface MonitorItem {
+    id: string;
+    firstName: string;
+    lastName: string;
+    status: "ACTIVE" | "INACTIVE" | "ON_LEAVE";
+}
+
 const statusConfig: Record<SlotStatus, { label: string; class: string }> = {
-    SCHEDULED: { label: "Programmée", class: "bg-blue-500/10 text-blue-400" },
-    CONFIRMED: { label: "Confirmée", class: "bg-green-500/10 text-green-400" },
+    SCHEDULED: { label: "Programmee", class: "bg-blue-500/10 text-blue-400" },
+    CONFIRMED: { label: "Confirmee", class: "bg-green-500/10 text-green-400" },
     IN_PROGRESS: { label: "En cours", class: "bg-signal/10 text-signal" },
-    COMPLETED: { label: "Terminée", class: "bg-mist/10 text-mist/60" },
-    CANCELLED: { label: "Annulée", class: "bg-red-500/10 text-red-400" },
+    COMPLETED: { label: "Terminee", class: "bg-mist/10 text-mist/60" },
+    CANCELLED: { label: "Annulee", class: "bg-red-500/10 text-red-400" },
 };
 
 const catIcons: Record<string, string> = { CODE: "📖", CONDUITE: "🚗", EXAMEN_BLANC: "📝" };
@@ -36,7 +49,7 @@ function getWeekDates(offset: number) {
     const now = new Date();
     now.setDate(now.getDate() + offset * 7);
     const start = new Date(now);
-    start.setDate(start.getDate() - start.getDay() + 1); // Monday
+    start.setDate(start.getDate() - start.getDay() + 1);
     const days = [];
     for (let i = 0; i < 7; i++) {
         const d = new Date(start);
@@ -48,20 +61,19 @@ function getWeekDates(offset: number) {
 
 function formatDate(d: Date) { return d.toISOString().split("T")[0]; }
 const dayNames = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
-const monthNames = ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"];
+const monthNames = ["Janvier", "Fevrier", "Mars", "Avril", "Mai", "Juin", "Juillet", "Aout", "Septembre", "Octobre", "Novembre", "Decembre"];
 
-const emptyForm: {
-    date: string; startTime: string; endTime: string;
-    monitorName: string; moduleName: string; moduleCategory: "CODE" | "CONDUITE" | "EXAMEN_BLANC";
-    maxStudents: number; location: string; notes: string;
-} = {
+const emptyForm = {
     date: "", startTime: "09:00", endTime: "10:00",
-    monitorName: "", moduleName: "", moduleCategory: "CODE",
+    monitorId: "", moduleId: "",
     maxStudents: 1, location: "", notes: "",
 };
 
 export default function PlanningPage() {
     const [slots, setSlots] = useLocalStorage<SessionSlot[]>("planning_slots", []);
+    const [modules] = useLocalStorage<ModuleItem[]>("modules", []);
+    const [monitors] = useLocalStorage<MonitorItem[]>("monitors", []);
+
     const [weekOffset, setWeekOffset] = useState(0);
     const [showModal, setShowModal] = useState(false);
     const [form, setForm] = useState(emptyForm);
@@ -70,45 +82,55 @@ export default function PlanningPage() {
     const weekDates = getWeekDates(weekOffset);
     const today = formatDate(new Date());
 
-    const handleCreate = () => {
-        if (!form.date) { toast.error("Sélectionnez un jour"); return; }
-        if (!form.monitorName.trim()) { toast.error("Le moniteur est obligatoire"); return; }
-        if (!form.moduleName.trim()) { toast.error("Le module est obligatoire"); return; }
-        if (form.startTime >= form.endTime) { toast.error("L'heure de fin doit être après l'heure de début"); return; }
+    const activeMonitors = monitors.filter(m => m.status === "ACTIVE");
 
-        // Conflict check
+    const handleCreate = () => {
+        if (!form.date) { toast.error("Selectionnez un jour"); return; }
+        if (!form.monitorId) { toast.error("Le moniteur est obligatoire"); return; }
+        if (!form.moduleId) { toast.error("Le module est obligatoire"); return; }
+        if (form.startTime >= form.endTime) { toast.error("L'heure de fin doit etre apres l'heure de debut"); return; }
+
+        const monitor = activeMonitors.find(m => m.id === form.monitorId);
+        const selectedModule = modules.find(m => m.id === form.moduleId);
+
+        if (!monitor) { toast.error("Moniteur invalide ou inactif"); return; }
+        if (!selectedModule) { toast.error("Module invalide"); return; }
+
+        const monitorName = `${monitor.firstName} ${monitor.lastName}`.trim();
+
         const conflict = slots.find(s =>
             s.date === form.date &&
-            s.monitorName === form.monitorName.trim() &&
+            s.monitorName === monitorName &&
             s.status !== "CANCELLED" &&
             ((form.startTime >= s.startTime && form.startTime < s.endTime) ||
                 (form.endTime > s.startTime && form.endTime <= s.endTime))
         );
-        if (conflict) { toast.error(`Conflit : ${form.monitorName} a déjà une séance de ${conflict.startTime} à ${conflict.endTime}`); return; }
+        if (conflict) { toast.error(`Conflit : ${monitorName} a deja une seance de ${conflict.startTime} a ${conflict.endTime}`); return; }
 
         const newSlot: SessionSlot = {
             id: crypto.randomUUID(),
             date: form.date,
             startTime: form.startTime,
             endTime: form.endTime,
-            monitorName: form.monitorName.trim(),
-            moduleName: form.moduleName.trim(),
-            moduleCategory: form.moduleCategory,
+            monitorName,
+            moduleName: selectedModule.name,
+            moduleCategory: selectedModule.category,
             maxStudents: form.maxStudents,
             enrolledCount: 0,
             location: form.location.trim(),
             status: "SCHEDULED",
-            notes: "",
+            notes: form.notes,
         };
+
         setSlots(prev => [...prev, newSlot]);
         setShowModal(false);
         setForm(emptyForm);
-        toast.success("Séance programmée");
+        toast.success("Seance programmee");
     };
 
     const handleCancel = (id: string) => {
         setSlots(prev => prev.map(s => s.id === id ? { ...s, status: "CANCELLED" as SlotStatus } : s));
-        toast.success("Séance annulée");
+        toast.success("Seance annulee");
     };
 
     const openCreateForDay = (date: string) => {
@@ -121,15 +143,14 @@ export default function PlanningPage() {
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-2xl font-black text-snow">Planning</h1>
-                    <p className="text-sm text-mist mt-0.5">Planifiez les séances : moniteur, module, élèves, créneau horaire</p>
+                    <p className="text-sm text-mist mt-0.5">Choisissez un module et un moniteur via listes deroulantes</p>
                 </div>
                 <button onClick={() => { setForm(emptyForm); setShowModal(true); }}
                     className="flex items-center gap-2 bg-gradient-to-r from-signal to-amber-400 text-asphalt font-bold px-5 py-2.5 rounded-xl text-sm hover:opacity-90 transition-all shadow-lg shadow-signal/20">
-                    <Plus className="h-4 w-4" /> Nouvelle séance
+                    <Plus className="h-4 w-4" /> Nouvelle seance
                 </button>
             </div>
 
-            {/* Week navigation */}
             <div className="flex items-center justify-between bg-white/[0.03] rounded-2xl border border-white/[0.06] p-4">
                 <button onClick={() => setWeekOffset(w => w - 1)} className="p-2 rounded-xl hover:bg-white/5 text-mist hover:text-snow transition-all">
                     <ChevronLeft className="h-5 w-5" />
@@ -149,7 +170,6 @@ export default function PlanningPage() {
                 </button>
             </div>
 
-            {/* Week grid */}
             <div className="grid grid-cols-7 gap-2">
                 {weekDates.map((day, i) => {
                     const dateStr = formatDate(day);
@@ -158,17 +178,12 @@ export default function PlanningPage() {
 
                     return (
                         <div key={dateStr}
-                            className={`rounded-2xl border p-3 min-h-[160px] transition-all cursor-pointer hover:border-white/10 ${isToday ? "bg-signal/[0.03] border-signal/20" : "bg-white/[0.02] border-white/[0.06]"
-                                } ${selectedDay === dateStr ? "ring-2 ring-signal/30" : ""}`}
+                            className={`rounded-2xl border p-3 min-h-[160px] transition-all cursor-pointer hover:border-white/10 ${isToday ? "bg-signal/[0.03] border-signal/20" : "bg-white/[0.02] border-white/[0.06]"} ${selectedDay === dateStr ? "ring-2 ring-signal/30" : ""}`}
                             onClick={() => setSelectedDay(selectedDay === dateStr ? null : dateStr)}>
 
                             <div className="flex items-center justify-between mb-2">
-                                <span className={`text-[10px] font-bold uppercase tracking-wider ${isToday ? "text-signal" : "text-mist/40"}`}>
-                                    {dayNames[i]}
-                                </span>
-                                <span className={`text-sm font-black ${isToday ? "text-signal bg-signal/10 px-2 py-0.5 rounded-lg" : "text-snow/60"}`}>
-                                    {day.getDate()}
-                                </span>
+                                <span className={`text-[10px] font-bold uppercase tracking-wider ${isToday ? "text-signal" : "text-mist/40"}`}>{dayNames[i]}</span>
+                                <span className={`text-sm font-black ${isToday ? "text-signal bg-signal/10 px-2 py-0.5 rounded-lg" : "text-snow/60"}`}>{day.getDate()}</span>
                             </div>
 
                             <div className="space-y-1.5">
@@ -178,23 +193,17 @@ export default function PlanningPage() {
                                         + Ajouter
                                     </button>
                                 ) : (
-                                    daySlots.map(slot => {
-                                        const st = statusConfig[slot.status];
-                                        return (
-                                            <div key={slot.id}
-                                                className={`rounded-lg p-2 text-[10px] border-l-2 transition-all hover:opacity-80 ${slot.moduleCategory === "CODE" ? "bg-blue-500/5 border-l-blue-400" :
-                                                    slot.moduleCategory === "CONDUITE" ? "bg-signal/5 border-l-signal" :
-                                                        "bg-purple-500/5 border-l-purple-400"
-                                                    }`}>
-                                                <div className="flex items-center justify-between">
-                                                    <span className="font-bold text-snow">{slot.startTime}-{slot.endTime}</span>
-                                                    <span>{catIcons[slot.moduleCategory]}</span>
-                                                </div>
-                                                <p className="text-mist/60 truncate">{slot.moduleName}</p>
-                                                <p className="text-mist/40 truncate">{slot.monitorName}</p>
+                                    daySlots.map(slot => (
+                                        <div key={slot.id}
+                                            className={`rounded-lg p-2 text-[10px] border-l-2 transition-all hover:opacity-80 ${slot.moduleCategory === "CODE" ? "bg-blue-500/5 border-l-blue-400" : slot.moduleCategory === "CONDUITE" ? "bg-signal/5 border-l-signal" : "bg-purple-500/5 border-l-purple-400"}`}>
+                                            <div className="flex items-center justify-between">
+                                                <span className="font-bold text-snow">{slot.startTime}-{slot.endTime}</span>
+                                                <span>{catIcons[slot.moduleCategory]}</span>
                                             </div>
-                                        );
-                                    })
+                                            <p className="text-mist/60 truncate">{slot.moduleName}</p>
+                                            <p className="text-mist/40 truncate">{slot.monitorName}</p>
+                                        </div>
+                                    ))
                                 )}
                             </div>
                         </div>
@@ -202,21 +211,18 @@ export default function PlanningPage() {
                 })}
             </div>
 
-            {/* Day detail panel */}
             {selectedDay && (
                 <div className="bg-white/[0.03] rounded-2xl border border-white/[0.06] p-6">
                     <div className="flex items-center justify-between mb-4">
-                        <h2 className="text-base font-black text-snow">
-                            {new Date(selectedDay + "T00:00:00").toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" })}
-                        </h2>
+                        <h2 className="text-base font-black text-snow">{new Date(selectedDay + "T00:00:00").toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" })}</h2>
                         <button onClick={() => openCreateForDay(selectedDay)}
                             className="flex items-center gap-1 text-xs text-signal font-bold hover:text-signal/80 transition-colors">
-                            <Plus className="h-3 w-3" /> Ajouter une séance
+                            <Plus className="h-3 w-3" /> Ajouter une seance
                         </button>
                     </div>
 
                     {slots.filter(s => s.date === selectedDay).length === 0 ? (
-                        <p className="text-sm text-mist/40 text-center py-6">Aucune séance ce jour</p>
+                        <p className="text-sm text-mist/40 text-center py-6">Aucune seance ce jour</p>
                     ) : (
                         <div className="space-y-3">
                             {slots.filter(s => s.date === selectedDay).sort((a, b) => a.startTime.localeCompare(b.startTime)).map(slot => {
@@ -240,10 +246,7 @@ export default function PlanningPage() {
                                             </div>
                                         </div>
                                         {slot.status === "SCHEDULED" && (
-                                            <button onClick={() => handleCancel(slot.id)}
-                                                className="text-[10px] text-red-400/60 hover:text-red-400 font-bold transition-colors shrink-0">
-                                                Annuler
-                                            </button>
+                                            <button onClick={() => handleCancel(slot.id)} className="text-[10px] text-red-400/60 hover:text-red-400 font-bold transition-colors shrink-0">Annuler</button>
                                         )}
                                     </div>
                                 );
@@ -253,12 +256,10 @@ export default function PlanningPage() {
                 </div>
             )}
 
-            {/* Create Modal */}
             {showModal && (
                 <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setShowModal(false)}>
-                    <div className="bg-asphalt border border-white/10 rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-6 space-y-5"
-                        onClick={e => e.stopPropagation()}>
-                        <h2 className="text-lg font-black text-snow">Programmer une séance</h2>
+                    <div className="bg-asphalt border border-white/10 rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-6 space-y-5" onClick={e => e.stopPropagation()}>
+                        <h2 className="text-lg font-black text-snow">Programmer une seance</h2>
 
                         <div className="space-y-4">
                             <div className="space-y-1.5">
@@ -268,7 +269,7 @@ export default function PlanningPage() {
                             </div>
                             <div className="grid grid-cols-2 gap-3">
                                 <div className="space-y-1.5">
-                                    <label className="text-xs font-bold text-mist uppercase tracking-wider">Heure début *</label>
+                                    <label className="text-xs font-bold text-mist uppercase tracking-wider">Heure debut *</label>
                                     <input type="time" value={form.startTime} onChange={e => setForm(p => ({ ...p, startTime: e.target.value }))}
                                         className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-snow focus:outline-none focus:border-signal/50 focus:ring-2 focus:ring-signal/20 text-sm" />
                                 </div>
@@ -279,36 +280,37 @@ export default function PlanningPage() {
                                 </div>
                             </div>
                             <div className="space-y-1.5">
-                                <label className="text-xs font-bold text-mist uppercase tracking-wider">Module enseigné *</label>
-                                <div className="grid grid-cols-2 gap-2">
-                                    <input type="text" value={form.moduleName} onChange={e => setForm(p => ({ ...p, moduleName: e.target.value }))}
-                                        placeholder="Ex : Code de la route"
-                                        className="bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-snow placeholder:text-mist/30 focus:outline-none focus:border-signal/50 focus:ring-2 focus:ring-signal/20 text-sm" />
-                                    <select value={form.moduleCategory} onChange={e => setForm(p => ({ ...p, moduleCategory: e.target.value as "CODE" | "CONDUITE" | "EXAMEN_BLANC" }))}
-                                        className="bg-white/5 border border-white/10 rounded-xl px-3 py-3 text-snow focus:outline-none focus:border-signal/50 focus:ring-2 focus:ring-signal/20 text-sm">
-                                        <option value="CODE" className="bg-asphalt">📖 Code</option>
-                                        <option value="CONDUITE" className="bg-asphalt">🚗 Conduite</option>
-                                        <option value="EXAMEN_BLANC" className="bg-asphalt">📝 Examen Blanc</option>
-                                    </select>
-                                </div>
+                                <label className="text-xs font-bold text-mist uppercase tracking-wider">Module enseigne *</label>
+                                <select value={form.moduleId} onChange={e => setForm(p => ({ ...p, moduleId: e.target.value }))}
+                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-snow focus:outline-none focus:border-signal/50 focus:ring-2 focus:ring-signal/20 text-sm">
+                                    <option value="" className="bg-asphalt">Selectionner un module</option>
+                                    {modules.map(mod => (
+                                        <option key={mod.id} value={mod.id} className="bg-asphalt">{catIcons[mod.category]} {mod.name}</option>
+                                    ))}
+                                </select>
+                                {modules.length === 0 && <p className="text-[10px] text-yellow-400/70">Aucun module disponible. Creez d&apos;abord des modules.</p>}
                             </div>
                             <div className="space-y-1.5">
                                 <label className="text-xs font-bold text-mist uppercase tracking-wider">Moniteur *</label>
-                                <input type="text" value={form.monitorName} onChange={e => setForm(p => ({ ...p, monitorName: e.target.value }))}
-                                    placeholder="Nom du moniteur"
-                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-snow placeholder:text-mist/30 focus:outline-none focus:border-signal/50 focus:ring-2 focus:ring-signal/20 text-sm" />
+                                <select value={form.monitorId} onChange={e => setForm(p => ({ ...p, monitorId: e.target.value }))}
+                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-snow focus:outline-none focus:border-signal/50 focus:ring-2 focus:ring-signal/20 text-sm">
+                                    <option value="" className="bg-asphalt">Selectionner un moniteur</option>
+                                    {activeMonitors.map(mon => (
+                                        <option key={mon.id} value={mon.id} className="bg-asphalt">{mon.firstName} {mon.lastName}</option>
+                                    ))}
+                                </select>
+                                {activeMonitors.length === 0 && <p className="text-[10px] text-yellow-400/70">Aucun moniteur actif disponible.</p>}
                             </div>
                             <div className="grid grid-cols-2 gap-3">
                                 <div className="space-y-1.5">
-                                    <label className="text-xs font-bold text-mist uppercase tracking-wider">Capacité max</label>
+                                    <label className="text-xs font-bold text-mist uppercase tracking-wider">Capacite max</label>
                                     <input type="number" value={form.maxStudents} onChange={e => setForm(p => ({ ...p, maxStudents: parseInt(e.target.value) || 1 }))}
                                         min={1} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-snow focus:outline-none focus:border-signal/50 focus:ring-2 focus:ring-signal/20 text-sm" />
-                                    <p className="text-[10px] text-mist/30">1 pour conduite, N pour code en salle</p>
                                 </div>
                                 <div className="space-y-1.5">
                                     <label className="text-xs font-bold text-mist uppercase tracking-wider">Lieu</label>
                                     <input type="text" value={form.location} onChange={e => setForm(p => ({ ...p, location: e.target.value }))}
-                                        placeholder="Salle A, Véhicule #1..."
+                                        placeholder="Salle A, Vehicule #1..."
                                         className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-snow placeholder:text-mist/30 focus:outline-none focus:border-signal/50 focus:ring-2 focus:ring-signal/20 text-sm" />
                                 </div>
                             </div>

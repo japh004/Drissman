@@ -80,6 +80,10 @@ export default function AdminDashboardPage() {
         const pendingEnrollments = scopedEnrollments.filter(e => e.status === "PENDING").length;
         const todaySessions = planningSlots.filter(s => s.date === today && s.status !== "CANCELLED").length;
 
+        const totalRevenue = scopedEnrollments
+            .filter(e => e.status === "ACTIVE" || e.status === "COMPLETED")
+            .reduce((sum, e) => sum + (e.price || 0), 0);
+
         const monthlyRevenue = scopedEnrollments
             .filter(e => e.status === "ACTIVE" || e.status === "COMPLETED")
             .filter(e => {
@@ -103,13 +107,13 @@ export default function AdminDashboardPage() {
                 enrolledAt: e.enrolledAt,
             }));
 
-        return { activeStudents, pendingEnrollments, todaySessions, monthlyRevenue, todaySlotList, recentActivities };
+        return { activeStudents, pendingEnrollments, todaySessions, totalRevenue, monthlyRevenue, todaySlotList, recentActivities };
     }, [enrollments, planningSlots, user]);
 
     const stats = {
         activeStudents: localStats.activeStudents || serverStats?.activeCandidates || 0,
-        monthlyRevenue: serverStats?.monthlyRevenue ?? localStats.monthlyRevenue,
-        todaySessions: serverStats?.todaySessions ?? localStats.todaySessions,
+        totalRevenue: (serverStats?.totalRevenue ?? 0) > 0 ? (serverStats?.totalRevenue ?? 0) : localStats.totalRevenue,
+        todaySessions: localStats.todaySessions > 0 ? localStats.todaySessions : (serverStats?.todaySessions ?? 0),
         pendingEnrollments: localStats.pendingEnrollments,
     };
 
@@ -128,7 +132,7 @@ export default function AdminDashboardPage() {
 
             <StaggerContainer className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <StaggerItem><StatCard title="Eleves actifs" value={stats.activeStudents} icon={GraduationCap} color="blue" subtitle="Inscriptions ACTIVE" /></StaggerItem>
-                <StaggerItem><StatCard title="CA Mensuel" value={`${new Intl.NumberFormat("fr-FR").format(stats.monthlyRevenue)} F`} icon={DollarSign} color="green" subtitle="Montant reel ce mois" /></StaggerItem>
+                <StaggerItem><StatCard title="CA Global" value={`${new Intl.NumberFormat("fr-FR").format(stats.totalRevenue)} F`} icon={DollarSign} color="green" subtitle="Chiffre d'affaires total" /></StaggerItem>
                 <StaggerItem><StatCard title="Seances du jour" value={stats.todaySessions} icon={CalendarDays} color="signal" subtitle="Sessions programmees" /></StaggerItem>
                 <StaggerItem><StatCard title="En attente" value={stats.pendingEnrollments} icon={Clock} color="purple" subtitle="Inscriptions a valider" /></StaggerItem>
             </StaggerContainer>
