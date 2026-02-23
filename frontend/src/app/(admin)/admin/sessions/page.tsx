@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Search, Calendar, Users, BookOpen, Clock, ChevronDown, ChevronUp, Edit2, Trash2, Eye } from "lucide-react";
+import { Plus, Search, Calendar, Users, BookOpen, ChevronDown, ChevronUp, Edit2, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 
 type SessionStatus = "DRAFT" | "PUBLISHED" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED";
 
@@ -11,7 +12,6 @@ interface SessionFormation {
     permitType: string;
     price: number;
     priceOverride?: number;
-    maxStudentsOverride?: number;
     enrolledCount: number;
 }
 
@@ -28,7 +28,14 @@ interface TrainingSession {
     totalEnrolled: number;
 }
 
-const mockSessions: TrainingSession[] = [
+const availableFormations = [
+    { offerId: "a", offerName: "Permis B Classique", permitType: "B", price: 65000 },
+    { offerId: "b", offerName: "Code Illimité", permitType: "B", price: 15000 },
+    { offerId: "c", offerName: "Permis Accéléré", permitType: "B", price: 120000 },
+    { offerId: "d", offerName: "Permis Moto A", permitType: "A", price: 45000 },
+];
+
+const initialSessions: TrainingSession[] = [
     {
         id: "1", name: "Rentrée Mars 2025", description: "Session de formation du premier trimestre 2025",
         startDate: "2025-03-01", endDate: "2025-06-30", enrollmentDeadline: "2025-02-28",
@@ -69,21 +76,69 @@ const statusConfig: Record<SessionStatus, { label: string; class: string }> = {
 
 function formatCurrency(n: number) { return new Intl.NumberFormat("fr-FR").format(n); }
 
+const emptyForm = { name: "", description: "", startDate: "", endDate: "", enrollmentDeadline: "", maxStudents: 30, selectedOfferIds: [] as string[] };
+
 export default function SessionsPage() {
+    const [sessions, setSessions] = useState<TrainingSession[]>(initialSessions);
     const [searchQuery, setSearchQuery] = useState("");
     const [expandedId, setExpandedId] = useState<string | null>("1");
     const [showModal, setShowModal] = useState(false);
+    const [form, setForm] = useState(emptyForm);
 
-    const filtered = mockSessions.filter(s => s.name.toLowerCase().includes(searchQuery.toLowerCase()));
+    const filtered = sessions.filter(s => s.name.toLowerCase().includes(searchQuery.toLowerCase()));
+
+    const handleCreate = () => {
+        if (!form.name.trim()) { toast.error("Le nom de la session est obligatoire"); return; }
+        if (!form.startDate || !form.endDate) { toast.error("Les dates de début et fin sont obligatoires"); return; }
+        if (form.selectedOfferIds.length === 0) { toast.error("Sélectionnez au moins une formation"); return; }
+
+        const newSession: TrainingSession = {
+            id: crypto.randomUUID(),
+            name: form.name.trim(),
+            description: form.description.trim(),
+            startDate: form.startDate,
+            endDate: form.endDate,
+            enrollmentDeadline: form.enrollmentDeadline || form.startDate,
+            maxStudents: form.maxStudents,
+            status: "DRAFT",
+            totalEnrolled: 0,
+            formations: form.selectedOfferIds.map(id => {
+                const offer = availableFormations.find(f => f.offerId === id)!;
+                return { ...offer, enrolledCount: 0 };
+            }),
+        };
+
+        setSessions(prev => [newSession, ...prev]);
+        setForm(emptyForm);
+        setShowModal(false);
+        setExpandedId(newSession.id);
+        toast.success(`Session "${newSession.name}" créée avec succès`);
+    };
+
+    const handleDelete = (id: string) => {
+        const session = sessions.find(s => s.id === id);
+        if (session && session.totalEnrolled > 0) { toast.error("Impossible de supprimer une session avec des inscrits"); return; }
+        setSessions(prev => prev.filter(s => s.id !== id));
+        toast.success("Session supprimée");
+    };
+
+    const toggleFormation = (offerId: string) => {
+        setForm(prev => ({
+            ...prev,
+            selectedOfferIds: prev.selectedOfferIds.includes(offerId)
+                ? prev.selectedOfferIds.filter(id => id !== offerId)
+                : [...prev.selectedOfferIds, offerId],
+        }));
+    };
 
     return (
         <div className="space-y-6">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-2xl font-black text-snow">Sessions de Formation</h1>
-                    <p className="text-sm text-mist mt-0.5">{mockSessions.length} sessions · Chaque session regroupe plusieurs formations</p>
+                    <p className="text-sm text-mist mt-0.5">{sessions.length} sessions · Chaque session regroupe plusieurs formations</p>
                 </div>
-                <button onClick={() => setShowModal(true)}
+                <button onClick={() => { setForm(emptyForm); setShowModal(true); }}
                     className="flex items-center gap-2 bg-gradient-to-r from-signal to-amber-400 text-asphalt font-black px-5 py-2.5 rounded-xl text-sm hover:opacity-90 transition-all shadow-lg shadow-signal/20">
                     <Plus className="h-4 w-4" /> Nouvelle Session
                 </button>
@@ -101,11 +156,10 @@ export default function SessionsPage() {
                 {filtered.map(session => {
                     const st = statusConfig[session.status];
                     const isExpanded = expandedId === session.id;
-                    const fillPct = Math.round((session.totalEnrolled / session.maxStudents) * 100);
+                    const fillPct = session.maxStudents > 0 ? Math.round((session.totalEnrolled / session.maxStudents) * 100) : 0;
 
                     return (
                         <div key={session.id} className="bg-white/[0.03] rounded-2xl border border-white/[0.06] overflow-hidden hover:border-white/10 transition-all">
-                            {/* Header */}
                             <button onClick={() => setExpandedId(isExpanded ? null : session.id)}
                                 className="w-full text-left p-5 flex items-center gap-4">
                                 <div className="flex-1 min-w-0">
@@ -113,14 +167,12 @@ export default function SessionsPage() {
                                         <h2 className="text-base font-black text-snow truncate">{session.name}</h2>
                                         <span className={`text-[10px] font-bold px-2 py-0.5 rounded-lg shrink-0 ${st.class}`}>{st.label}</span>
                                     </div>
-                                    <div className="flex items-center gap-4 text-xs text-mist/50">
+                                    <div className="flex items-center gap-4 text-xs text-mist/50 flex-wrap">
                                         <span className="flex items-center gap-1"><Calendar className="h-3 w-3" />{new Date(session.startDate).toLocaleDateString("fr-FR")} → {new Date(session.endDate).toLocaleDateString("fr-FR")}</span>
                                         <span className="flex items-center gap-1"><BookOpen className="h-3 w-3" />{session.formations.length} formation{session.formations.length > 1 ? "s" : ""}</span>
                                         <span className="flex items-center gap-1"><Users className="h-3 w-3" />{session.totalEnrolled}/{session.maxStudents} inscrits</span>
                                     </div>
                                 </div>
-
-                                {/* Fill bar */}
                                 <div className="hidden sm:flex items-center gap-2 shrink-0">
                                     <div className="h-2 w-20 bg-white/5 rounded-full overflow-hidden">
                                         <div className={`h-full rounded-full ${fillPct >= 90 ? "bg-red-400" : fillPct >= 60 ? "bg-signal" : "bg-blue-400"}`}
@@ -128,21 +180,18 @@ export default function SessionsPage() {
                                     </div>
                                     <span className="text-xs text-mist/40 font-mono">{fillPct}%</span>
                                 </div>
-
                                 {isExpanded ? <ChevronUp className="h-4 w-4 text-mist/40 shrink-0" /> : <ChevronDown className="h-4 w-4 text-mist/40 shrink-0" />}
                             </button>
 
-                            {/* Expanded: Formations list */}
                             {isExpanded && (
                                 <div className="border-t border-white/[0.06] p-5 space-y-4">
                                     <div className="flex items-center justify-between">
                                         <h3 className="text-xs font-bold text-mist/40 uppercase tracking-wider">Formations proposées</h3>
                                         <div className="flex gap-1">
                                             <button className="p-1.5 rounded-lg hover:bg-white/5 text-mist/40 hover:text-snow transition-all"><Edit2 className="h-3.5 w-3.5" /></button>
-                                            <button className="p-1.5 rounded-lg hover:bg-red-500/10 text-mist/40 hover:text-red-400 transition-all"><Trash2 className="h-3.5 w-3.5" /></button>
+                                            <button onClick={() => handleDelete(session.id)} className="p-1.5 rounded-lg hover:bg-red-500/10 text-mist/40 hover:text-red-400 transition-all"><Trash2 className="h-3.5 w-3.5" /></button>
                                         </div>
                                     </div>
-
                                     <div className="grid gap-3">
                                         {session.formations.map(f => {
                                             const displayPrice = f.priceOverride ?? f.price;
@@ -163,8 +212,6 @@ export default function SessionsPage() {
                                             );
                                         })}
                                     </div>
-
-                                    {/* Session meta */}
                                     <div className="grid sm:grid-cols-3 gap-3 pt-2 border-t border-white/[0.04]">
                                         <div className="text-center">
                                             <p className="text-xs text-mist/40">Date limite inscription</p>
@@ -197,54 +244,66 @@ export default function SessionsPage() {
 
                         <div className="space-y-4">
                             <div className="space-y-1.5">
-                                <label className="text-xs font-bold text-mist uppercase tracking-wider">Nom de la session</label>
-                                <input type="text" placeholder="Ex : Rentrée Mars 2025"
+                                <label className="text-xs font-bold text-mist uppercase tracking-wider">Nom de la session *</label>
+                                <input type="text" value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))}
+                                    placeholder="Ex : Rentrée Mars 2025"
                                     className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-snow placeholder:text-mist/30 focus:outline-none focus:border-signal/50 focus:ring-2 focus:ring-signal/20 text-sm" />
                             </div>
                             <div className="space-y-1.5">
                                 <label className="text-xs font-bold text-mist uppercase tracking-wider">Description</label>
-                                <textarea rows={2} placeholder="Description de la session..."
+                                <textarea rows={2} value={form.description} onChange={e => setForm(p => ({ ...p, description: e.target.value }))}
+                                    placeholder="Description de la session..."
                                     className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-snow placeholder:text-mist/30 focus:outline-none focus:border-signal/50 focus:ring-2 focus:ring-signal/20 text-sm resize-none" />
                             </div>
                             <div className="grid grid-cols-2 gap-3">
                                 <div className="space-y-1.5">
-                                    <label className="text-xs font-bold text-mist uppercase tracking-wider">Date début</label>
-                                    <input type="date" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-snow focus:outline-none focus:border-signal/50 focus:ring-2 focus:ring-signal/20 text-sm" />
+                                    <label className="text-xs font-bold text-mist uppercase tracking-wider">Date début *</label>
+                                    <input type="date" value={form.startDate} onChange={e => setForm(p => ({ ...p, startDate: e.target.value }))}
+                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-snow focus:outline-none focus:border-signal/50 focus:ring-2 focus:ring-signal/20 text-sm" />
                                 </div>
                                 <div className="space-y-1.5">
-                                    <label className="text-xs font-bold text-mist uppercase tracking-wider">Date fin</label>
-                                    <input type="date" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-snow focus:outline-none focus:border-signal/50 focus:ring-2 focus:ring-signal/20 text-sm" />
+                                    <label className="text-xs font-bold text-mist uppercase tracking-wider">Date fin *</label>
+                                    <input type="date" value={form.endDate} onChange={e => setForm(p => ({ ...p, endDate: e.target.value }))}
+                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-snow focus:outline-none focus:border-signal/50 focus:ring-2 focus:ring-signal/20 text-sm" />
                                 </div>
                             </div>
                             <div className="grid grid-cols-2 gap-3">
                                 <div className="space-y-1.5">
                                     <label className="text-xs font-bold text-mist uppercase tracking-wider">Date limite inscription</label>
-                                    <input type="date" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-snow focus:outline-none focus:border-signal/50 focus:ring-2 focus:ring-signal/20 text-sm" />
+                                    <input type="date" value={form.enrollmentDeadline} onChange={e => setForm(p => ({ ...p, enrollmentDeadline: e.target.value }))}
+                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-snow focus:outline-none focus:border-signal/50 focus:ring-2 focus:ring-signal/20 text-sm" />
                                 </div>
                                 <div className="space-y-1.5">
                                     <label className="text-xs font-bold text-mist uppercase tracking-wider">Capacité max</label>
-                                    <input type="number" defaultValue={30} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-snow focus:outline-none focus:border-signal/50 focus:ring-2 focus:ring-signal/20 text-sm" />
+                                    <input type="number" value={form.maxStudents} onChange={e => setForm(p => ({ ...p, maxStudents: parseInt(e.target.value) || 30 }))}
+                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-snow focus:outline-none focus:border-signal/50 focus:ring-2 focus:ring-signal/20 text-sm" />
                                 </div>
                             </div>
 
-                            {/* Formation selection */}
                             <div className="space-y-2">
-                                <label className="text-xs font-bold text-mist uppercase tracking-wider">Formations incluses</label>
+                                <label className="text-xs font-bold text-mist uppercase tracking-wider">Formations incluses *</label>
                                 <p className="text-[10px] text-mist/40">Sélectionnez les formations à proposer dans cette session</p>
                                 <div className="space-y-2">
-                                    {["Permis B Classique — 65 000 F", "Code Illimité — 15 000 F", "Permis Accéléré — 120 000 F", "Permis Moto A — 45 000 F"].map((name, i) => (
-                                        <label key={i} className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.02] border border-white/[0.04] cursor-pointer hover:border-signal/20 transition-all">
-                                            <input type="checkbox" className="rounded border-white/20 bg-white/5 text-signal focus:ring-signal/20" />
-                                            <span className="text-sm text-snow">{name}</span>
-                                        </label>
-                                    ))}
+                                    {availableFormations.map(offer => {
+                                        const checked = form.selectedOfferIds.includes(offer.offerId);
+                                        return (
+                                            <label key={offer.offerId}
+                                                className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${checked ? "bg-signal/5 border-signal/30" : "bg-white/[0.02] border-white/[0.04] hover:border-signal/20"}`}>
+                                                <input type="checkbox" checked={checked} onChange={() => toggleFormation(offer.offerId)}
+                                                    className="rounded border-white/20 bg-white/5 text-signal focus:ring-signal/20" />
+                                                <span className="text-sm text-snow flex-1">{offer.offerName}</span>
+                                                <span className="text-xs font-bold text-signal">{formatCurrency(offer.price)} F</span>
+                                            </label>
+                                        );
+                                    })}
                                 </div>
                             </div>
                         </div>
 
                         <div className="flex gap-3 pt-2">
                             <button onClick={() => setShowModal(false)} className="flex-1 px-4 py-2.5 rounded-xl bg-white/5 text-mist hover:text-snow text-sm font-bold transition-all">Annuler</button>
-                            <button className="flex-1 px-4 py-2.5 rounded-xl bg-gradient-to-r from-signal to-amber-400 text-asphalt text-sm font-black hover:opacity-90 transition-all">
+                            <button onClick={handleCreate}
+                                className="flex-1 px-4 py-2.5 rounded-xl bg-gradient-to-r from-signal to-amber-400 text-asphalt text-sm font-black hover:opacity-90 transition-all shadow-lg shadow-signal/20">
                                 Créer la session
                             </button>
                         </div>
