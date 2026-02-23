@@ -3,35 +3,8 @@
 import { useAuth } from "@/hooks";
 import {
     Users, GraduationCap, DollarSign, CalendarDays,
-    TrendingUp, ArrowUpRight, Clock, BookOpen
+    TrendingUp, ArrowUpRight, Clock, BookOpen, Inbox
 } from "lucide-react";
-
-// Temporary mock data — will connect to API in later phases
-const mockStats = {
-    totalStudents: 47,
-    activeEnrollments: 32,
-    monthlyRevenue: 2_450_000,
-    sessionsToday: 8,
-    pendingEnrollments: 5,
-    totalOffers: 4,
-    totalMonitors: 3,
-    completionRate: 78,
-};
-
-const recentActivity = [
-    { id: 1, type: "enrollment", text: "Sarah K. s'est inscrite à Permis B Classique", time: "Il y a 2h" },
-    { id: 2, type: "session", text: "Séance de conduite terminée — Moniteur Jean-Paul", time: "Il y a 3h" },
-    { id: 3, type: "payment", text: "Paiement reçu de Junior M. — 65 000 FCFA", time: "Il y a 5h" },
-    { id: 4, type: "enrollment", text: "Alice K. — inscription en attente de validation", time: "Hier" },
-    { id: 5, type: "session", text: "3 séances de code planifiées pour demain", time: "Hier" },
-];
-
-const upcomingSessions = [
-    { id: 1, module: "Code de la route", monitor: "Marie D.", time: "09:00 - 11:00", students: 12, type: "CODE" },
-    { id: 2, module: "Conduite B", monitor: "Jean-Paul", time: "11:00 - 12:00", students: 1, type: "CONDUITE" },
-    { id: 3, module: "Conduite B", monitor: "Jean-Paul", time: "14:00 - 15:00", students: 1, type: "CONDUITE" },
-    { id: 4, module: "Examen Blanc", monitor: "Marie D.", time: "15:00 - 17:00", students: 6, type: "EXAMEN" },
-];
 
 function formatCurrency(amount: number) {
     return new Intl.NumberFormat("fr-FR").format(amount);
@@ -52,93 +25,41 @@ export default function AdminDashboard() {
                 </p>
             </div>
 
-            {/* KPI Cards */}
+            {/* KPI Cards — zeroed out for real accounts */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <StatCard
-                    title="Élèves actifs"
-                    value={mockStats.totalStudents}
-                    icon={GraduationCap}
-                    trend="+12%"
-                    color="blue"
-                />
-                <StatCard
-                    title="CA Mensuel"
-                    value={`${formatCurrency(mockStats.monthlyRevenue)} F`}
-                    icon={DollarSign}
-                    trend="+8%"
-                    color="green"
-                />
-                <StatCard
-                    title="Séances aujourd'hui"
-                    value={mockStats.sessionsToday}
-                    icon={CalendarDays}
-                    color="signal"
-                />
-                <StatCard
-                    title="Inscriptions en attente"
-                    value={mockStats.pendingEnrollments}
-                    icon={Clock}
-                    color="orange"
-                    alert
-                />
+                <StatCard title="Élèves actifs" value={0} icon={GraduationCap} color="blue" />
+                <StatCard title="CA Mensuel" value="0 F" icon={DollarSign} color="green" />
+                <StatCard title="Séances aujourd'hui" value={0} icon={CalendarDays} color="signal" />
+                <StatCard title="Inscriptions en attente" value={0} icon={Clock} color="orange" />
             </div>
 
             {/* Mini stats row */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <MiniStat label="Formules" value={mockStats.totalOffers} icon={BookOpen} />
-                <MiniStat label="Moniteurs" value={mockStats.totalMonitors} icon={Users} />
-                <MiniStat label="Inscriptions" value={mockStats.activeEnrollments} icon={TrendingUp} />
-                <MiniStat label="Taux réussite" value={`${mockStats.completionRate}%`} icon={ArrowUpRight} />
+                <MiniStat label="Formules" value={0} icon={BookOpen} />
+                <MiniStat label="Moniteurs" value={0} icon={Users} />
+                <MiniStat label="Inscriptions" value={0} icon={TrendingUp} />
+                <MiniStat label="Taux réussite" value="—" icon={ArrowUpRight} />
             </div>
 
             {/* Two-column layout */}
             <div className="grid lg:grid-cols-5 gap-6">
-                {/* Upcoming sessions */}
+                {/* Upcoming sessions — empty state */}
                 <div className="lg:col-span-3 bg-white/[0.03] rounded-2xl border border-white/[0.06] p-6">
                     <h2 className="text-lg font-black text-snow mb-4">Séances du jour</h2>
-                    <div className="space-y-3">
-                        {upcomingSessions.map((session) => (
-                            <div
-                                key={session.id}
-                                className="flex items-center gap-4 p-3 rounded-xl bg-white/[0.02] border border-white/[0.04] hover:border-white/10 transition-all"
-                            >
-                                <div className={`
-                                    p-2.5 rounded-xl text-xs font-black
-                                    ${session.type === "CODE" ? "bg-blue-500/10 text-blue-400" :
-                                        session.type === "CONDUITE" ? "bg-signal/10 text-signal" :
-                                            "bg-purple-500/10 text-purple-400"}
-                                `}>
-                                    {session.type === "CODE" ? "📖" : session.type === "CONDUITE" ? "🚗" : "📝"}
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                    <p className="text-sm font-bold text-snow truncate">{session.module}</p>
-                                    <p className="text-xs text-mist/60">{session.monitor} · {session.students} élève{session.students > 1 ? "s" : ""}</p>
-                                </div>
-                                <span className="text-xs font-mono text-mist bg-white/5 px-2.5 py-1 rounded-lg">
-                                    {session.time}
-                                </span>
-                            </div>
-                        ))}
+                    <div className="flex flex-col items-center justify-center py-8 text-center">
+                        <CalendarDays className="h-10 w-10 text-mist/20 mb-3" />
+                        <p className="text-sm text-mist/50">Aucune séance programmée aujourd&apos;hui</p>
+                        <p className="text-xs text-mist/30 mt-1">Créez des sessions dans l&apos;onglet Sessions</p>
                     </div>
                 </div>
 
-                {/* Recent activity */}
+                {/* Recent activity — empty state */}
                 <div className="lg:col-span-2 bg-white/[0.03] rounded-2xl border border-white/[0.06] p-6">
                     <h2 className="text-lg font-black text-snow mb-4">Activité récente</h2>
-                    <div className="space-y-3">
-                        {recentActivity.map((activity) => (
-                            <div key={activity.id} className="flex gap-3 group">
-                                <div className={`
-                                    mt-1 h-2 w-2 rounded-full shrink-0
-                                    ${activity.type === "enrollment" ? "bg-blue-400" :
-                                        activity.type === "session" ? "bg-signal" : "bg-green-400"}
-                                `} />
-                                <div className="min-w-0">
-                                    <p className="text-sm text-snow/80 leading-snug">{activity.text}</p>
-                                    <p className="text-xs text-mist/40 mt-0.5">{activity.time}</p>
-                                </div>
-                            </div>
-                        ))}
+                    <div className="flex flex-col items-center justify-center py-8 text-center">
+                        <Inbox className="h-10 w-10 text-mist/20 mb-3" />
+                        <p className="text-sm text-mist/50">Aucune activité récente</p>
+                        <p className="text-xs text-mist/30 mt-1">Les événements apparaîtront ici</p>
                     </div>
                 </div>
             </div>
