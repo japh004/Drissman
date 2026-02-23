@@ -25,16 +25,11 @@ function StatCard({ title, value, icon: Icon, color, subtitle }: { title: string
 
 export default function AdminDashboardPage() {
     // KPIs will be populated from GET /api/admin/stats
-    // For now, show 0 values — ready for API connection
     const stats = {
         activeStudents: 0,
         monthlyRevenue: 0,
         todaySessions: 0,
         pendingEnrollments: 0,
-        totalOffers: 0,
-        activeMonitors: 0,
-        totalEnrollments: 0,
-        completionRate: 0,
     };
 
     return (
@@ -44,20 +39,12 @@ export default function AdminDashboardPage() {
                 <p className="text-sm text-mist mt-0.5">Vue synthétique de votre auto-école</p>
             </div>
 
-            {/* Primary KPIs */}
+            {/* KPIs */}
             <StaggerContainer className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <StaggerItem><StatCard title="Élèves actifs" value={stats.activeStudents} icon={GraduationCap} color="blue" subtitle="Inscriptions ACTIVE" /></StaggerItem>
                 <StaggerItem><StatCard title="CA Mensuel" value={`${new Intl.NumberFormat("fr-FR").format(stats.monthlyRevenue)} F`} icon={DollarSign} color="green" subtitle="Factures PAID ce mois" /></StaggerItem>
                 <StaggerItem><StatCard title="Séances du jour" value={stats.todaySessions} icon={CalendarDays} color="signal" subtitle="Sessions programmées" /></StaggerItem>
                 <StaggerItem><StatCard title="En attente" value={stats.pendingEnrollments} icon={Clock} color="purple" subtitle="Inscriptions PENDING" /></StaggerItem>
-            </StaggerContainer>
-
-            {/* Secondary KPIs */}
-            <StaggerContainer className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4" staggerDelay={0.08}>
-                <StaggerItem><StatCard title="Formules actives" value={stats.totalOffers} icon={BookOpen} color="blue" /></StaggerItem>
-                <StaggerItem><StatCard title="Moniteurs actifs" value={stats.activeMonitors} icon={Users2} color="green" /></StaggerItem>
-                <StaggerItem><StatCard title="Total inscriptions" value={stats.totalEnrollments} icon={TrendingUp} color="signal" /></StaggerItem>
-                <StaggerItem><StatCard title="Taux de réussite" value={`${stats.completionRate}%`} icon={BarChart3} color="purple" /></StaggerItem>
             </StaggerContainer>
 
             {/* Two-column layout */}

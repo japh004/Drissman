@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useLocalStorage } from "@/hooks";
 import { Plus, Search, Edit2, Trash2, Phone, Mail, ShieldCheck, UserX, Eye, EyeOff, Copy, CheckCircle } from "lucide-react";
 import { toast } from "sonner";
 
@@ -22,7 +23,7 @@ const statusConfig: Record<string, { label: string; class: string }> = {
 };
 
 export default function MonitorsPage() {
-    const [monitors, setMonitors] = useState<Monitor[]>([]);
+    const [monitors, setMonitors] = useLocalStorage<Monitor[]>("monitors", []);
     const [searchQuery, setSearchQuery] = useState("");
     const [showModal, setShowModal] = useState(false);
     const [showCreated, setShowCreated] = useState(false);

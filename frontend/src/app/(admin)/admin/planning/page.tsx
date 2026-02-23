@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useLocalStorage } from "@/hooks";
 import { Plus, Search, Calendar, Clock, Users, MapPin, ChevronLeft, ChevronRight, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 
@@ -60,7 +61,7 @@ const emptyForm: {
 };
 
 export default function PlanningPage() {
-    const [slots, setSlots] = useState<SessionSlot[]>([]);
+    const [slots, setSlots] = useLocalStorage<SessionSlot[]>("planning_slots", []);
     const [weekOffset, setWeekOffset] = useState(0);
     const [showModal, setShowModal] = useState(false);
     const [form, setForm] = useState(emptyForm);

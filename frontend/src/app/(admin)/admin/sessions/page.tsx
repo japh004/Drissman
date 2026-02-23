@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useLocalStorage } from "@/hooks";
 import { Plus, Search, Calendar, Users, BookOpen, ChevronDown, ChevronUp, Edit2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -48,7 +49,7 @@ function formatCurrency(n: number) { return new Intl.NumberFormat("fr-FR").forma
 const emptyForm = { name: "", description: "", startDate: "", endDate: "", enrollmentDeadline: "", maxStudents: 30, selectedOfferIds: [] as string[] };
 
 export default function SessionsPage() {
-    const [sessions, setSessions] = useState<TrainingSession[]>([]);
+    const [sessions, setSessions] = useLocalStorage<TrainingSession[]>("sessions", []);
     const [searchQuery, setSearchQuery] = useState("");
     const [expandedId, setExpandedId] = useState<string | null>(null);
     const [showModal, setShowModal] = useState(false);

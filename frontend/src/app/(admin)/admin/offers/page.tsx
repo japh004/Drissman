@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useLocalStorage } from "@/hooks";
 import { Plus, Search, BookOpen, MoreVertical, Edit2, Trash2, Eye, Filter, Package, ChevronRight, ChevronLeft, Check, Layers } from "lucide-react";
 import { toast } from "sonner";
 
@@ -27,12 +28,12 @@ function formatPrice(amount: number) { return new Intl.NumberFormat("fr-FR").for
 
 // Inline modules store — shared with modules page in a real app
 const useLocalModules = (): [Module[], (m: Module) => void] => {
-    const [mods, setMods] = useState<Module[]>([]);
+    const [mods, setMods] = useLocalStorage<Module[]>("offer_modules", []);
     return [mods, (m: Module) => setMods(prev => [...prev, m])];
 };
 
 export default function OffersPage() {
-    const [offers, setOffers] = useState<Offer[]>([]);
+    const [offers, setOffers] = useLocalStorage<Offer[]>("offers", []);
     const [searchQuery, setSearchQuery] = useState("");
     const [activeMenu, setActiveMenu] = useState<string | null>(null);
 
@@ -233,8 +234,8 @@ export default function OffersPage() {
                             ].map((s, i) => (
                                 <div key={s.n} className="flex items-center gap-2 flex-1">
                                     <div className={`h-8 w-8 rounded-full flex items-center justify-center text-xs font-black shrink-0 transition-all ${step > s.n ? "bg-green-500 text-white" :
-                                            step === s.n ? "bg-signal text-asphalt" :
-                                                "bg-white/5 text-mist/40"
+                                        step === s.n ? "bg-signal text-asphalt" :
+                                            "bg-white/5 text-mist/40"
                                         }`}>
                                         {step > s.n ? <Check className="h-4 w-4" /> : s.n}
                                     </div>

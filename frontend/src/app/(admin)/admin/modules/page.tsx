@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useLocalStorage } from "@/hooks";
 import { Plus, Search, Layers, Edit2, Trash2, GripVertical, BookOpen, Clock } from "lucide-react";
 import { toast } from "sonner";
 
@@ -21,7 +22,7 @@ const categoryConfig: Record<string, { label: string; color: string; icon: strin
 };
 
 export default function ModulesPage() {
-    const [modules, setModules] = useState<Module[]>([]);
+    const [modules, setModules] = useLocalStorage<Module[]>("modules", []);
     const [searchQuery, setSearchQuery] = useState("");
     const [showModal, setShowModal] = useState(false);
     const [editingModule, setEditingModule] = useState<Module | null>(null);
