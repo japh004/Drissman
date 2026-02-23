@@ -19,11 +19,13 @@ interface Enrollment {
 
 interface SessionSlot {
     id: string;
+    schoolId?: string;
     date: string;
     startTime: string;
     endTime: string;
     monitorName: string;
     moduleName: string;
+    lessonName?: string;
     status: "SCHEDULED" | "CONFIRMED" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED";
 }
 
@@ -78,7 +80,12 @@ export default function AdminDashboardPage() {
 
         const activeStudents = scopedEnrollments.filter(e => e.status === "ACTIVE").length;
         const pendingEnrollments = scopedEnrollments.filter(e => e.status === "PENDING").length;
-        const todaySessions = planningSlots.filter(s => s.date === today && s.status !== "CANCELLED").length;
+        const scopedSlots = planningSlots.filter(s => {
+            if (!user?.schoolId) return true;
+            return !s.schoolId || s.schoolId === user.schoolId;
+        });
+
+        const todaySessions = scopedSlots.filter(s => s.date === today && s.status !== "CANCELLED").length;
 
         const totalRevenue = scopedEnrollments
             .filter(e => e.status === "ACTIVE" || e.status === "COMPLETED")
@@ -92,7 +99,7 @@ export default function AdminDashboardPage() {
             })
             .reduce((sum, e) => sum + (e.price || 0), 0);
 
-        const todaySlotList = planningSlots
+        const todaySlotList = scopedSlots
             .filter(s => s.date === today && s.status !== "CANCELLED")
             .sort((a, b) => a.startTime.localeCompare(b.startTime))
             .slice(0, 5);

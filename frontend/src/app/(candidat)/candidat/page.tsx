@@ -7,6 +7,7 @@ import { PageTransition, StaggerContainer, StaggerItem } from "@/components/ui/m
 
 interface Enrollment {
     id: string;
+    schoolId?: string;
     offerId: string;
     offerName: string;
     price: number;
@@ -28,6 +29,19 @@ interface StudentSession {
     monitor: string;
     location: string;
     status: "SCHEDULED" | "CONFIRMED" | "COMPLETED" | "CANCELLED";
+}
+
+interface PlanningSlot {
+    id: string;
+    schoolId?: string;
+    date: string;
+    startTime: string;
+    endTime: string;
+    monitorName: string;
+    moduleName: string;
+    lessonName?: string;
+    location: string;
+    status: "SCHEDULED" | "CONFIRMED" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED";
 }
 
 interface ModuleProgress {
@@ -62,12 +76,31 @@ function durationHours(startTime: string, endTime: string) {
 export default function CandidatDashboard() {
     const { user } = useAuth();
     const [enrollments] = useLocalStorage<Enrollment[]>("candidat_enrollments", []);
-    const [sessions] = useLocalStorage<StudentSession[]>("candidat_sessions", []);
+    const [planningSlots] = useLocalStorage<PlanningSlot[]>("planning_slots", []);
     const [progressModules] = useLocalStorage<ModuleProgress[]>("candidat_progress", []);
 
     const myEnrollments = enrollments.filter(e => !user?.id || !e.studentId || e.studentId === user.id);
     const activeEnrollment = myEnrollments.find(e => e.status === "ACTIVE" || e.status === "PENDING");
     const hasEnrollment = !!activeEnrollment;
+    const allowedModuleNames = new Set((activeEnrollment?.modules || []).map(m => m.name));
+
+    const sessions: StudentSession[] = planningSlots
+        .filter(slot => {
+            if (!activeEnrollment) return false;
+            if (activeEnrollment.schoolId && slot.schoolId && slot.schoolId !== activeEnrollment.schoolId) return false;
+            if (allowedModuleNames.size > 0 && !allowedModuleNames.has(slot.moduleName)) return false;
+            return true;
+        })
+        .map(slot => ({
+            id: slot.id,
+            date: slot.date,
+            startTime: slot.startTime,
+            endTime: slot.endTime,
+            module: slot.lessonName ? `${slot.moduleName} · ${slot.lessonName}` : slot.moduleName,
+            monitor: slot.monitorName,
+            location: slot.location,
+            status: slot.status === "IN_PROGRESS" ? "CONFIRMED" : slot.status,
+        }));
 
     const totalModuleCompleted = progressModules.reduce((sum, mod) => sum + (mod.hoursCompleted || 0), 0);
     const totalModuleRequired = progressModules.reduce((sum, mod) => sum + (mod.hoursRequired || 0), 0);

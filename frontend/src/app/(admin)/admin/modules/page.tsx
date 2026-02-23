@@ -1,18 +1,25 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { useLocalStorage } from "@/hooks";
-import { Plus, Search, Layers, Edit2, Trash2, GripVertical, BookOpen, Clock } from "lucide-react";
+import { Plus, Search, Layers, Edit2, Trash2, GripVertical } from "lucide-react";
 import { toast } from "sonner";
 
-interface Module {
+interface LessonItem {
     id: string;
     name: string;
-    category: string;
+    durationMinutes?: number;
+}
+
+interface ModuleItem {
+    id: string;
+    name: string;
+    category: "CODE" | "CONDUITE" | "EXAMEN_BLANC";
     description: string;
     requiredHours: number;
     orderIndex: number;
     offersCount: number;
+    lessons?: LessonItem[];
 }
 
 const categoryConfig: Record<string, { label: string; color: string; icon: string }> = {
@@ -22,39 +29,61 @@ const categoryConfig: Record<string, { label: string; color: string; icon: strin
 };
 
 export default function ModulesPage() {
-    const [modules, setModules] = useLocalStorage<Module[]>("modules", []);
+    const [modules, setModules] = useLocalStorage<ModuleItem[]>("modules", []);
     const [searchQuery, setSearchQuery] = useState("");
     const [showModal, setShowModal] = useState(false);
-    const [editingModule, setEditingModule] = useState<Module | null>(null);
+    const [editingModule, setEditingModule] = useState<ModuleItem | null>(null);
     const [formName, setFormName] = useState("");
-    const [formCategory, setFormCategory] = useState("CODE");
+    const [formCategory, setFormCategory] = useState<ModuleItem["category"]>("CODE");
     const [formDescription, setFormDescription] = useState("");
     const [formHours, setFormHours] = useState(10);
+    const [formLessons, setFormLessons] = useState("");
 
-    const filteredModules = modules.filter(m =>
-        m.name.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    const filteredModules = modules.filter(m => m.name.toLowerCase().includes(searchQuery.toLowerCase()));
+
+    const parseLessons = (raw: string): LessonItem[] =>
+        raw
+            .split("\n")
+            .map(s => s.trim())
+            .filter(Boolean)
+            .map(name => ({ id: crypto.randomUUID(), name }));
 
     const openCreate = () => {
         setEditingModule(null);
-        setFormName(""); setFormCategory("CODE"); setFormDescription(""); setFormHours(10);
+        setFormName("");
+        setFormCategory("CODE");
+        setFormDescription("");
+        setFormHours(10);
+        setFormLessons("");
         setShowModal(true);
     };
 
-    const openEdit = (mod: Module) => {
+    const openEdit = (mod: ModuleItem) => {
         setEditingModule(mod);
-        setFormName(mod.name); setFormCategory(mod.category); setFormDescription(mod.description); setFormHours(mod.requiredHours);
+        setFormName(mod.name);
+        setFormCategory(mod.category);
+        setFormDescription(mod.description);
+        setFormHours(mod.requiredHours);
+        setFormLessons((mod.lessons || []).map(l => l.name).join("\n"));
         setShowModal(true);
     };
 
     const handleSubmit = () => {
         if (!formName.trim()) { toast.error("Le nom du module est obligatoire"); return; }
+        const lessons = parseLessons(formLessons);
 
         if (editingModule) {
-            setModules(prev => prev.map(m => m.id === editingModule.id ? { ...m, name: formName.trim(), category: formCategory, description: formDescription.trim(), requiredHours: formHours } : m));
-            toast.success("Module modifié");
+            setModules(prev => prev.map(m => m.id === editingModule.id ? {
+                ...m,
+                name: formName.trim(),
+                category: formCategory,
+                description: formDescription.trim(),
+                requiredHours: formHours,
+                lessons,
+            } : m));
+            toast.success("Module modifie");
         } else {
-            const newModule: Module = {
+            const newModule: ModuleItem = {
                 id: crypto.randomUUID(),
                 name: formName.trim(),
                 category: formCategory,
@@ -62,16 +91,17 @@ export default function ModulesPage() {
                 requiredHours: formHours,
                 orderIndex: modules.length + 1,
                 offersCount: 0,
+                lessons,
             };
             setModules(prev => [...prev, newModule]);
-            toast.success(`Module "${newModule.name}" créé avec succès`);
+            toast.success(`Module \"${newModule.name}\" cree avec succes`);
         }
         setShowModal(false);
     };
 
     const handleDelete = (id: string) => {
         setModules(prev => prev.filter(m => m.id !== id));
-        toast.success("Module supprimé");
+        toast.success("Module supprime");
     };
 
     return (
@@ -79,7 +109,7 @@ export default function ModulesPage() {
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-2xl font-black text-snow">Modules</h1>
-                    <p className="text-sm text-mist mt-0.5">{modules.length} module{modules.length > 1 ? "s" : ""} configuré{modules.length > 1 ? "s" : ""}</p>
+                    <p className="text-sm text-mist mt-0.5">{modules.length} module{modules.length > 1 ? "s" : ""} configure{modules.length > 1 ? "s" : ""}</p>
                 </div>
                 <button onClick={openCreate}
                     className="flex items-center gap-2 bg-gradient-to-r from-signal to-amber-400 text-asphalt font-bold px-5 py-2.5 rounded-xl text-sm hover:opacity-90 transition-all shadow-lg shadow-signal/20">
@@ -97,10 +127,10 @@ export default function ModulesPage() {
                 <div className="flex flex-col items-center justify-center py-16 text-center">
                     <Layers className="h-16 w-16 text-mist/15 mb-4" />
                     <h3 className="text-lg font-bold text-snow/60 mb-1">Aucun module</h3>
-                    <p className="text-sm text-mist/40 max-w-sm">Créez des modules pour structurer vos formations (Code, Conduite, Examen Blanc).</p>
+                    <p className="text-sm text-mist/40 max-w-sm">Creez des modules puis ajoutez des lecons a chaque module.</p>
                     <button onClick={openCreate}
                         className="mt-4 flex items-center gap-2 bg-signal/10 text-signal font-bold px-5 py-2.5 rounded-xl text-sm hover:bg-signal/20 transition-all">
-                        <Plus className="h-4 w-4" /> Créer un module
+                        <Plus className="h-4 w-4" /> Creer un module
                     </button>
                 </div>
             ) : (
@@ -120,6 +150,7 @@ export default function ModulesPage() {
                                 </div>
                                 <div className="hidden lg:flex items-center gap-6 shrink-0">
                                     <div className="text-center"><p className="text-sm font-bold text-snow">{mod.requiredHours}h</p><p className="text-[10px] text-mist/40">Requis</p></div>
+                                    <div className="text-center"><p className="text-sm font-bold text-snow">{mod.lessons?.length || 0}</p><p className="text-[10px] text-mist/40">Lecons</p></div>
                                     <div className="text-center"><p className="text-sm font-bold text-snow">{mod.offersCount}</p><p className="text-[10px] text-mist/40">Offres</p></div>
                                 </div>
                                 <div className="flex items-center gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -135,9 +166,7 @@ export default function ModulesPage() {
             {showModal && (
                 <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={() => setShowModal(false)}>
                     <div className="bg-asphalt border border-white/10 rounded-2xl w-full max-w-lg p-6" onClick={e => e.stopPropagation()}>
-                        <h2 className="text-lg font-black text-snow mb-5">
-                            {editingModule ? "Modifier le module" : "Nouveau module"}
-                        </h2>
+                        <h2 className="text-lg font-black text-snow mb-5">{editingModule ? "Modifier le module" : "Nouveau module"}</h2>
                         <div className="space-y-4">
                             <div className="space-y-1.5">
                                 <label className="text-xs font-bold text-mist uppercase tracking-wider">Nom *</label>
@@ -145,20 +174,19 @@ export default function ModulesPage() {
                                     className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-snow placeholder:text-mist/40 focus:outline-none focus:border-signal/50 focus:ring-2 focus:ring-signal/20 transition-all text-sm" />
                             </div>
                             <div className="space-y-1.5">
-                                <label className="text-xs font-bold text-mist uppercase tracking-wider">Catégorie</label>
+                                <label className="text-xs font-bold text-mist uppercase tracking-wider">Categorie</label>
                                 <div className="grid grid-cols-3 gap-2">
                                     {Object.entries(categoryConfig).map(([key, conf]) => (
-                                        <button key={key} type="button" onClick={() => setFormCategory(key)}
+                                        <button key={key} type="button" onClick={() => setFormCategory(key as ModuleItem["category"])}
                                             className={`p-3 rounded-xl border text-xs font-bold text-center transition-all ${formCategory === key ? `${conf.color} border-current` : "bg-white/5 border-white/10 text-mist hover:border-white/20"}`}>
-                                            <span className="text-lg block mb-1">{conf.icon}</span>
-                                            {conf.label}
+                                            <span className="text-lg block mb-1">{conf.icon}</span>{conf.label}
                                         </button>
                                     ))}
                                 </div>
                             </div>
                             <div className="space-y-1.5">
                                 <label className="text-xs font-bold text-mist uppercase tracking-wider">Description</label>
-                                <textarea value={formDescription} onChange={(e) => setFormDescription(e.target.value)} placeholder="Description du module..." rows={2}
+                                <textarea value={formDescription} onChange={(e) => setFormDescription(e.target.value)} rows={2}
                                     className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-snow placeholder:text-mist/40 focus:outline-none focus:border-signal/50 focus:ring-2 focus:ring-signal/20 transition-all text-sm resize-none" />
                             </div>
                             <div className="space-y-1.5">
@@ -166,10 +194,16 @@ export default function ModulesPage() {
                                 <input type="number" value={formHours} onChange={(e) => setFormHours(Number(e.target.value))} min={1} max={100}
                                     className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-snow focus:outline-none focus:border-signal/50 focus:ring-2 focus:ring-signal/20 transition-all text-sm" />
                             </div>
+                            <div className="space-y-1.5">
+                                <label className="text-xs font-bold text-mist uppercase tracking-wider">Lecons du module</label>
+                                <textarea value={formLessons} onChange={(e) => setFormLessons(e.target.value)} rows={5}
+                                    placeholder={"Une lecon par ligne\nEx:\nIntroduction code\nPriorites\nStationnement"}
+                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-snow placeholder:text-mist/40 focus:outline-none focus:border-signal/50 focus:ring-2 focus:ring-signal/20 transition-all text-sm resize-none" />
+                            </div>
                             <div className="flex items-center gap-3 pt-2">
                                 <button onClick={() => setShowModal(false)} className="flex-1 py-3 rounded-xl bg-white/5 border border-white/10 text-mist text-sm font-bold hover:bg-white/10 transition-all">Annuler</button>
                                 <button onClick={handleSubmit} className="flex-1 py-3 rounded-xl bg-gradient-to-r from-signal to-amber-400 text-asphalt text-sm font-black hover:opacity-90 transition-all shadow-lg shadow-signal/20">
-                                    {editingModule ? "Enregistrer" : "Créer le module"}
+                                    {editingModule ? "Enregistrer" : "Creer le module"}
                                 </button>
                             </div>
                         </div>

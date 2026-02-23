@@ -2,7 +2,15 @@
 
 import { CalendarDays, Clock, MapPin, User } from "lucide-react";
 import { PageTransition } from "@/components/ui/motion";
-import { useLocalStorage } from "@/hooks";
+import { useAuth, useLocalStorage } from "@/hooks";
+
+interface Enrollment {
+    id: string;
+    schoolId?: string;
+    modules: { id: string; name: string; category: string; requiredHours: number }[];
+    status: "PENDING" | "ACTIVE" | "COMPLETED" | "REFUSED";
+    studentId?: string;
+}
 
 interface StudentSession {
     id: string;
@@ -13,6 +21,19 @@ interface StudentSession {
     monitor: string;
     location: string;
     status: "SCHEDULED" | "CONFIRMED" | "COMPLETED" | "CANCELLED";
+}
+
+interface PlanningSlot {
+    id: string;
+    schoolId?: string;
+    date: string;
+    startTime: string;
+    endTime: string;
+    monitorName: string;
+    moduleName: string;
+    lessonName?: string;
+    location: string;
+    status: "SCHEDULED" | "CONFIRMED" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED";
 }
 
 const statusConfig: Record<string, { label: string; class: string }> = {
@@ -33,7 +54,31 @@ function isTomorrow(dateStr: string) {
 }
 
 export default function CandidatPlanningPage() {
-    const [sessions] = useLocalStorage<StudentSession[]>("candidat_sessions", []);
+    const { user } = useAuth();
+    const [enrollments] = useLocalStorage<Enrollment[]>("candidat_enrollments", []);
+    const [planningSlots] = useLocalStorage<PlanningSlot[]>("planning_slots", []);
+
+    const myEnrollments = enrollments.filter(e => !user?.id || !e.studentId || e.studentId === user.id);
+    const activeEnrollment = myEnrollments.find(e => e.status === "ACTIVE" || e.status === "PENDING");
+    const allowedModuleNames = new Set((activeEnrollment?.modules || []).map(m => m.name));
+
+    const sessions: StudentSession[] = planningSlots
+        .filter(slot => {
+            if (!activeEnrollment) return false;
+            if (activeEnrollment.schoolId && slot.schoolId && slot.schoolId !== activeEnrollment.schoolId) return false;
+            if (allowedModuleNames.size > 0 && !allowedModuleNames.has(slot.moduleName)) return false;
+            return true;
+        })
+        .map(slot => ({
+            id: slot.id,
+            date: slot.date,
+            startTime: slot.startTime,
+            endTime: slot.endTime,
+            module: slot.lessonName ? `${slot.moduleName} · ${slot.lessonName}` : slot.moduleName,
+            monitor: slot.monitorName,
+            location: slot.location,
+            status: slot.status === "IN_PROGRESS" ? "CONFIRMED" : slot.status,
+        }));
 
     const upcoming = sessions.filter(s => s.status !== "COMPLETED" && s.status !== "CANCELLED");
     const past = sessions.filter(s => s.status === "COMPLETED");

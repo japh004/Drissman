@@ -1,7 +1,7 @@
 ﻿"use client";
 
 import { useState } from "react";
-import { useLocalStorage } from "@/hooks";
+import { useAuth, useLocalStorage } from "@/hooks";
 import { Plus, Users, MapPin, ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 
@@ -9,11 +9,13 @@ type SlotStatus = "SCHEDULED" | "CONFIRMED" | "IN_PROGRESS" | "COMPLETED" | "CAN
 
 interface SessionSlot {
     id: string;
+    schoolId?: string;
     date: string;
     startTime: string;
     endTime: string;
     monitorName: string;
     moduleName: string;
+    lessonName?: string;
     moduleCategory: "CODE" | "CONDUITE" | "EXAMEN_BLANC";
     maxStudents: number;
     enrolledCount: number;
@@ -26,6 +28,7 @@ interface ModuleItem {
     id: string;
     name: string;
     category: "CODE" | "CONDUITE" | "EXAMEN_BLANC";
+    lessons?: Array<{ id: string; name: string; durationMinutes?: number }>;
 }
 
 interface MonitorItem {
@@ -65,11 +68,12 @@ const monthNames = ["Janvier", "Fevrier", "Mars", "Avril", "Mai", "Juin", "Juill
 
 const emptyForm = {
     date: "", startTime: "09:00", endTime: "10:00",
-    monitorId: "", moduleId: "",
+    monitorId: "", moduleId: "", lessonId: "",
     maxStudents: 1, location: "", notes: "",
 };
 
 export default function PlanningPage() {
+    const { user } = useAuth();
     const [slots, setSlots] = useLocalStorage<SessionSlot[]>("planning_slots", []);
     const [modules] = useLocalStorage<ModuleItem[]>("modules", []);
     const [monitors] = useLocalStorage<MonitorItem[]>("monitors", []);
@@ -83,11 +87,14 @@ export default function PlanningPage() {
     const today = formatDate(new Date());
 
     const activeMonitors = monitors.filter(m => m.status === "ACTIVE");
+    const selectedModule = modules.find(m => m.id === form.moduleId);
+    const availableLessons = selectedModule?.lessons || [];
 
     const handleCreate = () => {
         if (!form.date) { toast.error("Selectionnez un jour"); return; }
         if (!form.monitorId) { toast.error("Le moniteur est obligatoire"); return; }
         if (!form.moduleId) { toast.error("Le module est obligatoire"); return; }
+        if (availableLessons.length > 0 && !form.lessonId) { toast.error("La lecon est obligatoire"); return; }
         if (form.startTime >= form.endTime) { toast.error("L'heure de fin doit etre apres l'heure de debut"); return; }
 
         const monitor = activeMonitors.find(m => m.id === form.monitorId);
@@ -95,6 +102,8 @@ export default function PlanningPage() {
 
         if (!monitor) { toast.error("Moniteur invalide ou inactif"); return; }
         if (!selectedModule) { toast.error("Module invalide"); return; }
+        const selectedLesson = selectedModule.lessons?.find(l => l.id === form.lessonId);
+        if (availableLessons.length > 0 && !selectedLesson) { toast.error("Lecon invalide"); return; }
 
         const monitorName = `${monitor.firstName} ${monitor.lastName}`.trim();
 
@@ -109,11 +118,13 @@ export default function PlanningPage() {
 
         const newSlot: SessionSlot = {
             id: crypto.randomUUID(),
+            schoolId: user?.schoolId,
             date: form.date,
             startTime: form.startTime,
             endTime: form.endTime,
             monitorName,
             moduleName: selectedModule.name,
+            lessonName: selectedLesson?.name,
             moduleCategory: selectedModule.category,
             maxStudents: form.maxStudents,
             enrolledCount: 0,
@@ -200,7 +211,7 @@ export default function PlanningPage() {
                                                 <span className="font-bold text-snow">{slot.startTime}-{slot.endTime}</span>
                                                 <span>{catIcons[slot.moduleCategory]}</span>
                                             </div>
-                                            <p className="text-mist/60 truncate">{slot.moduleName}</p>
+                                            <p className="text-mist/60 truncate">{slot.lessonName ? `${slot.moduleName} · ${slot.lessonName}` : slot.moduleName}</p>
                                             <p className="text-mist/40 truncate">{slot.monitorName}</p>
                                         </div>
                                     ))
@@ -236,7 +247,7 @@ export default function PlanningPage() {
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-center gap-2 mb-0.5">
                                                 <span>{catIcons[slot.moduleCategory]}</span>
-                                                <h3 className="text-sm font-bold text-snow truncate">{slot.moduleName}</h3>
+                                                <h3 className="text-sm font-bold text-snow truncate">{slot.lessonName ? `${slot.moduleName} · ${slot.lessonName}` : slot.moduleName}</h3>
                                                 <span className={`text-[10px] font-bold px-2 py-0.5 rounded-lg ${st.class}`}>{st.label}</span>
                                             </div>
                                             <div className="flex items-center gap-3 text-xs text-mist/50">
@@ -281,7 +292,7 @@ export default function PlanningPage() {
                             </div>
                             <div className="space-y-1.5">
                                 <label className="text-xs font-bold text-mist uppercase tracking-wider">Module enseigne *</label>
-                                <select value={form.moduleId} onChange={e => setForm(p => ({ ...p, moduleId: e.target.value }))}
+                                <select value={form.moduleId} onChange={e => setForm(p => ({ ...p, moduleId: e.target.value, lessonId: "" }))}
                                     className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-snow focus:outline-none focus:border-signal/50 focus:ring-2 focus:ring-signal/20 text-sm">
                                     <option value="" className="bg-asphalt">Selectionner un module</option>
                                     {modules.map(mod => (
@@ -289,6 +300,18 @@ export default function PlanningPage() {
                                     ))}
                                 </select>
                                 {modules.length === 0 && <p className="text-[10px] text-yellow-400/70">Aucun module disponible. Creez d&apos;abord des modules.</p>}
+                            </div>
+                            <div className="space-y-1.5">
+                                <label className="text-xs font-bold text-mist uppercase tracking-wider">Lecon *</label>
+                                <select value={form.lessonId} onChange={e => setForm(p => ({ ...p, lessonId: e.target.value }))}
+                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-snow focus:outline-none focus:border-signal/50 focus:ring-2 focus:ring-signal/20 text-sm">
+                                    <option value="" className="bg-asphalt">{availableLessons.length > 0 ? "Selectionner une lecon" : "Aucune lecon pour ce module"}</option>
+                                    {availableLessons.map(lesson => (
+                                        <option key={lesson.id} value={lesson.id} className="bg-asphalt">
+                                            {lesson.name}
+                                        </option>
+                                    ))}
+                                </select>
                             </div>
                             <div className="space-y-1.5">
                                 <label className="text-xs font-bold text-mist uppercase tracking-wider">Moniteur *</label>
