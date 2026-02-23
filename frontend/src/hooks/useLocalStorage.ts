@@ -8,11 +8,12 @@ import { useState, useEffect } from "react";
  */
 export function useLocalStorage<T>(key: string, initialValue: T): [T, React.Dispatch<React.SetStateAction<T>>] {
     const storageKey = `drissman_${key}`;
+    const legacyKey = key;
 
     const [value, setValue] = useState<T>(() => {
         if (typeof window === "undefined") return initialValue;
         try {
-            const stored = localStorage.getItem(storageKey);
+            const stored = localStorage.getItem(storageKey) ?? localStorage.getItem(legacyKey);
             return stored ? JSON.parse(stored) : initialValue;
         } catch {
             return initialValue;
@@ -22,10 +23,12 @@ export function useLocalStorage<T>(key: string, initialValue: T): [T, React.Disp
     useEffect(() => {
         try {
             localStorage.setItem(storageKey, JSON.stringify(value));
+            // Keep legacy key in sync while the app migrates to drissman_* keys.
+            localStorage.setItem(legacyKey, JSON.stringify(value));
         } catch {
-            // localStorage full or unavailable — ignore
+            // localStorage full or unavailable - ignore
         }
-    }, [storageKey, value]);
+    }, [legacyKey, storageKey, value]);
 
     return [value, setValue];
 }

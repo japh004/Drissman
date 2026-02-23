@@ -3,16 +3,22 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/hooks";
+import { useAuth, useLocalStorage, useSchools } from "@/hooks";
 import { toast } from "sonner";
-import { Compass, Search, Building2, GraduationCap, ArrowRight, Loader2, Sparkles, UserPlus } from "lucide-react";
+import { Compass, Search, Building2, GraduationCap, ArrowRight, Loader2, Sparkles, UserPlus, BookOpen, CalendarDays, School } from "lucide-react";
 import { PageTransition, StaggerContainer, StaggerItem } from "@/components/ui/motion";
 
 export default function VisitorDashboardPage() {
     const { user, upgradeVisitor } = useAuth();
     const router = useRouter();
+    const { schools } = useSchools();
+    const [offers] = useLocalStorage<{ id: string; status: "ACTIVE" | "DRAFT" | "ARCHIVED" }[]>("offers", []);
+    const [sessions] = useLocalStorage<{ id: string; status: string }[]>("sessions", []);
     const [loadingTarget, setLoadingTarget] = useState<"CANDIDAT" | "SCHOOL_ADMIN" | null>(null);
     const [schoolName, setSchoolName] = useState("");
+
+    const activeOffers = offers.filter(o => o.status === "ACTIVE").length;
+    const activeSessions = sessions.filter(s => s.status !== "CANCELLED").length;
 
     const becomeStudent = async () => {
         setLoadingTarget("CANDIDAT");
@@ -20,8 +26,9 @@ export default function VisitorDashboardPage() {
             await upgradeVisitor({ targetRole: "CANDIDAT" });
             toast.success("Votre compte est maintenant un compte eleve.");
             router.push("/candidat");
-        } catch (err: any) {
-            toast.error(err.message || "Conversion impossible");
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : "Conversion impossible";
+            toast.error(message);
         } finally {
             setLoadingTarget(null);
         }
@@ -36,8 +43,9 @@ export default function VisitorDashboardPage() {
             });
             toast.success("Votre compte est maintenant un compte auto-ecole.");
             router.push("/admin");
-        } catch (err: any) {
-            toast.error(err.message || "Conversion impossible");
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : "Conversion impossible";
+            toast.error(message);
         } finally {
             setLoadingTarget(null);
         }
@@ -49,6 +57,30 @@ export default function VisitorDashboardPage() {
                 <h1 className="text-3xl font-black text-snow">Bienvenue, {user?.firstName}</h1>
                 <p className="text-mist mt-1">Votre compte visiteur vous permet d explorer les catalogues avant de choisir votre parcours.</p>
             </div>
+
+            <StaggerContainer className="grid sm:grid-cols-3 gap-4">
+                <StaggerItem>
+                    <div className="bg-gradient-to-br from-blue-500/10 to-blue-600/5 rounded-2xl border border-blue-500/20 p-5">
+                        <School className="h-5 w-5 text-blue-400 opacity-70 mb-2" />
+                        <p className="text-2xl font-black text-snow">{schools.length}</p>
+                        <p className="text-xs text-mist/60">Auto-ecoles visibles</p>
+                    </div>
+                </StaggerItem>
+                <StaggerItem>
+                    <div className="bg-gradient-to-br from-signal/10 to-amber-500/5 rounded-2xl border border-signal/20 p-5">
+                        <BookOpen className="h-5 w-5 text-signal opacity-70 mb-2" />
+                        <p className="text-2xl font-black text-snow">{activeOffers}</p>
+                        <p className="text-xs text-mist/60">Offres actives</p>
+                    </div>
+                </StaggerItem>
+                <StaggerItem>
+                    <div className="bg-gradient-to-br from-emerald-500/10 to-emerald-600/5 rounded-2xl border border-emerald-500/20 p-5">
+                        <CalendarDays className="h-5 w-5 text-emerald-400 opacity-70 mb-2" />
+                        <p className="text-2xl font-black text-snow">{activeSessions}</p>
+                        <p className="text-xs text-mist/60">Sessions ouvertes</p>
+                    </div>
+                </StaggerItem>
+            </StaggerContainer>
 
             <StaggerContainer className="grid sm:grid-cols-3 gap-4">
                 <StaggerItem>

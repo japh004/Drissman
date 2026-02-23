@@ -18,13 +18,26 @@ interface MonitorSession {
     type: string;
 }
 
+interface MonitorStudent {
+    id: string;
+    firstName: string;
+    lastName: string;
+    offerName: string;
+    hoursCompleted: number;
+    hoursRequired: number;
+    status: "ACTIVE" | "COMPLETED" | "PAUSED";
+}
+
 export default function MonitorDashboard() {
     const { user } = useAuth();
     const [sessions, setSessions] = useLocalStorage<MonitorSession[]>("monitor_sessions", []);
+    const [students] = useLocalStorage<MonitorStudent[]>("monitor_students", []);
 
     const today = new Date().toISOString().split("T")[0];
     const todaySessions = sessions.filter(s => s.date === today && s.status !== "CANCELLED");
-    const activeStudentsCount = sessions.reduce((acc, s) => acc + s.students, 0);
+    const assignedStudentsCount = students.length > 0
+        ? students.length
+        : sessions.reduce((acc, s) => acc + s.students, 0);
     const todayHours = todaySessions.reduce((acc, s) => {
         const [sh, sm] = s.startTime.split(":").map(Number);
         const [eh, em] = s.endTime.split(":").map(Number);
@@ -33,7 +46,7 @@ export default function MonitorDashboard() {
 
     const stats = {
         todaySessions: todaySessions.length,
-        assignedStudents: activeStudentsCount,
+        assignedStudents: assignedStudentsCount,
         todayHours: Math.round(todayHours * 10) / 10,
     };
 

@@ -17,22 +17,92 @@ interface Enrollment {
     enrolledAt: string;
 }
 
+interface StudentSession {
+    id: string;
+    date: string;
+    startTime: string;
+    endTime: string;
+    module: string;
+    monitor: string;
+    location: string;
+    status: "SCHEDULED" | "CONFIRMED" | "COMPLETED" | "CANCELLED";
+}
+
+interface ModuleProgress {
+    id: string;
+    name: string;
+    category: string;
+    hoursCompleted: number;
+    hoursRequired: number;
+    status: "NOT_STARTED" | "IN_PROGRESS" | "COMPLETED";
+    icon: string;
+}
+
+function getWeekRange() {
+    const now = new Date();
+    const day = now.getDay();
+    const diffToMonday = (day + 6) % 7;
+    const monday = new Date(now);
+    monday.setDate(now.getDate() - diffToMonday);
+    monday.setHours(0, 0, 0, 0);
+    const sunday = new Date(monday);
+    sunday.setDate(monday.getDate() + 6);
+    sunday.setHours(23, 59, 59, 999);
+    return { monday, sunday };
+}
+
+function durationHours(startTime: string, endTime: string) {
+    const [sh, sm] = startTime.split(":").map(Number);
+    const [eh, em] = endTime.split(":").map(Number);
+    return Math.max(0, (eh + em / 60) - (sh + sm / 60));
+}
+
 export default function CandidatDashboard() {
     const { user } = useAuth();
     const [enrollments] = useLocalStorage<Enrollment[]>("candidat_enrollments", []);
+    const [sessions] = useLocalStorage<StudentSession[]>("candidat_sessions", []);
+    const [progressModules] = useLocalStorage<ModuleProgress[]>("candidat_progress", []);
 
     const activeEnrollment = enrollments.find(e => e.status === "ACTIVE" || e.status === "PENDING");
     const hasEnrollment = !!activeEnrollment;
 
-    const stats = {
-        hoursCompleted: 0,
-        hoursRequired: activeEnrollment?.hours || 0,
-        sessionsThisWeek: 0,
-        globalProgress: 0,
-    };
+    const totalModuleCompleted = progressModules.reduce((sum, mod) => sum + (mod.hoursCompleted || 0), 0);
+    const totalModuleRequired = progressModules.reduce((sum, mod) => sum + (mod.hoursRequired || 0), 0);
 
-    const nextSession = null; // Will be populated from API
-    const recentSessions: { module: string; date: string; icon: string }[] = [];
+    const completedSessionHours = sessions
+        .filter(s => s.status === "COMPLETED")
+        .reduce((sum, s) => sum + durationHours(s.startTime, s.endTime), 0);
+
+    const hoursRequired = totalModuleRequired > 0 ? totalModuleRequired : (activeEnrollment?.hours || 0);
+    const hoursCompleted = totalModuleCompleted > 0 ? totalModuleCompleted : completedSessionHours;
+
+    const { monday, sunday } = getWeekRange();
+    const sessionsThisWeek = sessions.filter(s => {
+        if (s.status === "CANCELLED") return false;
+        const d = new Date(s.date + "T00:00:00");
+        return d >= monday && d <= sunday;
+    }).length;
+
+    const globalProgress = hoursRequired > 0 ? Math.min(100, Math.round((hoursCompleted / hoursRequired) * 100)) : 0;
+
+    const upcomingSessions = sessions
+        .filter(s => (s.status === "SCHEDULED" || s.status === "CONFIRMED"))
+        .filter(s => new Date(`${s.date}T${s.startTime}`) >= new Date())
+        .sort((a, b) => new Date(`${a.date}T${a.startTime}`).getTime() - new Date(`${b.date}T${b.startTime}`).getTime());
+
+    const nextSession = upcomingSessions[0] || null;
+    const recentSessions = sessions
+        .filter(s => s.status === "COMPLETED")
+        .sort((a, b) => new Date(`${b.date}T${b.endTime}`).getTime() - new Date(`${a.date}T${a.endTime}`).getTime())
+        .slice(0, 3)
+        .map(s => ({ module: s.module, date: new Date(s.date + "T00:00:00").toLocaleDateString("fr-FR"), icon: "✅" }));
+
+    const stats = {
+        hoursCompleted: Math.round(hoursCompleted * 10) / 10,
+        hoursRequired,
+        sessionsThisWeek,
+        globalProgress,
+    };
 
     return (
         <PageTransition className="space-y-8">
@@ -82,7 +152,14 @@ export default function CandidatDashboard() {
                 <h2 className="text-lg font-black text-snow mb-4">Prochaine séance</h2>
                 {nextSession ? (
                     <div className="flex items-center gap-4 p-4 rounded-xl bg-signal/5 border border-signal/20">
-                        {/* Will render session data */}
+                        <div className="text-center min-w-[68px]">
+                            <p className="text-sm font-mono font-bold text-signal">{nextSession.startTime}</p>
+                            <p className="text-[10px] text-mist/40">{new Date(nextSession.date + "T00:00:00").toLocaleDateString("fr-FR", { day: "2-digit", month: "short" })}</p>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <p className="text-sm font-bold text-snow">{nextSession.module}</p>
+                            <p className="text-xs text-mist/50">{nextSession.monitor} · {nextSession.location}</p>
+                        </div>
                     </div>
                 ) : (
                     <div className="flex flex-col items-center justify-center py-6 text-center">
