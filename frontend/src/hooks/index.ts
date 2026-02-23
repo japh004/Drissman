@@ -1,24 +1,2 @@
-// Export all hooks
-export { useSchools, useSchool } from './useSchools';
-export { AuthProvider, useAuth } from './useAuth';
-export * from './useLessons';
-export { useBookings } from './useBookings';
-export { useReviews } from './useReviews';
-export { useInvoices } from './useInvoices';
-export { useOffers } from './useOffers';
-export { useAvailabilities } from './useAvailabilities';
-export { usePartnerStats } from './usePartnerStats';
-export { usePartnerEnrollments } from './usePartnerEnrollments';
-export { useStudentProgress } from './useStudentProgress';
-export { useProfile } from './useProfile';
-export { useMonitors } from './useMonitors';
-export { useSessions } from './useSessions';
-export { useModules } from './useModules';
-export { useMyEnrollments } from './useMyEnrollments';
-export * from "./useStudentPortal";
-export { useTrainingPeriods, usePublishedPeriods } from './useTrainingPeriods';
-export { useOfferModules } from './useOfferModules';
-export * from './useStudentSessions';
-export * from './useInstructorProfile';
-export * from './useInstructorSessions';
-export * from './useAdminDashboard';
+// Hooks barrel - Phase 0 (public-only hooks)
+export { useSchools, useSchool } from "./useSchools";

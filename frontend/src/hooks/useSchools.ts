@@ -1,22 +1,26 @@
-'use client';
+import { useState, useCallback, useEffect } from "react";
+import { MOCK_SCHOOLS, DrivingSchool } from "@/lib/data";
 
-import { useState, useEffect, useCallback } from 'react';
-import { schoolsService, School, Offer } from '@/lib/api';
-import { partnerService } from '@/lib/api/partners';
-
+/**
+ * Temporary hook using mock data. 
+ * Will be replaced with real API calls in Phase 1-2.
+ */
 export function useSchools(city?: string) {
-    const [schools, setSchools] = useState<School[]>([]);
+    const [schools, setSchools] = useState<DrivingSchool[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
     const fetchSchools = useCallback(async () => {
+        setLoading(true);
         try {
-            setLoading(true);
-            setError(null);
-            const data = await schoolsService.getAll(city);
-            setSchools(data);
+            // Simulate API delay
+            await new Promise(resolve => setTimeout(resolve, 400));
+            const filtered = city
+                ? MOCK_SCHOOLS.filter(s => s.city === city)
+                : MOCK_SCHOOLS;
+            setSchools(filtered);
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Erreur de chargement');
+            setError("Impossible de charger les auto-écoles");
         } finally {
             setLoading(false);
         }
@@ -30,37 +34,26 @@ export function useSchools(city?: string) {
 }
 
 export function useSchool(id: string) {
-    const [school, setSchool] = useState<School | null>(null);
+    const [school, setSchool] = useState<DrivingSchool | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    const fetchSchool = useCallback(async () => {
-        try {
+    useEffect(() => {
+        const fetchSchool = async () => {
             setLoading(true);
-            setError(null);
-            const data = await schoolsService.getById(id);
-            setSchool(data);
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'Erreur de chargement');
-        } finally {
-            setLoading(false);
-        }
+            try {
+                await new Promise(resolve => setTimeout(resolve, 300));
+                const found = MOCK_SCHOOLS.find(s => s.id === id) || null;
+                setSchool(found);
+                if (!found) setError("Auto-école introuvable");
+            } catch {
+                setError("Erreur de chargement");
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchSchool();
     }, [id]);
 
-    useEffect(() => {
-        if (id) {
-            fetchSchool();
-        }
-    }, [id, fetchSchool]);
-
-    const updateSchool = async (data: any) => {
-        try {
-            await partnerService.updateSchool(data);
-            await fetchSchool();
-        } catch (err) {
-            throw err;
-        }
-    };
-
-    return { school, loading, error, updateSchool, refetch: fetchSchool };
+    return { school, loading, error };
 }

@@ -1,11 +1,10 @@
 "use client";
 
-import { use, useEffect } from "react";
-import { notFound, useRouter } from "next/navigation";
+import { use } from "react";
+import { notFound } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { SchoolDetailView } from "@/components/school/school-detail-view";
-import { useSchool, useAuth } from "@/hooks";
-import { toast } from "sonner";
+import { useSchool } from "@/hooks";
 
 interface PageProps {
     params: Promise<{
@@ -16,17 +15,8 @@ interface PageProps {
 export default function SchoolDetailPage({ params }: PageProps) {
     const { id } = use(params);
     const { school, loading, error } = useSchool(id);
-    const { isAuthenticated, loading: authLoading } = useAuth();
-    const router = useRouter();
 
-    useEffect(() => {
-        if (!authLoading && !isAuthenticated) {
-            toast.info("Veuillez vous connecter pour accéder aux offres détaillées.");
-            router.push(`/login?redirect=/school/${id}`);
-        }
-    }, [isAuthenticated, authLoading, router, id]);
-
-    if (loading || authLoading || !isAuthenticated) {
+    if (loading) {
         return (
             <div className="min-h-screen bg-asphalt flex items-center justify-center">
                 <div className="text-center">
@@ -41,11 +31,10 @@ export default function SchoolDetailPage({ params }: PageProps) {
         notFound();
     }
 
-    // Transform API data to match DrivingSchool type
     const schoolData = {
         ...school,
         price: school.offers?.[0]?.price || 150000,
-        reviewCount: 25, // Would come from reviews API
+        reviewCount: 25,
         features: ["Permis B", "Conduite accompagnée", "Code en ligne"],
         isVerified: true,
         imageUrl: school.imageUrl || "/hero_student_dark.png",

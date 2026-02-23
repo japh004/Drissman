@@ -7,7 +7,7 @@ import { Menu, X, Map as MapIcon, Loader2, SlidersHorizontal } from "lucide-reac
 import { SchoolCard } from "@/components/search/school-card";
 import { MapWrapper } from "@/components/map/map-wrapper";
 import { SearchFilters } from "@/components/search/search-filters";
-import { useSchools, useAuth } from "@/hooks";
+import { useSchools } from "@/hooks";
 import { ThemeToggle } from "@/components/theme-toggle";
 
 interface FilterState {
@@ -67,7 +67,7 @@ function SearchPageContent() {
     // API Filter logic
     const cityParam = filters.city === "Tous" ? undefined : filters.city;
     const { schools, loading, error } = useSchools(cityParam);
-    const { isAuthenticated } = useAuth();
+
 
     useEffect(() => {
         const handleScroll = () => setScrolled(window.scrollY > 50);
@@ -129,20 +129,14 @@ function SearchPageContent() {
 
                         <ThemeToggle />
 
-                        {isAuthenticated ? (
-                            <Link href="/dashboard" className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-xs font-bold text-snow hover:border-signal/30 transition-all">
-                                Dashboard
+                        <div className="flex items-center gap-3">
+                            <Link href="/login" className="text-xs font-bold text-mist hover:text-signal transition-colors">
+                                Connexion
                             </Link>
-                        ) : (
-                            <div className="flex items-center gap-3">
-                                <Link href="/login" className="text-xs font-bold text-mist hover:text-signal transition-colors">
-                                    Connexion
-                                </Link>
-                                <Link href="/register" className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-xs font-bold text-snow hover:border-signal/30 transition-all">
-                                    Inscription
-                                </Link>
-                            </div>
-                        )}
+                            <Link href="/register" className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-xs font-bold text-snow hover:border-signal/30 transition-all">
+                                Inscription
+                            </Link>
+                        </div>
                     </div>
 
                     <button onClick={() => setMenuOpen(!menuOpen)} className="md:hidden p-2 z-50">

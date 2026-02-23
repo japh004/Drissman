@@ -4,25 +4,18 @@ import { useRouter } from "next/navigation";
 import { Star, MapPin, ShieldCheck, Car } from "lucide-react";
 import { formatPrice } from "@/lib/format";
 import { DrivingSchool } from "@/lib/data";
-import { useAuth } from "@/hooks";
-import { toast } from "sonner";
+
 
 interface SchoolCardProps {
     school: DrivingSchool;
 }
 
 export function SchoolCard({ school }: SchoolCardProps) {
-    const { isAuthenticated } = useAuth();
     const router = useRouter();
 
     const handleViewOffer = (e: React.MouseEvent) => {
         e.preventDefault();
-        if (!isAuthenticated) {
-            toast.info("Veuillez vous connecter pour voir l'offre");
-            router.push(`/login?redirect=/school/${school.id}`);
-        } else {
-            router.push(`/school/${school.id}`);
-        }
+        router.push(`/school/${school.id}`);
     };
 
     return (

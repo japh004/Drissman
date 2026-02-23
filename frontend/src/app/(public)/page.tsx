@@ -1,10 +1,9 @@
-// Updated: 2026-02-10T19:48
+// Updated: 2026-02-23T01:20
 "use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Menu, X } from "lucide-react";
-import { useAuth } from "@/hooks";
 import { ThemeToggle } from "@/components/theme-toggle";
 import Hero from "./components/Hero";
 import StatsVariant2 from "./components/StatsVariant2";
@@ -17,7 +16,6 @@ import FooterVariant2 from "./components/FooterVariant2";
 export default function Home() {
     const [menuOpen, setMenuOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
-    const { isAuthenticated } = useAuth();
 
     useEffect(() => {
         const handleScroll = () => setScrolled(window.scrollY > 50);
@@ -59,23 +57,15 @@ export default function Home() {
                         <ThemeToggle />
 
                         <div className="flex items-center gap-3 pl-4 border-l border-white/10">
-                            {isAuthenticated ? (
-                                <Link href="/dashboard" className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-xs font-bold text-snow hover:border-signal/30 transition-all">
-                                    Dashboard
-                                </Link>
-                            ) : (
-                                <>
-                                    <Link href="/login" className="text-sm text-mist hover:text-snow transition-colors">
-                                        Se connecter
-                                    </Link>
-                                    <Link
-                                        href="/register"
-                                        className="bg-signal hover:bg-signal-dark text-asphalt font-bold py-2.5 px-6 rounded-xl text-sm shadow-[0_0_20px_rgba(255,193,7,0.25)] hover:shadow-[0_0_30px_rgba(255,193,7,0.4)] transition-all duration-300 hover:scale-[1.02]"
-                                    >
-                                        S&apos;inscrire
-                                    </Link>
-                                </>
-                            )}
+                            <Link href="/login" className="text-sm text-mist hover:text-snow transition-colors">
+                                Se connecter
+                            </Link>
+                            <Link
+                                href="/register"
+                                className="bg-signal hover:bg-signal-dark text-asphalt font-bold py-2.5 px-6 rounded-xl text-sm shadow-[0_0_20px_rgba(255,193,7,0.25)] hover:shadow-[0_0_30px_rgba(255,193,7,0.4)] transition-all duration-300 hover:scale-[1.02]"
+                            >
+                                S&apos;inscrire
+                            </Link>
                         </div>
                     </div>
 

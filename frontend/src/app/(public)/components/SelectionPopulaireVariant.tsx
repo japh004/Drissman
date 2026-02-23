@@ -6,8 +6,7 @@ import { useRouter } from "next/navigation";
 import { Star, Car, MapPin, ArrowRight } from "lucide-react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { useSchools, useAuth } from "@/hooks";
-import { toast } from "sonner";
+import { useSchools } from "@/hooks";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -33,7 +32,6 @@ function SkeletonCard() {
 export default function SelectionPopulaireVariant() {
     const sectionRef = useRef<HTMLDivElement>(null);
     const { schools, loading } = useSchools();
-    const { isAuthenticated } = useAuth();
     const router = useRouter();
 
     useEffect(() => {
@@ -58,12 +56,7 @@ export default function SelectionPopulaireVariant() {
 
     // Handle school card click
     const handleSchoolClick = (id: string | number) => {
-        if (!isAuthenticated) {
-            toast.info("Veuillez vous connecter pour voir l'offre détaillée");
-            router.push(`/login?redirect=/school/${id}`);
-        } else {
-            router.push(`/school/${id}`);
-        }
+        router.push(`/school/${id}`);
     };
 
     // Filter and process schools to show
