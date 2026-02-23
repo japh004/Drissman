@@ -46,9 +46,10 @@ public class ModuleService {
         return moduleRepository.save(module).map(this::toDto);
     }
 
-    public Mono<ModuleDto> updateModule(UUID moduleId, CreateModuleRequest request) {
+    public Mono<ModuleDto> updateModule(UUID moduleId, UUID schoolId, CreateModuleRequest request) {
         return moduleRepository.findById(moduleId)
-                .switchIfEmpty(Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND, "Module non trouvé")))
+                .filter(module -> schoolId.equals(module.getSchoolId()))
+                .switchIfEmpty(Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND, "Module non trouve")))
                 .flatMap(existing -> {
                     existing.setName(request.getName());
                     existing.setDescription(request.getDescription());
@@ -66,9 +67,10 @@ public class ModuleService {
                 .map(this::toDto);
     }
 
-    public Mono<Void> deleteModule(UUID moduleId) {
+    public Mono<Void> deleteModule(UUID moduleId, UUID schoolId) {
         return moduleRepository.findById(moduleId)
-                .switchIfEmpty(Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND, "Module non trouvé")))
+                .filter(module -> schoolId.equals(module.getSchoolId()))
+                .switchIfEmpty(Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND, "Module non trouve")))
                 .flatMap(moduleRepository::delete);
     }
 

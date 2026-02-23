@@ -13,8 +13,24 @@ export function useLocalStorage<T>(key: string, initialValue: T): [T, React.Disp
     const [value, setValue] = useState<T>(() => {
         if (typeof window === "undefined") return initialValue;
         try {
-            const stored = localStorage.getItem(storageKey) ?? localStorage.getItem(legacyKey);
-            return stored ? JSON.parse(stored) : initialValue;
+            const primaryRaw = localStorage.getItem(storageKey);
+            const legacyRaw = localStorage.getItem(legacyKey);
+
+            if (!primaryRaw && !legacyRaw) return initialValue;
+            if (!primaryRaw && legacyRaw) return JSON.parse(legacyRaw) as T;
+            if (primaryRaw && !legacyRaw) return JSON.parse(primaryRaw) as T;
+
+            const primaryValue = JSON.parse(primaryRaw!) as T;
+            const legacyValue = JSON.parse(legacyRaw!) as T;
+
+            // Migration safety: if one side is a non-empty array and the other is empty,
+            // keep the non-empty source to avoid "all stats = 0" regressions.
+            if (Array.isArray(primaryValue) && Array.isArray(legacyValue)) {
+                if (primaryValue.length === 0 && legacyValue.length > 0) return legacyValue;
+                if (legacyValue.length === 0 && primaryValue.length > 0) return primaryValue;
+            }
+
+            return primaryValue;
         } catch {
             return initialValue;
         }

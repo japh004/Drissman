@@ -2,11 +2,14 @@ package com.drissman.api.controller;
 
 import com.drissman.api.dto.CreateSessionRequest;
 import com.drissman.api.dto.SessionDto;
+import com.drissman.domain.entity.User;
+import com.drissman.domain.repository.UserRepository;
 import com.drissman.service.SessionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -19,66 +22,59 @@ import java.util.UUID;
 public class AdminSessionController {
 
     private final SessionService sessionService;
+    private final UserRepository userRepository;
 
-    /**
-     * Create/plan a new session.
-     */
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public Mono<SessionDto> createSession(
             Principal principal,
             @Valid @RequestBody CreateSessionRequest request) {
-        if (principal == null) {
-            return Mono.error(new RuntimeException("Authentification requise"));
-        }
-        return sessionService.scheduleSession(request);
+        return getSchoolId(principal)
+                .flatMap(schoolId -> sessionService.scheduleSession(schoolId, request));
     }
 
-    /**
-     * Get all sessions for a specific enrollment (client).
-     */
     @GetMapping("/enrollment/{enrollmentId}")
     public Flux<SessionDto> getSessionsByEnrollment(
             Principal principal,
             @PathVariable UUID enrollmentId) {
-        return sessionService.getSessionsForEnrollment(enrollmentId);
+        return getSchoolId(principal)
+                .flatMapMany(schoolId -> sessionService.getSessionsForEnrollment(schoolId, enrollmentId));
     }
 
-    /**
-     * Get all sessions assigned to a specific monitor.
-     */
     @GetMapping("/monitor/{monitorId}")
     public Flux<SessionDto> getSessionsByMonitor(
             Principal principal,
             @PathVariable UUID monitorId) {
-        return sessionService.getSessionsForMonitor(monitorId);
+        return getSchoolId(principal)
+                .flatMapMany(schoolId -> sessionService.getSessionsForMonitor(schoolId, monitorId));
     }
 
-    /**
-     * Cancel a session.
-     */
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public Mono<Void> cancelSession(
             Principal principal,
             @PathVariable UUID id) {
-        if (principal == null) {
-            return Mono.error(new RuntimeException("Authentification requise"));
-        }
-        return sessionService.cancelSession(id);
+        return getSchoolId(principal)
+                .flatMap(schoolId -> sessionService.cancelSession(schoolId, id));
     }
 
-    /**
-     * Complete a session to deduct hours from the client.
-     */
     @PatchMapping("/{id}/complete")
     public Mono<SessionDto> completeSession(
             Principal principal,
             @PathVariable UUID id,
             @RequestParam(required = false) String notes) {
+        return getSchoolId(principal)
+                .flatMap(schoolId -> sessionService.completeSession(schoolId, id, notes));
+    }
+
+    private Mono<UUID> getSchoolId(Principal principal) {
         if (principal == null) {
-            return Mono.error(new RuntimeException("Authentification requise"));
+            return Mono.error(new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Authentification requise"));
         }
-        return sessionService.completeSession(id, notes);
+
+        return userRepository.findById(UUID.fromString(principal.getName()))
+                .map(User::getSchoolId)
+                .filter(schoolId -> schoolId != null)
+                .switchIfEmpty(Mono.error(new ResponseStatusException(HttpStatus.FORBIDDEN, "Compte non associe a une ecole")));
     }
 }

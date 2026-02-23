@@ -3,6 +3,7 @@ package com.drissman.service;
 import com.drissman.api.dto.OfferModuleDto;
 import com.drissman.api.dto.SetOfferModulesRequest;
 import com.drissman.domain.entity.OfferModule;
+import com.drissman.domain.repository.OfferRepository;
 import com.drissman.domain.repository.ModuleRepository;
 import com.drissman.domain.repository.OfferModuleRepository;
 import lombok.RequiredArgsConstructor;
@@ -12,7 +13,6 @@ import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
 @RequiredArgsConstructor
@@ -20,6 +20,7 @@ public class OfferModuleService {
 
     private final OfferModuleRepository offerModuleRepository;
     private final ModuleRepository moduleRepository;
+    private final OfferRepository offerRepository;
 
     /**
      * Get all modules for an offer, enriched with module details.
@@ -43,8 +44,11 @@ public class OfferModuleService {
      * Replace the entire module list for an offer (delete all, then insert new
      * list).
      */
-    public Flux<OfferModuleDto> setModulesForOffer(UUID offerId, SetOfferModulesRequest request) {
-        return offerModuleRepository.deleteByOfferId(offerId)
+    public Flux<OfferModuleDto> setModulesForOffer(UUID schoolId, UUID offerId, SetOfferModulesRequest request) {
+        return offerRepository.findById(offerId)
+                .filter(offer -> schoolId.equals(offer.getSchoolId()))
+                .switchIfEmpty(Mono.error(new RuntimeException("Offre introuvable pour cette auto-ecole")))
+                .then(offerModuleRepository.deleteByOfferId(offerId))
                 .thenMany(Flux.fromIterable(request.getModules())
                         .index()
                         .flatMap(indexed -> {
@@ -90,8 +94,11 @@ public class OfferModuleService {
     /**
      * Remove a module from an offer.
      */
-    public Mono<Void> removeModuleFromOffer(UUID offerId, UUID moduleId) {
-        return offerModuleRepository.findByOfferIdAndModuleId(offerId, moduleId)
+    public Mono<Void> removeModuleFromOffer(UUID schoolId, UUID offerId, UUID moduleId) {
+        return offerRepository.findById(offerId)
+                .filter(offer -> schoolId.equals(offer.getSchoolId()))
+                .switchIfEmpty(Mono.error(new RuntimeException("Offre introuvable pour cette auto-ecole")))
+                .then(offerModuleRepository.findByOfferIdAndModuleId(offerId, moduleId))
                 .flatMap(offerModuleRepository::delete);
     }
 }

@@ -1,8 +1,10 @@
-"use client";
+﻿"use client";
 
-import { useState, useEffect } from "react";
-import { Search, GraduationCap, Clock, CheckCircle, XCircle, Eye, ChevronDown, ChevronUp } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useAuth, useLocalStorage } from "@/hooks";
+import { Search, GraduationCap, CheckCircle, XCircle, ChevronDown, ChevronUp } from "lucide-react";
 import { toast } from "sonner";
+import { enrollmentService, EnrollmentDto } from "@/lib/enrollment-service";
 
 interface CandidatEnrollment {
     id: string;
@@ -23,53 +25,78 @@ interface CandidatEnrollment {
 const statusConfig: Record<string, { label: string; class: string }> = {
     ACTIVE: { label: "Actif", class: "bg-green-500/10 text-green-400" },
     PENDING: { label: "En attente", class: "bg-yellow-500/10 text-yellow-400" },
-    COMPLETED: { label: "Terminé", class: "bg-blue-500/10 text-blue-400" },
-    REFUSED: { label: "Refusé", class: "bg-red-500/10 text-red-400" },
+    COMPLETED: { label: "Termine", class: "bg-blue-500/10 text-blue-400" },
+    REFUSED: { label: "Refuse", class: "bg-red-500/10 text-red-400" },
 };
 
 export default function StudentsPage() {
-    const [enrollments, setEnrollments] = useState<CandidatEnrollment[]>([]);
+    const { user, token } = useAuth();
+    const [enrollments, setEnrollments] = useLocalStorage<CandidatEnrollment[]>("candidat_enrollments", []);
     const [searchQuery, setSearchQuery] = useState("");
     const [filterStatus, setFilterStatus] = useState<string>("ALL");
     const [expandedId, setExpandedId] = useState<string | null>(null);
 
-    // Load enrollments from shared localStorage key
     useEffect(() => {
-        try {
-            const stored = localStorage.getItem("candidat_enrollments");
-            if (stored) setEnrollments(JSON.parse(stored));
-        } catch { /* ignore */ }
-    }, []);
+        const load = async () => {
+            if (!token) return;
+            try {
+                const remote = await enrollmentService.getAdminEnrollments(token);
+                const mapped: CandidatEnrollment[] = remote.map((e: EnrollmentDto) => ({
+                    id: e.id,
+                    offerId: e.offerId,
+                    offerName: e.offerName,
+                    schoolId: e.schoolId,
+                    schoolName: e.schoolName,
+                    price: e.price,
+                    hours: e.hours,
+                    permitType: e.permitType,
+                    modules: [],
+                    status: e.status === "CANCELLED" ? "REFUSED" : (e.status as CandidatEnrollment["status"]),
+                    enrolledAt: e.enrolledAt,
+                    studentId: e.studentId,
+                    studentName: e.studentName,
+                }));
+                setEnrollments(mapped);
+            } catch {
+                // keep local fallback
+            }
+        };
+        load();
+    }, [setEnrollments, token]);
 
-    const saveEnrollments = (updated: CandidatEnrollment[]) => {
-        setEnrollments(updated);
-        localStorage.setItem("candidat_enrollments", JSON.stringify(updated));
-    };
+    const scopedEnrollments = enrollments.filter(e => {
+        if (!user?.schoolId) return true;
+        return e.schoolId === user.schoolId || e.schoolId === "admin-school";
+    });
 
-    const filtered = enrollments.filter(e => {
+    const filtered = scopedEnrollments.filter(e => {
         const matchSearch = e.studentName.toLowerCase().includes(searchQuery.toLowerCase()) ||
             e.offerName.toLowerCase().includes(searchQuery.toLowerCase());
         const matchStatus = filterStatus === "ALL" || e.status === filterStatus;
         return matchSearch && matchStatus;
     });
 
-    const pendingCount = enrollments.filter(e => e.status === "PENDING").length;
-    const activeCount = enrollments.filter(e => e.status === "ACTIVE").length;
+    const pendingCount = scopedEnrollments.filter(e => e.status === "PENDING").length;
+    const activeCount = scopedEnrollments.filter(e => e.status === "ACTIVE").length;
 
     const handleValidate = (id: string) => {
-        const updated = enrollments.map(e =>
+        if (token) {
+            enrollmentService.updateEnrollmentStatus(id, "ACTIVE", token).catch(() => null);
+        }
+        setEnrollments(prev => prev.map(e =>
             e.id === id ? { ...e, status: "ACTIVE" as const } : e
-        );
-        saveEnrollments(updated);
-        toast.success("Inscription validée !");
+        ));
+        toast.success("Inscription validee !");
     };
 
     const handleRefuse = (id: string) => {
-        const updated = enrollments.map(e =>
+        if (token) {
+            enrollmentService.updateEnrollmentStatus(id, "CANCELLED", token).catch(() => null);
+        }
+        setEnrollments(prev => prev.map(e =>
             e.id === id ? { ...e, status: "REFUSED" as const } : e
-        );
-        saveEnrollments(updated);
-        toast.success("Inscription refusée");
+        ));
+        toast.success("Inscription refusee");
     };
 
     function formatPrice(n: number) { return new Intl.NumberFormat("fr-FR").format(n); }
@@ -78,9 +105,9 @@ export default function StudentsPage() {
         <div className="space-y-6">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-black text-snow">Élèves & Inscriptions</h1>
+                    <h1 className="text-2xl font-black text-snow">Eleves & Inscriptions</h1>
                     <p className="text-sm text-mist mt-0.5">
-                        {enrollments.length} inscription{enrollments.length > 1 ? "s" : ""}
+                        {scopedEnrollments.length} inscription{scopedEnrollments.length > 1 ? "s" : ""}
                         {pendingCount > 0 && <> · <span className="text-yellow-400">{pendingCount} en attente</span></>}
                         {activeCount > 0 && <> · <span className="text-green-400">{activeCount} actif{activeCount > 1 ? "s" : ""}</span></>}
                     </p>
@@ -90,7 +117,7 @@ export default function StudentsPage() {
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                 <div className="relative flex-1 max-w-md">
                     <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-mist/40" />
-                    <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Rechercher un élève ou une offre..."
+                    <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Rechercher un eleve ou une offre..."
                         className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-snow placeholder:text-mist/40 focus:outline-none focus:border-signal/50 focus:ring-2 focus:ring-signal/20 transition-all text-sm" />
                 </div>
                 <div className="flex gap-2 flex-wrap">
@@ -104,17 +131,16 @@ export default function StudentsPage() {
                 </div>
             </div>
 
-            {/* Empty state or Table */}
             {filtered.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-16 text-center">
                     <GraduationCap className="h-16 w-16 text-mist/15 mb-4" />
                     <h3 className="text-lg font-bold text-snow/60 mb-1">
-                        {enrollments.length === 0 ? "Aucune inscription" : "Aucun résultat"}
+                        {scopedEnrollments.length === 0 ? "Aucune inscription" : "Aucun resultat"}
                     </h3>
                     <p className="text-sm text-mist/40 max-w-sm">
-                        {enrollments.length === 0
-                            ? "Les inscriptions apparaîtront ici lorsque des élèves s'inscriront à vos offres depuis la page publique."
-                            : `Aucune inscription ne correspond à "${searchQuery}"`}
+                        {scopedEnrollments.length === 0
+                            ? "Les inscriptions apparaitront ici lorsque des eleves s'inscriront a vos offres."
+                            : `Aucune inscription ne correspond a "${searchQuery}"`}
                     </p>
                 </div>
             ) : (
@@ -163,14 +189,13 @@ export default function StudentsPage() {
                                         )}
                                     </div>
                                 </div>
-                                {/* Expanded modules */}
                                 {isExpanded && enrollment.modules.length > 0 && (
                                     <div className="px-4 pb-4 pt-0">
                                         <p className="text-[10px] font-bold text-mist/40 uppercase tracking-wider mb-2">Modules inclus</p>
                                         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-2">
                                             {enrollment.modules.map((mod, i) => (
                                                 <div key={i} className="bg-white/[0.02] rounded-xl border border-white/[0.04] p-2.5 flex items-center gap-2">
-                                                    <span>{mod.category === "CODE" ? "📖" : mod.category === "CONDUITE" ? "🚗" : "📝"}</span>
+                                                    <span>{mod.category === "CODE" ? "??" : mod.category === "CONDUITE" ? "??" : "??"}</span>
                                                     <div>
                                                         <p className="text-xs font-bold text-snow">{mod.name}</p>
                                                         <p className="text-[10px] text-mist/40">{mod.requiredHours}h requises</p>

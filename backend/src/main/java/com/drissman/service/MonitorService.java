@@ -27,9 +27,6 @@ public class MonitorService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    /**
-     * Create Monitor fixed null-handling flow.
-     */
     @Transactional
     public Mono<MonitorDto> createMonitor(UUID schoolId, CreateMonitorRequest request) {
         if (request.getEmail() != null && !request.getEmail().isBlank() &&
@@ -82,8 +79,10 @@ public class MonitorService {
     }
 
     @Transactional
-    public Mono<MonitorDto> updateMonitor(UUID monitorId, UpdateMonitorRequest request) {
+    public Mono<MonitorDto> updateMonitor(UUID schoolId, UUID monitorId, UpdateMonitorRequest request) {
         return monitorRepository.findById(monitorId)
+                .filter(monitor -> schoolId.equals(monitor.getSchoolId()))
+                .switchIfEmpty(Mono.error(new RuntimeException("Moniteur introuvable pour cette auto-ecole")))
                 .flatMap(monitor -> {
                     if (request.getFirstName() != null)
                         monitor.setFirstName(request.getFirstName());
@@ -101,8 +100,10 @@ public class MonitorService {
     }
 
     @Transactional
-    public Mono<Void> deleteMonitor(UUID monitorId) {
+    public Mono<Void> deleteMonitor(UUID schoolId, UUID monitorId) {
         return monitorRepository.findById(monitorId)
+                .filter(monitor -> schoolId.equals(monitor.getSchoolId()))
+                .switchIfEmpty(Mono.error(new RuntimeException("Moniteur introuvable pour cette auto-ecole")))
                 .flatMap(monitor -> {
                     if (monitor.getUserId() != null) {
                         return userRepository.deleteById(monitor.getUserId())

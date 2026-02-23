@@ -1,22 +1,22 @@
-"use client";
+﻿"use client";
 
-import { useState } from "react";
-import { Search, Receipt, DollarSign, Clock, TrendingUp, Download, CheckCircle } from "lucide-react";
-import { toast } from "sonner";
+import { useEffect, useMemo } from "react";
+import { useAuth, useLocalStorage } from "@/hooks";
+import { Search, Receipt, DollarSign, Clock, TrendingUp, Download } from "lucide-react";
+import { enrollmentService, InvoiceDto } from "@/lib/enrollment-service";
 
-interface Invoice {
+interface FallbackEnrollment {
     id: string;
-    invoiceNumber: string;
+    offerName: string;
     studentName: string;
-    offer: string;
-    amount: number;
-    status: "PENDING" | "PAID" | "OVERDUE";
-    dueDate: string;
-    paidAt: string | null;
+    price: number;
+    status: "PENDING" | "ACTIVE" | "COMPLETED" | "REFUSED";
+    enrolledAt: string;
 }
+const NOW_SEED = Date.now();
 
 const statusConfig: Record<string, { label: string; class: string }> = {
-    PAID: { label: "Payé", class: "bg-green-500/10 text-green-400" },
+    PAID: { label: "Paye", class: "bg-green-500/10 text-green-400" },
     PENDING: { label: "En attente", class: "bg-yellow-500/10 text-yellow-400" },
     OVERDUE: { label: "En retard", class: "bg-red-500/10 text-red-400" },
 };
@@ -26,23 +26,58 @@ function formatCurrency(amount: number) {
 }
 
 export default function InvoicesPage() {
-    const [invoices, setInvoices] = useState<Invoice[]>([]);
-    const [searchQuery, setSearchQuery] = useState("");
+    const { token } = useAuth();
+    const [searchQuery, setSearchQuery] = useLocalStorage<string>("invoice_search", "");
+    const [fallbackEnrollments] = useLocalStorage<FallbackEnrollment[]>("candidat_enrollments", []);
+    const [apiInvoices, setApiInvoices] = useLocalStorage<InvoiceDto[]>("admin_invoices_cache", []);
+    const [nowTs] = useLocalStorage<number>("invoice_now_seed", NOW_SEED);
 
-    const totalRevenue = invoices.filter(i => i.status === "PAID").reduce((s, i) => s + i.amount, 0);
-    const totalPending = invoices.filter(i => i.status === "PENDING").reduce((s, i) => s + i.amount, 0);
-    const totalOverdue = invoices.filter(i => i.status === "OVERDUE").reduce((s, i) => s + i.amount, 0);
+    useEffect(() => {
+        const load = async () => {
+            if (!token) return;
+            try {
+                const remote = await enrollmentService.getAdminInvoices(token);
+                setApiInvoices(remote || []);
+            } catch {
+                // keep fallback
+            }
+        };
+        load();
+    }, [setApiInvoices, token]);
+
+    const invoices: InvoiceDto[] = useMemo(() => {
+        if (apiInvoices.length > 0) return apiInvoices;
+        const now = nowTs;
+        return fallbackEnrollments
+            .filter((e) => e.status !== "REFUSED")
+            .map((e, idx: number) => {
+                const dueDate = new Date(e.enrolledAt);
+                dueDate.setDate(dueDate.getDate() + 7);
+                let status: InvoiceDto["status"] = "PENDING";
+                if (e.status === "ACTIVE" || e.status === "COMPLETED") status = "PAID";
+                else if (dueDate.getTime() < now) status = "OVERDUE";
+
+                return {
+                    id: e.id,
+                    enrollmentId: e.id,
+                    invoiceNumber: `INV-${new Date(e.enrolledAt).getFullYear()}-${String(idx + 1).padStart(4, "0")}`,
+                    studentName: e.studentName,
+                    offer: e.offerName,
+                    amount: e.price || 0,
+                    status,
+                    dueDate: dueDate.toISOString(),
+                    paidAt: status === "PAID" ? e.enrolledAt : null,
+                };
+            });
+    }, [apiInvoices, fallbackEnrollments, nowTs]);
+
+    const totalRevenue = invoices.filter(i => i.status === "PAID").reduce((s, i) => s + (i.amount || 0), 0);
+    const totalPending = invoices.filter(i => i.status === "PENDING").reduce((s, i) => s + (i.amount || 0), 0);
+    const totalOverdue = invoices.filter(i => i.status === "OVERDUE").reduce((s, i) => s + (i.amount || 0), 0);
 
     const filtered = invoices.filter(i =>
         i.studentName.toLowerCase().includes(searchQuery.toLowerCase()) || i.invoiceNumber.toLowerCase().includes(searchQuery.toLowerCase())
     );
-
-    const handleMarkPaid = (id: string) => {
-        setInvoices(prev => prev.map(inv =>
-            inv.id === id ? { ...inv, status: "PAID" as const, paidAt: new Date().toISOString() } : inv
-        ));
-        toast.success("Facture marquée comme payée");
-    };
 
     return (
         <div className="space-y-6">
@@ -51,12 +86,11 @@ export default function InvoicesPage() {
                 <p className="text-sm text-mist mt-0.5">{invoices.length} facture{invoices.length > 1 ? "s" : ""}</p>
             </div>
 
-            {/* Financial KPIs */}
             <div className="grid sm:grid-cols-3 gap-4">
                 <div className="bg-gradient-to-br from-green-500/10 to-green-600/5 rounded-2xl border border-green-500/20 p-5">
                     <DollarSign className="h-5 w-5 text-green-400 opacity-60 mb-2" />
                     <p className="text-2xl font-black text-snow">{formatCurrency(totalRevenue)} F</p>
-                    <p className="text-xs text-mist/60">CA Total (encaissé)</p>
+                    <p className="text-xs text-mist/60">CA Total (encaisse)</p>
                 </div>
                 <div className="bg-gradient-to-br from-yellow-500/10 to-yellow-600/5 rounded-2xl border border-yellow-500/20 p-5">
                     <Clock className="h-5 w-5 text-yellow-400 opacity-60 mb-2" />
@@ -72,16 +106,15 @@ export default function InvoicesPage() {
 
             <div className="relative max-w-md">
                 <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-mist/40" />
-                <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Rechercher par nom ou n° facture..."
+                <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Rechercher par nom ou no facture..."
                     className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-snow placeholder:text-mist/40 focus:outline-none focus:border-signal/50 focus:ring-2 focus:ring-signal/20 transition-all text-sm" />
             </div>
 
-            {/* Empty state or Table */}
             {filtered.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-16 text-center">
                     <Receipt className="h-16 w-16 text-mist/15 mb-4" />
                     <h3 className="text-lg font-bold text-snow/60 mb-1">Aucune facture</h3>
-                    <p className="text-sm text-mist/40 max-w-sm">Les factures seront générées automatiquement lorsque vous validerez une inscription d&apos;élève.</p>
+                    <p className="text-sm text-mist/40 max-w-sm">Les factures sont synchronisees depuis les inscriptions reelles.</p>
                 </div>
             ) : (
                 <div className="bg-white/[0.03] rounded-2xl border border-white/[0.06] overflow-hidden">
@@ -89,12 +122,12 @@ export default function InvoicesPage() {
                         <table className="w-full">
                             <thead>
                                 <tr className="border-b border-white/[0.06]">
-                                    <th className="text-left text-[10px] font-bold text-mist/40 uppercase tracking-wider px-5 py-3">N° Facture</th>
-                                    <th className="text-left text-[10px] font-bold text-mist/40 uppercase tracking-wider px-5 py-3">Élève</th>
+                                    <th className="text-left text-[10px] font-bold text-mist/40 uppercase tracking-wider px-5 py-3">No Facture</th>
+                                    <th className="text-left text-[10px] font-bold text-mist/40 uppercase tracking-wider px-5 py-3">Eleve</th>
                                     <th className="text-left text-[10px] font-bold text-mist/40 uppercase tracking-wider px-5 py-3 hidden md:table-cell">Offre</th>
                                     <th className="text-left text-[10px] font-bold text-mist/40 uppercase tracking-wider px-5 py-3">Montant</th>
                                     <th className="text-left text-[10px] font-bold text-mist/40 uppercase tracking-wider px-5 py-3">Statut</th>
-                                    <th className="text-left text-[10px] font-bold text-mist/40 uppercase tracking-wider px-5 py-3 hidden lg:table-cell">Échéance</th>
+                                    <th className="text-left text-[10px] font-bold text-mist/40 uppercase tracking-wider px-5 py-3 hidden lg:table-cell">Echeance</th>
                                     <th className="px-5 py-3"></th>
                                 </tr>
                             </thead>
@@ -122,17 +155,9 @@ export default function InvoicesPage() {
                                                 <span className="text-xs text-mist/40">{new Date(invoice.dueDate).toLocaleDateString("fr-FR")}</span>
                                             </td>
                                             <td className="px-5 py-4">
-                                                <div className="flex gap-1 items-center">
-                                                    {(invoice.status === "PENDING" || invoice.status === "OVERDUE") && (
-                                                        <button onClick={() => handleMarkPaid(invoice.id)}
-                                                            className="px-2.5 py-1 rounded-lg bg-green-500/10 text-green-400 text-[10px] font-bold hover:bg-green-500/20 transition-all flex items-center gap-1 opacity-0 group-hover:opacity-100">
-                                                            <CheckCircle className="h-3 w-3" /> Payé
-                                                        </button>
-                                                    )}
-                                                    <button className="p-1.5 rounded-lg hover:bg-white/5 text-mist/40 hover:text-snow opacity-0 group-hover:opacity-100 transition-all" title="Télécharger">
-                                                        <Download className="h-3.5 w-3.5" />
-                                                    </button>
-                                                </div>
+                                                <button className="p-1.5 rounded-lg hover:bg-white/5 text-mist/40 hover:text-snow opacity-0 group-hover:opacity-100 transition-all" title="Telecharger">
+                                                    <Download className="h-3.5 w-3.5" />
+                                                </button>
                                             </td>
                                         </tr>
                                     );

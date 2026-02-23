@@ -15,6 +15,8 @@ interface Enrollment {
     modules: { id: string; name: string; category: string; requiredHours: number }[];
     status: "PENDING" | "ACTIVE" | "COMPLETED" | "REFUSED";
     enrolledAt: string;
+    studentId?: string;
+    studentName?: string;
 }
 
 interface StudentSession {
@@ -63,7 +65,8 @@ export default function CandidatDashboard() {
     const [sessions] = useLocalStorage<StudentSession[]>("candidat_sessions", []);
     const [progressModules] = useLocalStorage<ModuleProgress[]>("candidat_progress", []);
 
-    const activeEnrollment = enrollments.find(e => e.status === "ACTIVE" || e.status === "PENDING");
+    const myEnrollments = enrollments.filter(e => !user?.id || !e.studentId || e.studentId === user.id);
+    const activeEnrollment = myEnrollments.find(e => e.status === "ACTIVE" || e.status === "PENDING");
     const hasEnrollment = !!activeEnrollment;
 
     const totalModuleCompleted = progressModules.reduce((sum, mod) => sum + (mod.hoursCompleted || 0), 0);

@@ -5,12 +5,15 @@ import com.drissman.api.dto.OfferModuleDto;
 import com.drissman.api.dto.SchoolDto;
 import com.drissman.api.dto.SetOfferModulesRequest;
 import com.drissman.api.dto.UpdateOfferRequest;
+import com.drissman.domain.entity.User;
+import com.drissman.domain.repository.UserRepository;
 import com.drissman.service.OfferModuleService;
 import com.drissman.service.OfferService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -24,77 +27,62 @@ public class AdminOfferController {
 
     private final OfferService offerService;
     private final OfferModuleService offerModuleService;
+    private final UserRepository userRepository;
 
-    /**
-     * Create a new offer (for school admin)
-     */
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public Mono<SchoolDto.OfferDto> create(
             Principal principal,
             @Valid @RequestBody CreateOfferRequest request) {
-        if (principal == null) {
-            return Mono.error(new RuntimeException("Authentification requise pour créer une offre"));
-        }
-        return offerService.create(request);
+        return getSchoolId(principal)
+                .flatMap(schoolId -> offerService.create(schoolId, request));
     }
 
-    /**
-     * Update an offer
-     */
     @PatchMapping("/{id}")
     public Mono<SchoolDto.OfferDto> update(
             Principal principal,
             @PathVariable UUID id,
             @RequestBody UpdateOfferRequest request) {
-        if (principal == null) {
-            return Mono.error(new RuntimeException("Authentification requise pour modifier une offre"));
-        }
-        return offerService.update(id, request);
+        return getSchoolId(principal)
+                .flatMap(schoolId -> offerService.update(schoolId, id, request));
     }
 
-    /**
-     * Delete an offer
-     */
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public Mono<Void> delete(
             Principal principal,
             @PathVariable UUID id) {
-        if (principal == null) {
-            return Mono.error(new RuntimeException("Authentification requise pour supprimer une offre"));
-        }
-        return offerService.delete(id);
+        return getSchoolId(principal)
+                .flatMap(schoolId -> offerService.delete(schoolId, id));
     }
 
-    // ─── Module association endpoints ───────────────────────────────────
-
-    /**
-     * Replace the entire module list for an offer.
-     */
     @PutMapping("/{offerId}/modules")
     public Flux<OfferModuleDto> setModules(
             Principal principal,
             @PathVariable UUID offerId,
             @RequestBody SetOfferModulesRequest request) {
-        if (principal == null) {
-            return Flux.error(new RuntimeException("Authentification requise"));
-        }
-        return offerModuleService.setModulesForOffer(offerId, request);
+        return getSchoolId(principal)
+                .flatMapMany(schoolId -> offerModuleService.setModulesForOffer(schoolId, offerId, request));
     }
 
-    /**
-     * Remove a specific module from an offer.
-     */
     @DeleteMapping("/{offerId}/modules/{moduleId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public Mono<Void> removeModule(
             Principal principal,
             @PathVariable UUID offerId,
             @PathVariable UUID moduleId) {
+        return getSchoolId(principal)
+                .flatMap(schoolId -> offerModuleService.removeModuleFromOffer(schoolId, offerId, moduleId));
+    }
+
+    private Mono<UUID> getSchoolId(Principal principal) {
         if (principal == null) {
-            return Mono.error(new RuntimeException("Authentification requise"));
+            return Mono.error(new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Authentification requise"));
         }
-        return offerModuleService.removeModuleFromOffer(offerId, moduleId);
+
+        return userRepository.findById(UUID.fromString(principal.getName()))
+                .map(User::getSchoolId)
+                .filter(schoolId -> schoolId != null)
+                .switchIfEmpty(Mono.error(new ResponseStatusException(HttpStatus.FORBIDDEN, "Compte non associe a une ecole")));
     }
 }

@@ -42,14 +42,14 @@ public class ModuleController {
             @Valid @RequestBody CreateModuleRequest request,
             Principal principal) {
         return getSchoolId(principal)
-                .flatMap(schoolId -> moduleService.updateModule(moduleId, request));
+                .flatMap(schoolId -> moduleService.updateModule(moduleId, schoolId, request));
     }
 
     @DeleteMapping("/{moduleId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public Mono<Void> deleteModule(@PathVariable UUID moduleId, Principal principal) {
         return getSchoolId(principal)
-                .flatMap(schoolId -> moduleService.deleteModule(moduleId));
+                .flatMap(schoolId -> moduleService.deleteModule(moduleId, schoolId));
     }
 
     private Mono<UUID> getSchoolId(Principal principal) {

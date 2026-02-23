@@ -18,9 +18,9 @@ public class OfferService {
 
     private final OfferRepository offerRepository;
 
-    public Mono<SchoolDto.OfferDto> create(CreateOfferRequest request) {
+    public Mono<SchoolDto.OfferDto> create(UUID schoolId, CreateOfferRequest request) {
         Offer offer = Offer.builder()
-                .schoolId(request.getSchoolId())
+                .schoolId(schoolId)
                 .name(request.getName())
                 .description(request.getDescription())
                 .price(request.getPrice())
@@ -42,8 +42,9 @@ public class OfferService {
                 .map(this::toDto);
     }
 
-    public Mono<SchoolDto.OfferDto> update(UUID id, UpdateOfferRequest request) {
+    public Mono<SchoolDto.OfferDto> update(UUID schoolId, UUID id, UpdateOfferRequest request) {
         return offerRepository.findById(id)
+                .filter(offer -> schoolId.equals(offer.getSchoolId()))
                 .flatMap(offer -> {
                     if (request.getName() != null)
                         offer.setName(request.getName());
@@ -60,8 +61,10 @@ public class OfferService {
                 .map(this::toDto);
     }
 
-    public Mono<Void> delete(UUID id) {
-        return offerRepository.deleteById(id);
+    public Mono<Void> delete(UUID schoolId, UUID id) {
+        return offerRepository.findById(id)
+                .filter(offer -> schoolId.equals(offer.getSchoolId()))
+                .flatMap(offerRepository::delete);
     }
 
     private SchoolDto.OfferDto toDto(Offer offer) {

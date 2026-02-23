@@ -42,14 +42,14 @@ public class AdminModuleController {
             @Valid @RequestBody CreateModuleRequest request,
             Principal principal) {
         return getSchoolId(principal)
-                .flatMap(schoolId -> moduleService.updateModule(moduleId, request));
+                .flatMap(schoolId -> moduleService.updateModule(moduleId, schoolId, request));
     }
 
     @DeleteMapping("/{moduleId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public Mono<Void> deleteModule(@PathVariable UUID moduleId, Principal principal) {
         return getSchoolId(principal)
-                .flatMap(schoolId -> moduleService.deleteModule(moduleId));
+                .flatMap(schoolId -> moduleService.deleteModule(moduleId, schoolId));
     }
 
     private Mono<UUID> getSchoolId(Principal principal) {
@@ -58,7 +58,8 @@ public class AdminModuleController {
         }
         return userRepository.findById(UUID.fromString(principal.getName()))
                 .map(User::getSchoolId)
+                .filter(schoolId -> schoolId != null)
                 .switchIfEmpty(Mono.error(
-                        new ResponseStatusException(HttpStatus.BAD_REQUEST, "Utilisateur non associé à une école")));
+                        new ResponseStatusException(HttpStatus.BAD_REQUEST, "Utilisateur non associe a une ecole")));
     }
 }

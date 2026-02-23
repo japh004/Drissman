@@ -2,11 +2,12 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Star, MapPin, Phone, ArrowLeft, Car, Clock, BookOpen, Check, Loader2 } from "lucide-react";
+import { Star, MapPin, ArrowLeft, Check } from "lucide-react";
 import { DrivingSchool } from "@/lib/data";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { useAuth } from "@/hooks";
 import { toast } from "sonner";
+import { enrollmentService, EnrollmentDto } from "@/lib/enrollment-service";
 
 interface SchoolDetailViewProps {
     school: DrivingSchool & {
@@ -33,43 +34,122 @@ interface Enrollment {
     studentName: string;
 }
 
+interface SchoolOffer {
+    id: string;
+    title?: string;
+    name?: string;
+    description: string;
+    type?: string;
+    permitType?: string;
+    features: string[];
+    price: number;
+    hours?: number;
+    modules?: { id: string; name: string; category: string; requiredHours: number }[];
+}
+
 export function SchoolDetailView({ school }: SchoolDetailViewProps) {
-    const { user, isAuthenticated, upgradeVisitor } = useAuth();
+    const { user, token, isAuthenticated, upgradeVisitor } = useAuth();
     const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
     const [confirmOfferId, setConfirmOfferId] = useState<string | null>(null);
 
-    // Load enrollments from localStorage
+    // Load enrollments from API first, then localStorage fallback.
     useEffect(() => {
-        try {
-            const stored = localStorage.getItem("candidat_enrollments");
-            if (stored) setEnrollments(JSON.parse(stored));
-        } catch { /* ignore */ }
-    }, []);
+        let cancelled = false;
+
+        const loadRemote = async () => {
+            if (!token || !isAuthenticated) return;
+            try {
+                const remote = await enrollmentService.getMyEnrollments(token);
+                if (cancelled) return;
+                const mapped: Enrollment[] = remote.map((e: EnrollmentDto) => ({
+                    id: e.id,
+                    offerId: e.offerId,
+                    offerName: e.offerName,
+                    schoolId: e.schoolId,
+                    schoolName: e.schoolName,
+                    price: e.price,
+                    hours: e.hours,
+                    permitType: e.permitType,
+                    modules: [],
+                    status: e.status === "CANCELLED" ? "REFUSED" : (e.status as Enrollment["status"]),
+                    enrolledAt: e.enrolledAt,
+                    studentId: e.studentId,
+                    studentName: e.studentName,
+                }));
+                setEnrollments(mapped);
+                localStorage.setItem("candidat_enrollments", JSON.stringify(mapped));
+                return;
+            } catch {
+                // fallback below
+            }
+            try {
+                const stored = localStorage.getItem("candidat_enrollments");
+                if (stored) setEnrollments(JSON.parse(stored));
+            } catch { /* ignore */ }
+        };
+
+        loadRemote();
+        return () => { cancelled = true; };
+    }, [isAuthenticated, token]);
 
     const saveEnrollments = (updated: Enrollment[]) => {
         setEnrollments(updated);
         localStorage.setItem("candidat_enrollments", JSON.stringify(updated));
     };
 
-    const isEnrolled = (offerId: string) => enrollments.some(e => e.offerId === offerId);
+    const isEnrolled = (offerId: string) =>
+        enrollments.some(e => e.offerId === offerId && (!user?.id || !e.studentId || e.studentId === user.id));
 
-    const handleEnroll = async (offer: any) => {
+    const handleEnroll = async (offer: SchoolOffer) => {
         if (!user) return;
         let effectiveUser = user;
+        let effectiveToken = token;
         if (user.role === "VISITOR") {
             try {
                 const upgraded = await upgradeVisitor({ targetRole: "CANDIDAT" });
                 effectiveUser = upgraded.user;
+                effectiveToken = upgraded.token;
                 toast.success("Votre compte visiteur a ete converti en compte eleve.");
-            } catch (err: any) {
-                toast.error(err?.message || "Impossible de convertir le compte visiteur.");
+            } catch (err: unknown) {
+                const message = err instanceof Error ? err.message : "Impossible de convertir le compte visiteur.";
+                toast.error(message);
                 return;
             }
+        }
+        if (!effectiveToken) {
+            toast.error("Session invalide. Veuillez vous reconnecter.");
+            return;
+        }
+
+        try {
+            const created = await enrollmentService.createEnrollment(offer.id, effectiveToken);
+            const enrollment: Enrollment = {
+                id: created.id,
+                offerId: created.offerId,
+                offerName: created.offerName,
+                schoolId: created.schoolId,
+                schoolName: created.schoolName,
+                price: created.price,
+                hours: created.hours,
+                permitType: created.permitType,
+                modules: offer.modules || [],
+                status: created.status === "CANCELLED" ? "REFUSED" : (created.status as Enrollment["status"]),
+                enrolledAt: created.enrolledAt,
+                studentId: created.studentId || effectiveUser.id || "",
+                studentName: created.studentName || `${effectiveUser.firstName} ${effectiveUser.lastName}`,
+            };
+            const updated = [...enrollments, enrollment];
+            saveEnrollments(updated);
+            setConfirmOfferId(null);
+            toast.success(`Inscription envoyee pour "${enrollment.offerName}" ! En attente de validation par l'auto-ecole.`);
+            return;
+        } catch {
+            // fallback local draft below
         }
         const enrollment: Enrollment = {
             id: crypto.randomUUID(),
             offerId: offer.id,
-            offerName: offer.title || offer.name,
+            offerName: offer.title || offer.name || "Offre",
             schoolId: school.id,
             schoolName: school.name,
             price: offer.price,

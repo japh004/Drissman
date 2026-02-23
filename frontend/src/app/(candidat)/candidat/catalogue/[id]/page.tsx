@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { use, useState, useEffect } from "react";
 import { useSchool, useAuth } from "@/hooks";
@@ -6,6 +6,7 @@ import { Star, MapPin, ArrowLeft, Car, ShieldCheck, Check, Loader2, Phone, X } f
 import Link from "next/link";
 import { toast } from "sonner";
 import { PageTransition } from "@/components/ui/motion";
+import { enrollmentService, EnrollmentDto } from "@/lib/enrollment-service";
 
 interface Enrollment {
     id: string;
@@ -16,7 +17,7 @@ interface Enrollment {
     price: number;
     hours: number;
     permitType: string;
-    modules: any[];
+    modules: Array<{ id: string; name: string; category: string; requiredHours: number }>;
     status: "PENDING" | "ACTIVE" | "COMPLETED" | "REFUSED";
     enrolledAt: string;
     studentId: string;
@@ -25,36 +26,111 @@ interface Enrollment {
     paymentPhone: string;
 }
 
+interface SchoolOffer {
+    id: string;
+    title: string;
+    name?: string;
+    type: string;
+    permitType?: string;
+    description: string;
+    features?: string[];
+    price: number;
+    hours?: number;
+    modules?: Array<{ id: string; name: string; category: string; requiredHours: number }>;
+}
+
+interface SchoolReview {
+    id: string;
+    user: string;
+    rating: number;
+    date: string;
+    comment: string;
+}
+
 interface PageProps { params: Promise<{ id: string }> }
 
 export default function CatalogueDetailPage({ params }: PageProps) {
     const { id } = use(params);
     const { school, loading, error } = useSchool(id);
-    const { user } = useAuth();
+    const { user, token } = useAuth();
     const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
-    const [paymentModal, setPaymentModal] = useState<any | null>(null);
+    const [paymentModal, setPaymentModal] = useState<SchoolOffer | null>(null);
     const [paymentMethod, setPaymentMethod] = useState<string>("");
     const [paymentPhone, setPaymentPhone] = useState("");
     const [submitting, setSubmitting] = useState(false);
 
     useEffect(() => {
-        try {
-            const stored = localStorage.getItem("candidat_enrollments");
-            if (stored) setEnrollments(JSON.parse(stored));
-        } catch { /* ignore */ }
-    }, []);
+        let cancelled = false;
+        const load = async () => {
+            if (!token) return;
+            try {
+                const remote = await enrollmentService.getMyEnrollments(token);
+                if (cancelled) return;
+                const mapped: Enrollment[] = remote.map((e: EnrollmentDto) => ({
+                    id: e.id,
+                    offerId: e.offerId,
+                    offerName: e.offerName,
+                    schoolId: e.schoolId,
+                    schoolName: e.schoolName,
+                    price: e.price,
+                    hours: e.hours,
+                    permitType: e.permitType,
+                    modules: [],
+                    status: e.status === "CANCELLED" ? "REFUSED" : (e.status as Enrollment["status"]),
+                    enrolledAt: e.enrolledAt,
+                    studentId: e.studentId,
+                    studentName: e.studentName,
+                    paymentMethod: "",
+                    paymentPhone: "",
+                }));
+                setEnrollments(mapped);
+                localStorage.setItem("candidat_enrollments", JSON.stringify(mapped));
+                return;
+            } catch {
+                // fallback
+            }
+            try {
+                const stored = localStorage.getItem("candidat_enrollments");
+                if (stored) setEnrollments(JSON.parse(stored));
+            } catch { /* ignore */ }
+        };
+        load();
+        return () => { cancelled = true; };
+    }, [token]);
 
-    const isEnrolled = (offerId: string) => enrollments.some(e => e.offerId === offerId);
+    const isEnrolled = (offerId: string) => enrollments.some(e => e.offerId === offerId && (!user?.id || !e.studentId || e.studentId === user.id));
 
-    const handleSubmitPayment = () => {
+    const handleSubmitPayment = async () => {
         if (!paymentMethod || !paymentPhone || !paymentModal || !user) return;
         setSubmitting(true);
+        await new Promise(resolve => setTimeout(resolve, 1200));
 
-        setTimeout(() => {
-            const enrollment: Enrollment = {
+        let enrollment: Enrollment;
+        try {
+            if (!token) throw new Error("no-token");
+            const created = await enrollmentService.createEnrollment(paymentModal.id, token);
+            enrollment = {
+                id: created.id,
+                offerId: created.offerId,
+                offerName: created.offerName,
+                schoolId: created.schoolId,
+                schoolName: created.schoolName,
+                price: created.price,
+                hours: created.hours,
+                permitType: created.permitType,
+                modules: paymentModal.modules || [],
+                status: created.status === "CANCELLED" ? "REFUSED" : (created.status as Enrollment["status"]),
+                enrolledAt: created.enrolledAt,
+                studentId: created.studentId,
+                studentName: created.studentName,
+                paymentMethod,
+                paymentPhone,
+            };
+        } catch {
+            enrollment = {
                 id: crypto.randomUUID(),
                 offerId: paymentModal.id,
-                offerName: paymentModal.title || paymentModal.name,
+                offerName: paymentModal.title || paymentModal.name || "Offre",
                 schoolId: school!.id,
                 schoolName: school!.name,
                 price: paymentModal.price,
@@ -68,22 +144,22 @@ export default function CatalogueDetailPage({ params }: PageProps) {
                 paymentMethod,
                 paymentPhone,
             };
-            const updated = [...enrollments, enrollment];
-            setEnrollments(updated);
-            localStorage.setItem("candidat_enrollments", JSON.stringify(updated));
+        }
 
-            setPaymentModal(null);
-            setPaymentMethod("");
-            setPaymentPhone("");
-            setSubmitting(false);
+        const updated = [...enrollments, enrollment];
+        setEnrollments(updated);
+        localStorage.setItem("candidat_enrollments", JSON.stringify(updated));
 
-            toast.success("Paiement en attente de confirmation par l'auto-école !", {
-                description: `Via ${paymentMethod} (${paymentPhone})`,
-                duration: 5000,
-            });
-        }, 1500);
+        setPaymentModal(null);
+        setPaymentMethod("");
+        setPaymentPhone("");
+        setSubmitting(false);
+
+        toast.success("Paiement en attente de confirmation.", {
+            description: `Via ${paymentMethod} (${paymentPhone})`,
+            duration: 5000,
+        });
     };
-
     if (loading) {
         return (
             <div className="flex items-center justify-center py-24">
@@ -96,8 +172,8 @@ export default function CatalogueDetailPage({ params }: PageProps) {
         return (
             <div className="text-center py-24">
                 <Car className="h-12 w-12 text-mist/20 mx-auto mb-3" />
-                <p className="text-sm text-mist/50">Auto-école introuvable</p>
-                <Link href="/candidat/catalogue" className="text-xs text-signal mt-2 inline-block">← Retour au catalogue</Link>
+                <p className="text-sm text-mist/50">Auto-Ã©cole introuvable</p>
+                <Link href="/candidat/catalogue" className="text-xs text-signal mt-2 inline-block">â† Retour au catalogue</Link>
             </div>
         );
     }
@@ -129,7 +205,7 @@ export default function CatalogueDetailPage({ params }: PageProps) {
                         </div>
                         {schoolData.isVerified && (
                             <span className="bg-green-500/20 text-green-400 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
-                                <ShieldCheck className="h-3 w-3" /> Vérifié
+                                <ShieldCheck className="h-3 w-3" /> VÃ©rifiÃ©
                             </span>
                         )}
                     </div>
@@ -143,7 +219,7 @@ export default function CatalogueDetailPage({ params }: PageProps) {
             {/* Description */}
             {school.description && (
                 <div className="bg-white/[0.03] rounded-2xl border border-white/[0.06] p-6">
-                    <h2 className="text-lg font-black text-snow mb-3">À propos</h2>
+                    <h2 className="text-lg font-black text-snow mb-3">Ã€ propos</h2>
                     <p className="text-sm text-mist/70 leading-relaxed">{school.description}</p>
                 </div>
             )}
@@ -153,7 +229,7 @@ export default function CatalogueDetailPage({ params }: PageProps) {
                 <div>
                     <h2 className="text-xl font-black text-snow mb-4">Nos Formules</h2>
                     <div className="grid sm:grid-cols-2 gap-4">
-                        {school.offers.map((offer: any) => {
+                        {school.offers.map((offer: SchoolOffer) => {
                             const enrolled = isEnrolled(offer.id);
                             return (
                                 <div key={offer.id} className={`bg-white/[0.03] rounded-2xl border p-5 transition-all ${enrolled ? "border-green-500/20" : "border-white/[0.06] hover:border-signal/20"}`}>
@@ -197,9 +273,9 @@ export default function CatalogueDetailPage({ params }: PageProps) {
             {/* Reviews */}
             {school.reviews && school.reviews.length > 0 && (
                 <div>
-                    <h2 className="text-xl font-black text-snow mb-4">Avis des élèves</h2>
+                    <h2 className="text-xl font-black text-snow mb-4">Avis des Ã©lÃ¨ves</h2>
                     <div className="space-y-3">
-                        {school.reviews.map((review: any) => (
+                        {school.reviews.map((review: SchoolReview) => (
                             <div key={review.id} className="bg-white/[0.03] rounded-2xl border border-white/[0.06] p-4">
                                 <div className="flex items-center justify-between mb-2">
                                     <div className="flex items-center gap-2">
@@ -233,7 +309,7 @@ export default function CatalogueDetailPage({ params }: PageProps) {
                             <div className="flex justify-between items-start">
                                 <div>
                                     <h3 className="text-lg font-black text-snow">Inscription</h3>
-                                    <p className="text-xs text-mist/50 mt-0.5">{paymentModal.title} · {new Intl.NumberFormat("fr-FR").format(paymentModal.price)} FCFA</p>
+                                    <p className="text-xs text-mist/50 mt-0.5">{paymentModal.title} Â· {new Intl.NumberFormat("fr-FR").format(paymentModal.price)} FCFA</p>
                                 </div>
                                 <button onClick={() => { setPaymentModal(null); setPaymentMethod(""); setPaymentPhone(""); }}
                                     className="p-1.5 rounded-lg text-mist hover:text-snow hover:bg-white/5 transition-all">
@@ -249,12 +325,12 @@ export default function CatalogueDetailPage({ params }: PageProps) {
                                 <div className="grid grid-cols-2 gap-3">
                                     <button onClick={() => setPaymentMethod("Orange Money")}
                                         className={`p-4 rounded-xl border-2 transition-all text-center ${paymentMethod === "Orange Money" ? "border-orange-500 bg-orange-500/10" : "border-white/10 bg-white/[0.02] hover:border-white/20"}`}>
-                                        <div className="text-2xl mb-1">🟠</div>
+                                        <div className="text-2xl mb-1">ðŸŸ </div>
                                         <p className="text-xs font-bold text-snow">Orange Money</p>
                                     </button>
                                     <button onClick={() => setPaymentMethod("MTN Mobile Money")}
                                         className={`p-4 rounded-xl border-2 transition-all text-center ${paymentMethod === "MTN Mobile Money" ? "border-yellow-500 bg-yellow-500/10" : "border-white/10 bg-white/[0.02] hover:border-white/20"}`}>
-                                        <div className="text-2xl mb-1">🟡</div>
+                                        <div className="text-2xl mb-1">ðŸŸ¡</div>
                                         <p className="text-xs font-bold text-snow">MTN MoMo</p>
                                     </button>
                                 </div>
@@ -262,7 +338,7 @@ export default function CatalogueDetailPage({ params }: PageProps) {
 
                             {paymentMethod && (
                                 <div>
-                                    <p className="text-xs font-bold text-mist/40 uppercase tracking-wider mb-2">Numéro de téléphone</p>
+                                    <p className="text-xs font-bold text-mist/40 uppercase tracking-wider mb-2">NumÃ©ro de tÃ©lÃ©phone</p>
                                     <div className="relative">
                                         <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-mist/30" />
                                         <input type="tel" placeholder="6XX XXX XXX" value={paymentPhone} onChange={e => setPaymentPhone(e.target.value)}
@@ -283,7 +359,7 @@ export default function CatalogueDetailPage({ params }: PageProps) {
                                         <span className="text-snow font-bold">{paymentMethod}</span>
                                     </div>
                                     <div className="flex justify-between text-xs">
-                                        <span className="text-mist/50">Téléphone</span>
+                                        <span className="text-mist/50">TÃ©lÃ©phone</span>
                                         <span className="text-snow font-bold">{paymentPhone}</span>
                                     </div>
                                     <div className="flex justify-between text-sm pt-2 border-t border-white/[0.06]">

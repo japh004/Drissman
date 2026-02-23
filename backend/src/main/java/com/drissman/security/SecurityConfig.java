@@ -82,7 +82,11 @@ public class SecurityConfig {
                         .pathMatchers(HttpMethod.GET, "/api/partner/enrollments").permitAll()
                         .pathMatchers(HttpMethod.GET, "/api/student/progress").permitAll()
                         .pathMatchers(HttpMethod.GET, "/api/availabilities/**").permitAll()
-                        .pathMatchers(HttpMethod.GET, "/api/monitors/me").permitAll()
+
+                        // Role-scoped areas
+                        .pathMatchers("/api/schools/admin/**").hasRole("SCHOOL_ADMIN")
+                        .pathMatchers("/api/monitors/**").hasAnyRole("MONITOR", "SCHOOL_ADMIN")
+                        .pathMatchers("/api/enrollments/**").hasAnyRole("VISITOR", "CANDIDAT", "SCHOOL_ADMIN")
 
                         // All other endpoints require authentication
                         .anyExchange().authenticated())

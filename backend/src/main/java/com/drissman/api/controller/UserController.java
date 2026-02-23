@@ -27,13 +27,20 @@ public class UserController {
         }
         UUID userId = UUID.fromString(principal.getName());
         return userService.findById(userId)
-                .switchIfEmpty(Mono.error(new RuntimeException("Utilisateur non trouvé")));
+                .switchIfEmpty(Mono.error(new RuntimeException("Utilisateur non trouve")));
     }
 
     @GetMapping("/{id}")
-    public Mono<UserDto> getUser(@PathVariable UUID id) {
+    public Mono<UserDto> getUser(Principal principal, @PathVariable UUID id) {
+        if (principal == null) {
+            return Mono.error(new RuntimeException("Authentification requise"));
+        }
+        UUID authenticatedUserId = UUID.fromString(principal.getName());
+        if (!authenticatedUserId.equals(id)) {
+            return Mono.error(new IllegalArgumentException("Acces refuse"));
+        }
         return userService.findById(id)
-                .switchIfEmpty(Mono.error(new RuntimeException("Utilisateur non trouvé")));
+                .switchIfEmpty(Mono.error(new RuntimeException("Utilisateur non trouve")));
     }
 
     @PutMapping("/{id}")
@@ -44,7 +51,6 @@ public class UserController {
         if (principal == null) {
             return Mono.error(new RuntimeException("Authentification requise"));
         }
-        // Ownership check: only allow users to update their own profile
         UUID authenticatedUserId = UUID.fromString(principal.getName());
         if (!authenticatedUserId.equals(id)) {
             return Mono.error(new IllegalArgumentException("Vous ne pouvez modifier que votre propre profil"));
@@ -61,7 +67,6 @@ public class UserController {
         if (principal == null) {
             return Mono.error(new RuntimeException("Authentification requise"));
         }
-        // Ownership check: only allow users to change their own password
         UUID authenticatedUserId = UUID.fromString(principal.getName());
         if (!authenticatedUserId.equals(id)) {
             return Mono.error(new IllegalArgumentException("Vous ne pouvez modifier que votre propre mot de passe"));
