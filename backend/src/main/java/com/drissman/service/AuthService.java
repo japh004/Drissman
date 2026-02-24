@@ -124,19 +124,30 @@ public class AuthService {
 
     public Mono<AuthResponse> login(LoginRequest request) {
         String normalizedEmail = request.getEmail() != null ? request.getEmail().trim().toLowerCase() : "";
-        String providedPassword = request.getPassword() != null ? request.getPassword().trim() : "";
+        String rawPassword = request.getPassword() != null ? request.getPassword() : "";
+        String trimmedPassword = rawPassword.trim();
 
         return userRepository.findFirstByEmailIgnoreCase(normalizedEmail)
                 .switchIfEmpty(Mono.error(new RuntimeException("Invalid credentials")))
                 .flatMap(user -> {
                     String storedPassword = user.getPassword() != null ? user.getPassword() : "";
-                    if (passwordEncoder.matches(providedPassword, storedPassword)) {
+
+                    boolean matchesRaw = !rawPassword.isEmpty() && passwordEncoder.matches(rawPassword, storedPassword);
+                    boolean matchesTrimmed = !trimmedPassword.isEmpty()
+                            && !trimmedPassword.equals(rawPassword)
+                            && passwordEncoder.matches(trimmedPassword, storedPassword);
+
+                    if (matchesRaw || matchesTrimmed) {
                         return Mono.just(createAuthResponse(user));
                     }
 
                     // Backward compatibility for legacy rows stored in plain text.
-                    if (providedPassword.equals(storedPassword)) {
-                        user.setPassword(passwordEncoder.encode(providedPassword));
+                    if (!rawPassword.isEmpty() && rawPassword.equals(storedPassword)) {
+                        user.setPassword(passwordEncoder.encode(rawPassword));
+                        return userRepository.save(user).map(this::createAuthResponse);
+                    }
+                    if (!trimmedPassword.isEmpty() && trimmedPassword.equals(storedPassword)) {
+                        user.setPassword(passwordEncoder.encode(trimmedPassword));
                         return userRepository.save(user).map(this::createAuthResponse);
                     }
 
