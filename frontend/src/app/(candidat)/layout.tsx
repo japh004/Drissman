@@ -5,6 +5,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Loader2, LayoutDashboard, CalendarDays, TrendingUp, User, LogOut, Car, Menu, X, BookOpen } from "lucide-react";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 const navItems = [
     { name: "Dashboard", href: "/candidat", icon: LayoutDashboard },
@@ -70,6 +71,7 @@ export default function CandidatLayout({ children }: { children: React.ReactNode
                             className="sm:hidden p-2 rounded-xl text-mist hover:text-snow hover:bg-white/5 transition-all">
                             {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
                         </button>
+                        <ThemeToggle />
 
                         <button onClick={() => { logout(); router.push("/"); }}
                             className="hidden sm:block p-2 rounded-xl text-mist hover:text-red-400 hover:bg-red-500/10 transition-all">

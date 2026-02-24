@@ -9,6 +9,7 @@ import {
     CalendarDays, CalendarClock, GraduationCap, Receipt, Settings,
     LogOut, Menu, X, Car, ChevronRight
 } from "lucide-react";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 const navGroups = [
     {
@@ -149,6 +150,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
                 {/* Settings link + Logout */}
                 <div className="p-3 space-y-0.5 border-t border-white/[0.06]">
+                    <div className="px-4 py-2 flex justify-end">
+                        <ThemeToggle />
+                    </div>
                     <Link href="/admin/settings"
                         onClick={() => setSidebarOpen(false)}
                         className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all group ${pathname === "/admin/settings" ? "bg-signal/10 text-signal border border-signal/20" : "text-mist hover:bg-white/5 hover:text-snow border border-transparent"
@@ -179,6 +183,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     <span className="text-sm font-black text-snow">
                         DRISS<span className="text-signal">MAN</span>
                     </span>
+                    <div className="ml-auto">
+                        <ThemeToggle />
+                    </div>
                 </header>
 
                 {/* Page content */}
