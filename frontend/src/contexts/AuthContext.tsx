@@ -63,7 +63,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const upgradeVisitor = useCallback(async (payload: UpgradeVisitorPayload): Promise<AuthResponse> => {
         if (!token) {
-            throw new Error("Session expirÃ©e. Veuillez vous reconnecter.");
+            throw new Error("Session expirée. Veuillez vous reconnecter.");
         }
         const response = await authService.upgradeVisitor(payload, token);
         saveSession(response);

@@ -152,7 +152,7 @@ export default function CatalogueDetailPage({ params }: PageProps) {
         return (
             <div className="text-center py-24">
                 <Car className="h-12 w-12 text-mist/20 mx-auto mb-3" />
-                <p className="text-sm text-mist/50">Auto-Ã©cole introuvable</p>
+                <p className="text-sm text-mist/50">Auto-école introuvable</p>
                 <Link href="/candidat/catalogue" className="text-xs text-signal mt-2 inline-block">â† Retour au catalogue</Link>
             </div>
         );
@@ -185,7 +185,7 @@ export default function CatalogueDetailPage({ params }: PageProps) {
                         </div>
                         {schoolData.isVerified && (
                             <span className="bg-green-500/20 text-green-400 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
-                                <ShieldCheck className="h-3 w-3" /> VÃ©rifiÃ©
+                                <ShieldCheck className="h-3 w-3" /> Vérifié
                             </span>
                         )}
                     </div>
@@ -199,7 +199,7 @@ export default function CatalogueDetailPage({ params }: PageProps) {
             {/* Description */}
             {school.description && (
                 <div className="bg-white/[0.03] rounded-2xl border border-white/[0.06] p-6">
-                    <h2 className="text-lg font-black text-snow mb-3">Ã€ propos</h2>
+                    <h2 className="text-lg font-black text-snow mb-3">À propos</h2>
                     <p className="text-sm text-mist/70 leading-relaxed">{school.description}</p>
                 </div>
             )}
@@ -253,7 +253,7 @@ export default function CatalogueDetailPage({ params }: PageProps) {
             {/* Reviews */}
             {school.reviews && school.reviews.length > 0 && (
                 <div>
-                    <h2 className="text-xl font-black text-snow mb-4">Avis des Ã©lÃ¨ves</h2>
+                    <h2 className="text-xl font-black text-snow mb-4">Avis des élèves</h2>
                     <div className="space-y-3">
                         {school.reviews.map((review: SchoolReview) => (
                             <div key={review.id} className="bg-white/[0.03] rounded-2xl border border-white/[0.06] p-4">
@@ -318,7 +318,7 @@ export default function CatalogueDetailPage({ params }: PageProps) {
 
                             {paymentMethod && (
                                 <div>
-                                    <p className="text-xs font-bold text-mist/40 uppercase tracking-wider mb-2">NumÃ©ro de tÃ©lÃ©phone</p>
+                                    <p className="text-xs font-bold text-mist/40 uppercase tracking-wider mb-2">Numéro de téléphone</p>
                                     <div className="relative">
                                         <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-mist/30" />
                                         <input type="tel" placeholder="6XX XXX XXX" value={paymentPhone} onChange={e => setPaymentPhone(e.target.value)}
@@ -339,7 +339,7 @@ export default function CatalogueDetailPage({ params }: PageProps) {
                                         <span className="text-snow font-bold">{paymentMethod}</span>
                                     </div>
                                     <div className="flex justify-between text-xs">
-                                        <span className="text-mist/50">TÃ©lÃ©phone</span>
+                                        <span className="text-mist/50">Téléphone</span>
                                         <span className="text-snow font-bold">{paymentPhone}</span>
                                     </div>
                                     <div className="flex justify-between text-sm pt-2 border-t border-white/[0.06]">

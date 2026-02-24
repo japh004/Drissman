@@ -116,7 +116,7 @@ export default function RegisterPage() {
                                         <div>
                                             <h3 className="text-snow font-bold mb-1">Visiteur</h3>
                                             <p className="text-mist/70 text-xs leading-relaxed">
-                                                J&apos;explore la plateforme et je choisis plus tard entre Ã©lÃ¨ve ou auto-Ã©cole.
+                                                J&apos;explore la plateforme et je choisis plus tard entre élève ou auto-école.
                                             </p>
                                         </div>
                                     </div>
