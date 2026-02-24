@@ -33,7 +33,6 @@ public class MonitorService {
                 request.getPassword() != null && !request.getPassword().isBlank()) {
 
             User newUser = User.builder()
-                    .id(UUID.randomUUID())
                     .schoolId(schoolId)
                     .email(request.getEmail())
                     .password(passwordEncoder.encode(request.getPassword()))
@@ -52,7 +51,6 @@ public class MonitorService {
 
     private Mono<MonitorDto> saveMonitorEntity(UUID schoolId, CreateMonitorRequest request, UUID userId) {
         Monitor monitor = Monitor.builder()
-                .id(UUID.randomUUID())
                 .schoolId(schoolId)
                 .userId(userId)
                 .firstName(request.getFirstName())
