@@ -42,7 +42,6 @@ public class TrainingPeriodService {
     public Mono<TrainingPeriodViewDto> create(UUID schoolId, CreateTrainingPeriodRequest request) {
         UUID primaryOfferId = resolvePrimaryOfferId(request);
         TrainingPeriod period = TrainingPeriod.builder()
-                .id(UUID.randomUUID())
                 .schoolId(schoolId)
                 .offerId(primaryOfferId)
                 .name(request.getName())
