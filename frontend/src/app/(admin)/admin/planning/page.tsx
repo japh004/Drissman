@@ -1,12 +1,13 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { CalendarDays, Plus, Users } from "lucide-react";
+import { Plus, Users } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth, useLocalStorage } from "@/hooks";
 import { adminSessionService, type AvailableOfferDto, type SessionEnrollmentOptionDto, type SessionDto } from "@/lib/admin-session-service";
 import { adminMonitorService, type AdminMonitorDto } from "@/lib/admin-monitor-service";
 import { adminModuleService, type AdminModuleDto } from "@/lib/admin-module-service";
+import { WeeklySchedule } from "@/components/planning/weekly-schedule";
 
 interface ModuleItem {
   id: string;
@@ -42,6 +43,7 @@ export default function PlanningPage() {
   const [enrollments, setEnrollments] = useState<SessionEnrollmentOptionDto[]>([]);
   const [monitors, setMonitors] = useState<AdminMonitorDto[]>([]);
   const [createdSessions, setCreatedSessions] = useState<SessionDto[]>([]);
+  const [weekOffset, setWeekOffset] = useState(0);
   const [loadingOffers, setLoadingOffers] = useState(false);
   const [loadingEnrollments, setLoadingEnrollments] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -285,25 +287,21 @@ export default function PlanningPage() {
       </div>
 
       <div className="bg-white/[0.03] rounded-2xl border border-white/[0.06] p-6">
-        <h2 className="text-base font-black text-snow mb-3">Dernieres seances creees</h2>
-        {createdSessions.length === 0 ? (
-          <div className="flex items-center gap-2 text-mist/50 text-sm">
-            <CalendarDays className="h-4 w-4" /> Aucune creation sur cette session.
-          </div>
-        ) : (
-          <div className="space-y-2">
-            {createdSessions.map((session) => (
-              <div key={session.id} className="rounded-xl border border-white/10 bg-white/[0.02] p-3 flex items-center justify-between">
-                <div className="text-sm text-snow">
-                  {session.date} {session.startTime} - {session.endTime}
-                </div>
-                <div className="text-xs text-mist/60 flex items-center gap-1">
-                  <Users className="h-3 w-3" /> {session.status}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+        <h2 className="text-base font-black text-snow mb-3">Emploi du Temps Hebdomadaire</h2>
+        <WeeklySchedule
+          events={createdSessions.map((session) => ({ ...session, id: session.id }))}
+          weekOffset={weekOffset}
+          setWeekOffset={setWeekOffset}
+          emptyLabel="Aucune creation sur cette semaine."
+          renderEvent={(session) => (
+            <div key={session.id} className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-2">
+              <p className="text-[11px] font-black text-signal">{session.startTime} - {session.endTime}</p>
+              <p className="text-[10px] text-mist/60 flex items-center gap-1">
+                <Users className="h-3 w-3" /> {session.status}
+              </p>
+            </div>
+          )}
+        />
       </div>
     </div>
   );

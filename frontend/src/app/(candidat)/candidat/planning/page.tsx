@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { CalendarDays, Clock, MapPin, User } from "lucide-react";
+import { Clock, MapPin, User } from "lucide-react";
 import { PageTransition } from "@/components/ui/motion";
 import { useAuth } from "@/hooks";
 import { enrollmentService, type CandidateSessionDto } from "@/lib/enrollment-service";
+import { WeeklySchedule, getWeekDatesForOffset } from "@/components/planning/weekly-schedule";
 import { toast } from "sonner";
 
 const statusConfig: Record<string, { label: string; class: string }> = {
@@ -19,6 +20,7 @@ const statusConfig: Record<string, { label: string; class: string }> = {
 export default function CandidatPlanningPage() {
   const { token } = useAuth();
   const [sessions, setSessions] = useState<CandidateSessionDto[]>([]);
+  const [weekOffset, setWeekOffset] = useState(0);
 
   useEffect(() => {
     if (!token) return;
@@ -36,48 +38,49 @@ export default function CandidatPlanningPage() {
     () => sessions.filter((s) => s.status !== "COMPLETED" && s.status !== "CANCELLED"),
     [sessions],
   );
+  const weekDates = getWeekDatesForOffset(weekOffset);
+  const weekUpcoming = useMemo(() => upcoming.filter((s) => weekDates.includes(s.date)), [upcoming, weekDates]);
   const past = useMemo(() => sessions.filter((s) => s.status === "COMPLETED"), [sessions]);
 
   return (
     <PageTransition className="space-y-8">
       <div>
         <h1 className="text-2xl font-black text-snow">Mon Planning</h1>
-        <p className="text-sm text-mist mt-0.5">{upcoming.length} seance(s) a venir</p>
+        <p className="text-sm text-mist mt-0.5">{weekUpcoming.length} seance(s) cette semaine</p>
       </div>
 
       <div>
-        <h2 className="text-sm font-bold text-signal mb-3 uppercase tracking-wider">A venir</h2>
-        {upcoming.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-10 text-center bg-white/[0.03] rounded-2xl border border-white/[0.06]">
-            <CalendarDays className="h-12 w-12 text-mist/15 mb-3" />
-            <p className="text-sm text-mist/50">Aucune seance programmee</p>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {upcoming.map((s) => {
-              const st = statusConfig[s.status] || statusConfig.SCHEDULED;
-              return (
-                <div key={s.sessionId} className="bg-white/[0.03] rounded-2xl border border-white/[0.06] p-4 flex items-center gap-4">
-                  <div className="bg-signal/10 text-signal font-mono text-xs font-bold p-2.5 rounded-xl text-center min-w-[90px]">
-                    <div>{s.startTime}</div>
-                    <div className="text-mist/30 text-[10px]">{s.date}</div>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-0.5 flex-wrap">
-                      <h3 className="text-sm font-bold text-snow">{s.offerName}</h3>
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-lg ${st.class}`}>{st.label}</span>
-                    </div>
-                    <div className="flex items-center gap-3 text-xs text-mist/50">
-                      <span className="flex items-center gap-1"><User className="h-3 w-3" />{s.monitorName}</span>
-                      <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{s.meetingPoint || "Lieu a definir"}</span>
-                      <span className="flex items-center gap-1"><Clock className="h-3 w-3" />{s.startTime} - {s.endTime}</span>
-                    </div>
-                  </div>
+        <h2 className="text-sm font-bold text-signal mb-3 uppercase tracking-wider">Emploi du Temps</h2>
+        <WeeklySchedule
+          events={upcoming.map((session) => ({ ...session, id: session.sessionId }))}
+          weekOffset={weekOffset}
+          setWeekOffset={setWeekOffset}
+          emptyLabel="Aucune seance programmee"
+          renderEvent={(s) => {
+            const st = statusConfig[s.status] || statusConfig.SCHEDULED;
+            return (
+              <div key={s.id} className="bg-white/[0.02] rounded-xl border border-white/[0.08] p-2">
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-[11px] font-black text-signal">{s.startTime} - {s.endTime}</p>
+                  <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${st.class}`}>{st.label}</span>
                 </div>
-              );
-            })}
-          </div>
-        )}
+                <p className="text-[11px] font-bold text-snow truncate">{s.offerName}</p>
+                <p className="text-[10px] text-mist/50 flex items-center gap-1 truncate">
+                  <User className="h-3 w-3" />
+                  {s.monitorName}
+                </p>
+                <p className="text-[10px] text-mist/50 flex items-center gap-1 truncate">
+                  <MapPin className="h-3 w-3" />
+                  {s.meetingPoint || "Lieu a definir"}
+                </p>
+                <p className="text-[10px] text-mist/50 flex items-center gap-1">
+                  <Clock className="h-3 w-3" />
+                  {s.date}
+                </p>
+              </div>
+            );
+          }}
+        />
       </div>
 
       <div>
