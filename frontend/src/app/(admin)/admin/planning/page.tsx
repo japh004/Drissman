@@ -15,6 +15,12 @@ interface ModuleItem {
 }
 type ModuleLessonsMap = Record<string, Array<{ id: string; name: string }>>;
 
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+function isUuid(value: string | undefined | null): value is string {
+  return Boolean(value && UUID_REGEX.test(value));
+}
+
 const emptyForm = {
   date: "",
   startTime: "09:00",
@@ -30,7 +36,7 @@ const emptyForm = {
 export default function PlanningPage() {
   const { token } = useAuth();
   const [modules, setModules] = useState<ModuleItem[]>([]);
-  const [lessonsByModule] = useLocalStorage<ModuleLessonsMap>("module_lessons_map", {});
+  const [lessonsByModule, setLessonsByModule] = useLocalStorage<ModuleLessonsMap>("module_lessons_map", {});
   const [form, setForm] = useState(emptyForm);
   const [offers, setOffers] = useState<AvailableOfferDto[]>([]);
   const [enrollments, setEnrollments] = useState<SessionEnrollmentOptionDto[]>([]);
@@ -42,6 +48,23 @@ export default function PlanningPage() {
 
   const selectedModule = useMemo(() => modules.find((m) => m.id === form.moduleId), [modules, form.moduleId]);
   const availableLessons = selectedModule?.lessons || [];
+
+  useEffect(() => {
+    // Normalize old local lessons IDs that were not UUID to avoid backend 400 on session creation.
+    const normalized = Object.fromEntries(
+      Object.entries(lessonsByModule).map(([moduleId, lessons]) => [
+        moduleId,
+        (lessons || []).map((lesson) => ({
+          ...lesson,
+          id: isUuid(lesson.id) ? lesson.id : crypto.randomUUID(),
+        })),
+      ]),
+    );
+    const changed = JSON.stringify(normalized) !== JSON.stringify(lessonsByModule);
+    if (changed) {
+      setLessonsByModule(normalized);
+    }
+  }, [lessonsByModule, setLessonsByModule]);
 
   useEffect(() => {
     if (!token) return;
@@ -111,8 +134,8 @@ export default function PlanningPage() {
         {
           enrollmentId: form.enrollmentId,
           monitorId: form.monitorId,
-          moduleId: form.moduleId || undefined,
-          lessonId: form.lessonId || undefined,
+          moduleId: isUuid(form.moduleId) ? form.moduleId : undefined,
+          lessonId: isUuid(form.lessonId) ? form.lessonId : undefined,
           date: form.date,
           startTime: form.startTime,
           endTime: form.endTime,

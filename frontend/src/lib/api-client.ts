@@ -23,7 +23,12 @@ async function request<T>(endpoint: string, options: RequestOptions = {}): Promi
 
     if (!response.ok) {
         const errorBody = await response.json().catch(() => ({}));
-        throw new Error(errorBody.message || `Erreur ${response.status}`);
+        const message =
+            errorBody?.message ||
+            errorBody?.error ||
+            errorBody?.details ||
+            `Erreur ${response.status}`;
+        throw new Error(message);
     }
 
     // Handle 204 No Content

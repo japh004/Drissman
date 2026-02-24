@@ -92,7 +92,7 @@ export default function SessionsPage() {
       toast.success("Session creee");
     } catch (error) {
       console.error(error);
-      toast.error("Creation impossible");
+      toast.error((error as Error).message || "Creation impossible");
     }
   };
 
