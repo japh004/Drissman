@@ -29,15 +29,18 @@ public class MonitorService {
 
     @Transactional
     public Mono<MonitorDto> createMonitor(UUID schoolId, CreateMonitorRequest request) {
-        if (request.getEmail() != null && !request.getEmail().isBlank() &&
-                request.getPassword() != null && !request.getPassword().isBlank()) {
+        String normalizedEmail = request.getEmail() != null ? request.getEmail().trim().toLowerCase() : null;
+        String normalizedPassword = request.getPassword() != null ? request.getPassword().trim() : null;
+
+        if (normalizedEmail != null && !normalizedEmail.isBlank() &&
+                normalizedPassword != null && !normalizedPassword.isBlank()) {
 
             User newUser = User.builder()
                     .schoolId(schoolId)
-                    .email(request.getEmail())
-                    .password(passwordEncoder.encode(request.getPassword()))
-                    .firstName(request.getFirstName())
-                    .lastName(request.getLastName())
+                    .email(normalizedEmail)
+                    .password(passwordEncoder.encode(normalizedPassword))
+                    .firstName(request.getFirstName() != null ? request.getFirstName().trim() : null)
+                    .lastName(request.getLastName() != null ? request.getLastName().trim() : null)
                     .role(User.Role.MONITOR)
                     .createdAt(LocalDateTime.now())
                     .build();
@@ -53,10 +56,10 @@ public class MonitorService {
         Monitor monitor = Monitor.builder()
                 .schoolId(schoolId)
                 .userId(userId)
-                .firstName(request.getFirstName())
-                .lastName(request.getLastName())
-                .licenseNumber(request.getLicenseNumber())
-                .phoneNumber(request.getPhoneNumber())
+                .firstName(request.getFirstName() != null ? request.getFirstName().trim() : null)
+                .lastName(request.getLastName() != null ? request.getLastName().trim() : null)
+                .licenseNumber(request.getLicenseNumber() != null ? request.getLicenseNumber().trim() : null)
+                .phoneNumber(request.getPhoneNumber() != null ? request.getPhoneNumber().trim() : null)
                 .status(Monitor.MonitorStatus.ACTIVE)
                 .createdAt(LocalDateTime.now())
                 .build();

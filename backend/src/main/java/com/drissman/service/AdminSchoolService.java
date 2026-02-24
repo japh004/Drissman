@@ -75,8 +75,7 @@ public class AdminSchoolService {
                 }
 
                 Mono<Integer> activeCandidates = enrollmentRepository.findBySchoolId(schoolId)
-                                .filter(e -> e.getStatus() == Enrollment.EnrollmentStatus.ACTIVE
-                                                || e.getStatus() == Enrollment.EnrollmentStatus.PENDING)
+                                .filter(e -> e.getStatus() == Enrollment.EnrollmentStatus.ACTIVE)
                                 .count()
                                 .map(Long::intValue);
 
@@ -177,11 +176,8 @@ public class AdminSchoolService {
                                 .map(offer -> offer.getPrice() != null ? offer.getPrice().longValue() : 0L)
                                 .reduce(0L, Long::sum);
 
-                Mono<Integer> pendingValidations = sessionRepository.findBySchoolId(schoolId)
-                                .filter(s -> s.getDate() != null && s.getDate().isBefore(LocalDate.now()))
-                                .filter(s -> s.getStatus() == Session.SessionStatus.SCHEDULED
-                                                || s.getStatus() == Session.SessionStatus.CONFIRMED
-                                                || s.getStatus() == Session.SessionStatus.IN_PROGRESS)
+                Mono<Integer> pendingValidations = enrollmentRepository.findBySchoolId(schoolId)
+                                .filter(e -> e.getStatus() == Enrollment.EnrollmentStatus.PENDING)
                                 .count()
                                 .map(Long::intValue);
 
