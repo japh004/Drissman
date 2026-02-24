@@ -57,7 +57,7 @@ public class TrainingPeriodService {
                 .startDate(request.getStartDate())
                 .endDate(request.getEndDate())
                 .maxStudents(request.getMaxStudents() != null ? request.getMaxStudents() : 30)
-                .status(TrainingPeriod.TrainingPeriodStatus.DRAFT)
+                .status(TrainingPeriod.TrainingPeriodStatus.PUBLISHED)
                 .enrollmentDeadline(request.getEnrollmentDeadline())
                 .scheduleDescription(request.getScheduleDescription())
                 .createdAt(LocalDateTime.now())
