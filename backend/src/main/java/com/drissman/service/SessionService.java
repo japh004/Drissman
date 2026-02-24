@@ -77,7 +77,8 @@ public class SessionService {
     public Flux<AvailableOfferDto> getAvailableOffersForDate(UUID schoolId, LocalDate date) {
         return trainingPeriodRepository.findBySchoolId(schoolId)
                 .filter(period -> isDateInPeriod(period, date))
-                .filter(period -> period.getStatus() == TrainingPeriod.TrainingPeriodStatus.PUBLISHED
+                .filter(period -> period.getStatus() == TrainingPeriod.TrainingPeriodStatus.DRAFT
+                        || period.getStatus() == TrainingPeriod.TrainingPeriodStatus.PUBLISHED
                         || period.getStatus() == TrainingPeriod.TrainingPeriodStatus.IN_PROGRESS)
                 .flatMap(period -> Flux.concat(
                         Mono.justOrEmpty(period.getOfferId()),

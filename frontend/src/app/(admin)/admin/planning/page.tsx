@@ -123,29 +123,48 @@ export default function PlanningPage() {
     if (!token) return;
     if (!form.date) return toast.error("Date obligatoire");
     if (!form.offerId) return toast.error("Offre obligatoire");
-    if (!form.enrollmentId) return toast.error("Eleve inscrit obligatoire");
     if (!form.monitorId) return toast.error("Moniteur obligatoire");
     if (!form.startTime || !form.endTime || form.startTime >= form.endTime) return toast.error("Plage horaire invalide");
     if (availableLessons.length > 0 && !form.lessonId) return toast.error("Lecon obligatoire");
+    if (enrollments.length === 0) return toast.error("Aucun eleve eligible pour cette offre a cette date");
 
     setSubmitting(true);
     try {
-      const session = await adminSessionService.create(
-        {
-          enrollmentId: form.enrollmentId,
-          monitorId: form.monitorId,
-          moduleId: isUuid(form.moduleId) ? form.moduleId : undefined,
-          lessonId: isUuid(form.lessonId) ? form.lessonId : undefined,
-          date: form.date,
-          startTime: form.startTime,
-          endTime: form.endTime,
-          meetingPoint: form.meetingPoint,
-        },
-        token,
+      const results = await Promise.allSettled(
+        enrollments.map((enrollment) =>
+          adminSessionService.create(
+            {
+              enrollmentId: enrollment.enrollmentId,
+              monitorId: form.monitorId,
+              moduleId: isUuid(form.moduleId) ? form.moduleId : undefined,
+              lessonId: isUuid(form.lessonId) ? form.lessonId : undefined,
+              date: form.date,
+              startTime: form.startTime,
+              endTime: form.endTime,
+              meetingPoint: form.meetingPoint,
+            },
+            token,
+          ),
+        ),
       );
-      setCreatedSessions((prev) => [session, ...prev]);
-      setForm((prev) => ({ ...emptyForm, date: prev.date }));
-      toast.success("Seance programmee");
+
+      const successSessions = results
+        .filter((r): r is PromiseFulfilledResult<SessionDto> => r.status === "fulfilled")
+        .map((r) => r.value);
+      const failedCount = results.length - successSessions.length;
+
+      if (successSessions.length > 0) {
+        setCreatedSessions((prev) => [...successSessions, ...prev]);
+      }
+      setForm((prev) => ({ ...emptyForm, date: prev.date, offerId: prev.offerId, monitorId: prev.monitorId, meetingPoint: prev.meetingPoint, moduleId: prev.moduleId, lessonId: prev.lessonId }));
+
+      if (successSessions.length > 0 && failedCount === 0) {
+        toast.success(`${successSessions.length} seance(s) programmee(s)`);
+      } else if (successSessions.length > 0) {
+        toast.warning(`${successSessions.length} seance(s) creee(s), ${failedCount} echec(s)`);
+      } else {
+        toast.error("Creation impossible pour les eleves selectionnes");
+      }
     } catch (error: any) {
       toast.error(error.message || "Creation impossible");
     } finally {
@@ -197,21 +216,10 @@ export default function PlanningPage() {
 
         <div className="grid sm:grid-cols-2 gap-3">
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-mist uppercase tracking-wider">Eleve inscrit *</label>
-            <select
-              value={form.enrollmentId}
-              onChange={(e) => setForm((p) => ({ ...p, enrollmentId: e.target.value }))}
-              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-snow text-sm"
-            >
-              <option value="" className="bg-asphalt">
-                {loadingEnrollments ? "Chargement..." : "Selectionner un eleve"}
-              </option>
-              {enrollments.map((enrollment) => (
-                <option key={enrollment.enrollmentId} value={enrollment.enrollmentId} className="bg-asphalt">
-                  {enrollment.studentName} ({enrollment.status})
-                </option>
-              ))}
-            </select>
+            <label className="text-xs font-bold text-mist uppercase tracking-wider">Eleves concernes</label>
+            <div className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-snow text-sm">
+              {form.offerId ? (loadingEnrollments ? "Chargement..." : `${enrollments.length} eleve(s) eligible(s)`) : "Selectionnez une offre"}
+            </div>
           </div>
           <div className="space-y-1.5">
             <label className="text-xs font-bold text-mist uppercase tracking-wider">Moniteur *</label>
@@ -272,7 +280,7 @@ export default function PlanningPage() {
           disabled={submitting}
           className="flex items-center gap-2 bg-gradient-to-r from-signal to-amber-400 text-asphalt font-bold px-5 py-2.5 rounded-xl text-sm hover:opacity-90 transition-all shadow-lg shadow-signal/20 disabled:opacity-50"
         >
-          <Plus className="h-4 w-4" /> {submitting ? "Creation..." : "Programmer la seance"}
+          <Plus className="h-4 w-4" /> {submitting ? "Creation..." : "Programmer les seances"}
         </button>
       </div>
 
