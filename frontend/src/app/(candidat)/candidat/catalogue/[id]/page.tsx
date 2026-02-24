@@ -153,7 +153,7 @@ export default function CatalogueDetailPage({ params }: PageProps) {
             <div className="text-center py-24">
                 <Car className="h-12 w-12 text-mist/20 mx-auto mb-3" />
                 <p className="text-sm text-mist/50">Auto-école introuvable</p>
-                <Link href="/candidat/catalogue" className="text-xs text-signal mt-2 inline-block">â† Retour au catalogue</Link>
+                <Link href="/candidat/catalogue" className="text-xs text-signal mt-2 inline-block">← Retour au catalogue</Link>
             </div>
         );
     }
@@ -289,7 +289,7 @@ export default function CatalogueDetailPage({ params }: PageProps) {
                             <div className="flex justify-between items-start">
                                 <div>
                                     <h3 className="text-lg font-black text-snow">Inscription</h3>
-                                    <p className="text-xs text-mist/50 mt-0.5">{paymentModal.title} Â· {new Intl.NumberFormat("fr-FR").format(paymentModal.price)} FCFA</p>
+                                    <p className="text-xs text-mist/50 mt-0.5">{paymentModal.title} · {new Intl.NumberFormat("fr-FR").format(paymentModal.price)} FCFA</p>
                                 </div>
                                 <button onClick={() => { setPaymentModal(null); setPaymentMethod(""); setPaymentPhone(""); }}
                                     className="p-1.5 rounded-lg text-mist hover:text-snow hover:bg-white/5 transition-all">
@@ -305,12 +305,12 @@ export default function CatalogueDetailPage({ params }: PageProps) {
                                 <div className="grid grid-cols-2 gap-3">
                                     <button onClick={() => setPaymentMethod("Orange Money")}
                                         className={`p-4 rounded-xl border-2 transition-all text-center ${paymentMethod === "Orange Money" ? "border-orange-500 bg-orange-500/10" : "border-white/10 bg-white/[0.02] hover:border-white/20"}`}>
-                                        <div className="text-2xl mb-1">ðŸŸ </div>
+                                        <div className="text-2xl mb-1">🟠</div>
                                         <p className="text-xs font-bold text-snow">Orange Money</p>
                                     </button>
                                     <button onClick={() => setPaymentMethod("MTN Mobile Money")}
                                         className={`p-4 rounded-xl border-2 transition-all text-center ${paymentMethod === "MTN Mobile Money" ? "border-yellow-500 bg-yellow-500/10" : "border-white/10 bg-white/[0.02] hover:border-white/20"}`}>
-                                        <div className="text-2xl mb-1">ðŸŸ¡</div>
+                                        <div className="text-2xl mb-1">🟡</div>
                                         <p className="text-xs font-bold text-snow">MTN MoMo</p>
                                     </button>
                                 </div>
