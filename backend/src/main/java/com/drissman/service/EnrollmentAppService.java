@@ -61,7 +61,6 @@ public class EnrollmentAppService {
 
                                 return normalizedUserMono.flatMap(savedUser -> {
                                     Enrollment enrollment = Enrollment.builder()
-                                            .id(UUID.randomUUID())
                                             .userId(savedUser.getId())
                                             .schoolId(offer.getSchoolId())
                                             .offerId(offer.getId())

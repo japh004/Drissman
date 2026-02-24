@@ -205,7 +205,6 @@ public class SessionService {
 
     private Mono<SessionDto> createSession(Enrollment enrollment, CreateSessionRequest request) {
         Session session = Session.builder()
-                .id(UUID.randomUUID())
                 .enrollmentId(enrollment.getId())
                 .monitorId(request.getMonitorId())
                 .moduleId(request.getModuleId())
@@ -313,7 +312,12 @@ public class SessionService {
     }
 
     private Mono<CandidateSessionViewDto> toCandidateSessionView(Session session, Enrollment enrollment) {
-        Mono<Offer> offerMono = offerRepository.findById(enrollment.getOfferId());
+        Mono<Offer> offerMono = offerRepository.findById(enrollment.getOfferId())
+                .defaultIfEmpty(Offer.builder()
+                        .id(enrollment.getOfferId())
+                        .name("Offre")
+                        .permitType("B")
+                        .build());
 
         Mono<String> monitorNameMono = Mono.just("Non assigne");
         if (session.getMonitorId() != null) {

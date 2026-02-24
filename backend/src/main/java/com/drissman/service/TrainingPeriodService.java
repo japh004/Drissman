@@ -106,7 +106,6 @@ public class TrainingPeriodService {
                 .distinct()
                 .filter(offerId -> !offerId.equals(primaryOfferId))
                 .flatMap(offerId -> sessionOfferRepository.save(SessionOffer.builder()
-                        .id(UUID.randomUUID())
                         .trainingPeriodId(periodId)
                         .offerId(offerId)
                         .createdAt(LocalDateTime.now())
