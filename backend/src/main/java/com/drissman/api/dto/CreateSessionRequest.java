@@ -32,4 +32,8 @@ public class CreateSessionRequest {
     private LocalTime endTime;
 
     private String meetingPoint;
+
+    private UUID moduleId;
+
+    private UUID lessonId;
 }

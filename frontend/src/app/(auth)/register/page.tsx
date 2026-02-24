@@ -122,7 +122,7 @@ export default function RegisterPage() {
                                     </div>
                                 </button>
 
-                                {/* Candidat option */}
+                                {/* Eleve option */}
                                 <button
                                     onClick={() => handleChoose("CANDIDAT")}
                                     className="w-full group bg-white/5 border border-white/10 rounded-2xl p-6 text-left hover:border-signal/40 hover:bg-signal/5 transition-all"
@@ -132,7 +132,7 @@ export default function RegisterPage() {
                                             <GraduationCap className="h-6 w-6 text-blue-400" />
                                         </div>
                                         <div>
-                                            <h3 className="text-snow font-bold mb-1">Élève / Candidat</h3>
+                                            <h3 className="text-snow font-bold mb-1">Élève</h3>
                                             <p className="text-mist/70 text-xs leading-relaxed">
                                                 Je cherche une auto-école pour passer mon permis de conduire.
                                             </p>
@@ -150,7 +150,7 @@ export default function RegisterPage() {
                                             <Building2 className="h-6 w-6 text-signal" />
                                         </div>
                                         <div>
-                                            <h3 className="text-snow font-bold mb-1">Auto-école (Partenaire)</h3>
+                                            <h3 className="text-snow font-bold mb-1">Gérant d&apos;auto-école</h3>
                                             <p className="text-mist/70 text-xs leading-relaxed">
                                                 Je souhaite inscrire mon auto-école sur la plateforme et gérer mes élèves.
                                             </p>
@@ -177,7 +177,7 @@ export default function RegisterPage() {
                                     ) : accountType === "CANDIDAT" ? (
                                         <><GraduationCap className="h-3.5 w-3.5" /> Compte Élève</>
                                     ) : (
-                                        <><Building2 className="h-3.5 w-3.5" /> Compte Auto-école</>
+                                        <><Building2 className="h-3.5 w-3.5" /> Compte Gérant auto-école</>
                                     )}
                                 </div>
                                 <h1 className="text-2xl font-black text-snow">Inscription</h1>

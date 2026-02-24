@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { ArrowRight, BookOpen, CalendarDays, Clock, TrendingUp } from "lucide-react";
 import { PageTransition } from "@/components/ui/motion";
@@ -13,15 +13,47 @@ export default function CandidatDashboard() {
   const [enrollments, setEnrollments] = useState<EnrollmentDto[]>([]);
   const [sessions, setSessions] = useState<CandidateSessionDto[]>([]);
 
-  useEffect(() => {
+  const loadDashboardData = useCallback(async () => {
     if (!token) return;
-    void Promise.all([enrollmentService.getMyEnrollments(token), enrollmentService.getMySessions(token)])
-      .then(([enrollmentsData, sessionsData]) => {
-        setEnrollments(enrollmentsData);
-        setSessions(sessionsData);
-      })
-      .catch((error: any) => toast.error(error.message || "Chargement impossible"));
+    try {
+      const [enrollmentsData, sessionsData] = await Promise.all([
+        enrollmentService.getMyEnrollments(token),
+        enrollmentService.getMySessions(token),
+      ]);
+      setEnrollments(enrollmentsData);
+      setSessions(sessionsData);
+    } catch {
+      toast.error("Chargement impossible");
+    }
   }, [token]);
+
+  useEffect(() => {
+    void loadDashboardData();
+  }, [loadDashboardData]);
+
+  useEffect(() => {
+    const interval = window.setInterval(() => {
+      void loadDashboardData();
+    }, 15000);
+
+    const onFocus = () => {
+      void loadDashboardData();
+    };
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") {
+        void loadDashboardData();
+      }
+    };
+
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onVisibility);
+
+    return () => {
+      window.clearInterval(interval);
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
+  }, [loadDashboardData]);
 
   const activeEnrollment = useMemo(
     () => enrollments.find((e) => e.status === "ACTIVE" || e.status === "PENDING"),
@@ -36,8 +68,20 @@ export default function CandidatDashboard() {
   );
 
   const nextSession = upcomingSessions[0];
-  const today = new Date().toISOString().split("T")[0];
-  const sessionsThisWeek = sessions.filter((s) => s.date >= today && s.status !== "CANCELLED").length;
+  const now = new Date();
+  const dayIndex = (now.getDay() + 6) % 7;
+  const weekStart = new Date(now);
+  weekStart.setDate(now.getDate() - dayIndex);
+  weekStart.setHours(0, 0, 0, 0);
+  const weekEnd = new Date(weekStart);
+  weekEnd.setDate(weekStart.getDate() + 6);
+  weekEnd.setHours(23, 59, 59, 999);
+
+  const sessionsThisWeek = sessions.filter((s) => {
+    if (!["SCHEDULED", "CONFIRMED", "IN_PROGRESS"].includes(s.status)) return false;
+    const date = new Date(`${s.date}T00:00:00`);
+    return date >= weekStart && date <= weekEnd;
+  }).length;
   const hoursCompleted = activeEnrollment?.hoursConsumed ?? 0;
   const hoursRequired = activeEnrollment?.hours ?? 0;
   const progress = hoursRequired > 0 ? Math.min(100, Math.round((hoursCompleted / hoursRequired) * 100)) : 0;
@@ -58,7 +102,7 @@ export default function CandidatDashboard() {
         <div className="bg-gradient-to-br from-signal/10 to-amber-500/5 rounded-2xl border border-signal/20 p-5">
           <CalendarDays className="h-5 w-5 text-signal opacity-60 mb-2" />
           <p className="text-2xl font-black text-snow">{sessionsThisWeek}</p>
-          <p className="text-xs text-mist/60">Seances a venir</p>
+          <p className="text-xs text-mist/60">Seances cette semaine</p>
         </div>
         <div className="bg-gradient-to-br from-green-500/10 to-green-600/5 rounded-2xl border border-green-500/20 p-5">
           <TrendingUp className="h-5 w-5 text-green-400 opacity-60 mb-2" />

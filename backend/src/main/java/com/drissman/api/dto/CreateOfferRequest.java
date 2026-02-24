@@ -15,7 +15,6 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CreateOfferRequest {
-    @NotNull
     private UUID schoolId;
 
     @NotBlank

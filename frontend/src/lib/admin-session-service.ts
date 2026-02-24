@@ -20,6 +20,8 @@ export interface SessionDto {
   id: string;
   enrollmentId: string;
   monitorId?: string;
+  moduleId?: string;
+  lessonId?: string;
   date: string;
   startTime: string;
   endTime: string;
@@ -32,6 +34,8 @@ export interface SessionDto {
 export interface CreateSessionPayload {
   enrollmentId: string;
   monitorId?: string;
+  moduleId?: string;
+  lessonId?: string;
   date: string;
   startTime: string;
   endTime: string;

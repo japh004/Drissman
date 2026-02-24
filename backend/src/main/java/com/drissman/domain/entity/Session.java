@@ -36,6 +36,12 @@ public class Session {
     @Column("monitor_id")
     private UUID monitorId; // Can be null if not yet assigned
 
+    @Column("module_id")
+    private UUID moduleId;
+
+    @Column("lesson_id")
+    private UUID lessonId;
+
     private LocalDate date;
 
     @Column("start_time")

@@ -8,7 +8,7 @@ import { Loader2, LayoutDashboard, CalendarDays, TrendingUp, User, LogOut, Car, 
 import { ThemeToggle } from "@/components/theme-toggle";
 
 const navItems = [
-    { name: "Dashboard", href: "/candidat", icon: LayoutDashboard },
+    { name: "Accueil", href: "/candidat", icon: LayoutDashboard },
     { name: "Catalogue", href: "/candidat/catalogue", icon: BookOpen },
     { name: "Mon Planning", href: "/candidat/planning", icon: CalendarDays },
     { name: "Ma Progression", href: "/candidat/progression", icon: TrendingUp },

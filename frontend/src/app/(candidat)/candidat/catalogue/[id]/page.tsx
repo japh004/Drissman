@@ -84,15 +84,10 @@ export default function CatalogueDetailPage({ params }: PageProps) {
                     paymentPhone: "",
                 }));
                 setEnrollments(mapped);
-                localStorage.setItem("candidat_enrollments", JSON.stringify(mapped));
                 return;
             } catch {
-                // fallback
+                if (!cancelled) toast.error("Impossible de charger vos inscriptions");
             }
-            try {
-                const stored = localStorage.getItem("candidat_enrollments");
-                if (stored) setEnrollments(JSON.parse(stored));
-            } catch { /* ignore */ }
         };
         load();
         return () => { cancelled = true; };
@@ -127,28 +122,13 @@ export default function CatalogueDetailPage({ params }: PageProps) {
                 paymentPhone,
             };
         } catch {
-            enrollment = {
-                id: crypto.randomUUID(),
-                offerId: paymentModal.id,
-                offerName: paymentModal.title || paymentModal.name || "Offre",
-                schoolId: school!.id,
-                schoolName: school!.name,
-                price: paymentModal.price,
-                hours: paymentModal.hours || 35,
-                permitType: paymentModal.type || paymentModal.permitType || "B",
-                modules: paymentModal.modules || [],
-                status: "PENDING",
-                enrolledAt: new Date().toISOString(),
-                studentId: user.id || "",
-                studentName: `${user.firstName} ${user.lastName}`,
-                paymentMethod,
-                paymentPhone,
-            };
+            setSubmitting(false);
+            toast.error("Inscription impossible pour le moment. Reessayez.");
+            return;
         }
 
         const updated = [...enrollments, enrollment];
         setEnrollments(updated);
-        localStorage.setItem("candidat_enrollments", JSON.stringify(updated));
 
         setPaymentModal(null);
         setPaymentMethod("");

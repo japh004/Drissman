@@ -29,6 +29,12 @@ public class AdminOfferController {
     private final OfferModuleService offerModuleService;
     private final UserRepository userRepository;
 
+    @GetMapping
+    public Flux<SchoolDto.OfferDto> getOffers(Principal principal) {
+        return getSchoolId(principal)
+                .flatMapMany(offerService::findBySchoolId);
+    }
+
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public Mono<SchoolDto.OfferDto> create(

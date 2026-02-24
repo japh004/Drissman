@@ -8,7 +8,7 @@ import { Loader2, Compass, Search, Building2, LogOut, Car, Menu, X } from "lucid
 import { ThemeToggle } from "@/components/theme-toggle";
 
 const navItems = [
-    { name: "Dashboard", href: "/visitor", icon: Compass },
+    { name: "Accueil", href: "/visitor", icon: Compass },
     { name: "Catalogue", href: "/search", icon: Search },
     { name: "Partenaires", href: "/partners", icon: Building2 },
 ];

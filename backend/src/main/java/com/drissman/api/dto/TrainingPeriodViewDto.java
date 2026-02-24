@@ -13,15 +13,15 @@ import java.util.UUID;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class CreateTrainingPeriodRequest {
-
-    private UUID offerId;
-    private List<UUID> offerIds;
+public class TrainingPeriodViewDto {
+    private UUID id;
     private String name;
     private String description;
     private LocalDate startDate;
     private LocalDate endDate;
-    private Integer maxStudents;
     private LocalDate enrollmentDeadline;
-    private String scheduleDescription;
+    private Integer maxStudents;
+    private String status;
+    private Integer totalEnrolled;
+    private List<TrainingPeriodFormationDto> formations;
 }

@@ -1,19 +1,10 @@
-﻿"use client";
+"use client";
 
-import { useEffect, useMemo } from "react";
-import { useAuth, useLocalStorage } from "@/hooks";
+import { useEffect, useMemo, useState } from "react";
+import { useAuth } from "@/hooks";
 import { Search, Receipt, DollarSign, Clock, TrendingUp, Download } from "lucide-react";
-import { enrollmentService, InvoiceDto } from "@/lib/enrollment-service";
-
-interface FallbackEnrollment {
-    id: string;
-    offerName: string;
-    studentName: string;
-    price: number;
-    status: "PENDING" | "ACTIVE" | "COMPLETED" | "REFUSED";
-    enrolledAt: string;
-}
-const NOW_SEED = Date.now();
+import { enrollmentService, type InvoiceDto } from "@/lib/enrollment-service";
+import { toast } from "sonner";
 
 const statusConfig: Record<string, { label: string; class: string }> = {
     PAID: { label: "Paye", class: "bg-green-500/10 text-green-400" },
@@ -27,56 +18,41 @@ function formatCurrency(amount: number) {
 
 export default function InvoicesPage() {
     const { token } = useAuth();
-    const [searchQuery, setSearchQuery] = useLocalStorage<string>("invoice_search", "");
-    const [fallbackEnrollments] = useLocalStorage<FallbackEnrollment[]>("candidat_enrollments", []);
-    const [apiInvoices, setApiInvoices] = useLocalStorage<InvoiceDto[]>("admin_invoices_cache", []);
-    const [nowTs] = useLocalStorage<number>("invoice_now_seed", NOW_SEED);
+    const [searchQuery, setSearchQuery] = useState("");
+    const [invoices, setInvoices] = useState<InvoiceDto[]>([]);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        if (!token) return;
+
         const load = async () => {
-            if (!token) return;
+            setLoading(true);
             try {
                 const remote = await enrollmentService.getAdminInvoices(token);
-                setApiInvoices(remote || []);
-            } catch {
-                // keep fallback
+                setInvoices(remote || []);
+            } catch (error) {
+                console.error(error);
+                toast.error("Impossible de charger les factures");
+            } finally {
+                setLoading(false);
             }
         };
-        load();
-    }, [setApiInvoices, token]);
 
-    const invoices: InvoiceDto[] = useMemo(() => {
-        if (apiInvoices.length > 0) return apiInvoices;
-        const now = nowTs;
-        return fallbackEnrollments
-            .filter((e) => e.status !== "REFUSED")
-            .map((e, idx: number) => {
-                const dueDate = new Date(e.enrolledAt);
-                dueDate.setDate(dueDate.getDate() + 7);
-                let status: InvoiceDto["status"] = "PENDING";
-                if (e.status === "ACTIVE" || e.status === "COMPLETED") status = "PAID";
-                else if (dueDate.getTime() < now) status = "OVERDUE";
+        void load();
+        const intervalId = window.setInterval(() => void load(), 15000);
+        return () => window.clearInterval(intervalId);
+    }, [token]);
 
-                return {
-                    id: e.id,
-                    enrollmentId: e.id,
-                    invoiceNumber: `INV-${new Date(e.enrolledAt).getFullYear()}-${String(idx + 1).padStart(4, "0")}`,
-                    studentName: e.studentName,
-                    offer: e.offerName,
-                    amount: e.price || 0,
-                    status,
-                    dueDate: dueDate.toISOString(),
-                    paidAt: status === "PAID" ? e.enrolledAt : null,
-                };
-            });
-    }, [apiInvoices, fallbackEnrollments, nowTs]);
+    const totalRevenue = invoices.filter((i) => i.status === "PAID").reduce((s, i) => s + (i.amount || 0), 0);
+    const totalPending = invoices.filter((i) => i.status === "PENDING").reduce((s, i) => s + (i.amount || 0), 0);
+    const totalOverdue = invoices.filter((i) => i.status === "OVERDUE").reduce((s, i) => s + (i.amount || 0), 0);
 
-    const totalRevenue = invoices.filter(i => i.status === "PAID").reduce((s, i) => s + (i.amount || 0), 0);
-    const totalPending = invoices.filter(i => i.status === "PENDING").reduce((s, i) => s + (i.amount || 0), 0);
-    const totalOverdue = invoices.filter(i => i.status === "OVERDUE").reduce((s, i) => s + (i.amount || 0), 0);
-
-    const filtered = invoices.filter(i =>
-        i.studentName.toLowerCase().includes(searchQuery.toLowerCase()) || i.invoiceNumber.toLowerCase().includes(searchQuery.toLowerCase())
+    const filtered = useMemo(
+        () =>
+            invoices.filter((i) =>
+                i.studentName.toLowerCase().includes(searchQuery.toLowerCase()) || i.invoiceNumber.toLowerCase().includes(searchQuery.toLowerCase()),
+            ),
+        [invoices, searchQuery],
     );
 
     return (
@@ -110,7 +86,9 @@ export default function InvoicesPage() {
                     className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-snow placeholder:text-mist/40 focus:outline-none focus:border-signal/50 focus:ring-2 focus:ring-signal/20 transition-all text-sm" />
             </div>
 
-            {filtered.length === 0 ? (
+            {loading ? (
+                <p className="text-sm text-mist/60">Chargement...</p>
+            ) : filtered.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-16 text-center">
                     <Receipt className="h-16 w-16 text-mist/15 mb-4" />
                     <h3 className="text-lg font-bold text-snow/60 mb-1">Aucune facture</h3>

@@ -18,6 +18,8 @@ public class SessionDto {
     private UUID id;
     private UUID enrollmentId;
     private UUID monitorId;
+    private UUID moduleId;
+    private UUID lessonId;
     private LocalDate date;
     private LocalTime startTime;
     private LocalTime endTime;

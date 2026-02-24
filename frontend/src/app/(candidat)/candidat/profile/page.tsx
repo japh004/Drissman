@@ -24,7 +24,7 @@ export default function CandidatProfilePage() {
                     </div>
                     <div>
                         <h2 className="text-lg font-bold text-snow">{user?.firstName} {user?.lastName}</h2>
-                        <p className="text-xs text-mist/40">Candidat</p>
+                        <p className="text-xs text-mist/40">Eleve</p>
                     </div>
                 </div>
 
@@ -47,7 +47,7 @@ export default function CandidatProfilePage() {
                         <Shield className="h-4 w-4 text-mist/40" />
                         <div>
                             <p className="text-[10px] text-mist/30 uppercase tracking-wider font-bold">Rôle</p>
-                            <p className="text-sm text-snow">Candidat</p>
+                            <p className="text-sm text-snow">Eleve</p>
                         </div>
                     </div>
                 </div>

@@ -6,12 +6,14 @@ import { toast } from "sonner";
 import { useAuth, useLocalStorage } from "@/hooks";
 import { adminSessionService, type AvailableOfferDto, type SessionEnrollmentOptionDto, type SessionDto } from "@/lib/admin-session-service";
 import { adminMonitorService, type AdminMonitorDto } from "@/lib/admin-monitor-service";
+import { adminModuleService, type AdminModuleDto } from "@/lib/admin-module-service";
 
 interface ModuleItem {
   id: string;
   name: string;
   lessons?: Array<{ id: string; name: string }>;
 }
+type ModuleLessonsMap = Record<string, Array<{ id: string; name: string }>>;
 
 const emptyForm = {
   date: "",
@@ -27,7 +29,8 @@ const emptyForm = {
 
 export default function PlanningPage() {
   const { token } = useAuth();
-  const [modules] = useLocalStorage<ModuleItem[]>("modules", []);
+  const [modules, setModules] = useState<ModuleItem[]>([]);
+  const [lessonsByModule] = useLocalStorage<ModuleLessonsMap>("module_lessons_map", {});
   const [form, setForm] = useState(emptyForm);
   const [offers, setOffers] = useState<AvailableOfferDto[]>([]);
   const [enrollments, setEnrollments] = useState<SessionEnrollmentOptionDto[]>([]);
@@ -39,6 +42,25 @@ export default function PlanningPage() {
 
   const selectedModule = useMemo(() => modules.find((m) => m.id === form.moduleId), [modules, form.moduleId]);
   const availableLessons = selectedModule?.lessons || [];
+
+  useEffect(() => {
+    if (!token) return;
+    void adminModuleService
+      .list(token)
+      .then((data: AdminModuleDto[]) =>
+        setModules(
+          data.map((m) => ({
+            id: m.id,
+            name: m.name,
+            lessons: lessonsByModule[m.id] || [],
+          })),
+        ),
+      )
+      .catch((error: unknown) => {
+        console.error(error);
+        toast.error("Impossible de charger les modules");
+      });
+  }, [token, lessonsByModule]);
 
   useEffect(() => {
     if (!token) return;
@@ -89,6 +111,8 @@ export default function PlanningPage() {
         {
           enrollmentId: form.enrollmentId,
           monitorId: form.monitorId,
+          moduleId: form.moduleId || undefined,
+          lessonId: form.lessonId || undefined,
           date: form.date,
           startTime: form.startTime,
           endTime: form.endTime,
