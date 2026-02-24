@@ -1,153 +1,131 @@
 import { useState, useCallback, useEffect } from "react";
 import { MOCK_SCHOOLS, DrivingSchool, Offer } from "@/lib/data";
+import { publicCatalogService, type PublicSchoolDto } from "@/lib/public-catalog-service";
 
-/**
- * Hook that merges:
- * 1. The 2 test mock schools
- * 2. Any "real" school created via admin Settings (stored in localStorage "admin_school")
- *    — with offers injected from localStorage "offers"
- */
-
-interface AdminOffer {
-    id: string;
-    name: string;
-    description: string;
-    price: number;
-    hours: number;
-    permitType: string;
-    status: "ACTIVE" | "DRAFT" | "ARCHIVED";
-    modules: { id: string; name: string; category: string; requiredHours: number }[];
-    enrollmentsCount: number;
+function mapPermitTypeToOfferType(permitType?: string): Offer["type"] {
+  if (permitType === "A") return "Permis A";
+  if (permitType === "B") return "Permis B";
+  return "Permis B";
 }
 
-function adminOfferToSchoolOffer(a: AdminOffer): Offer {
-    return {
-        id: a.id,
-        title: a.name,
-        price: a.price,
-        description: a.description,
-        type: a.permitType === "A" ? "Permis A" : a.permitType === "B" ? "Permis B" : "Permis B",
-        features: a.modules.map(m => `${m.name} (${m.requiredHours}h)`),
-    };
+function mapSchoolOfferToUiOffer(offer: PublicSchoolDto["offers"][number]): Offer {
+  return {
+    id: offer.id,
+    title: offer.name,
+    description: offer.description || "Formation complete",
+    price: offer.price,
+    type: mapPermitTypeToOfferType(offer.permitType),
+    features: [`Permis ${offer.permitType || "B"}`, `${offer.hours || 0}h de formation`],
+  };
 }
 
-function loadAdminSchools(): DrivingSchool[] {
-    if (typeof window === "undefined") return [];
-    try {
-        // Load admin-created offers
-        const offersRaw = localStorage.getItem("drissman_offers") || localStorage.getItem("offers");
-        const adminOffers: AdminOffer[] = offersRaw ? JSON.parse(offersRaw) : [];
-        const sessionsRaw = localStorage.getItem("drissman_sessions") || localStorage.getItem("sessions");
-        const sessions = sessionsRaw ? JSON.parse(sessionsRaw) : [];
+async function buildUiSchool(school: PublicSchoolDto): Promise<DrivingSchool | null> {
+  const periods = await publicCatalogService.getPublishedTrainingPeriodsBySchool(school.id);
+  const publishedOfferIds = new Set(
+    periods.flatMap((period) => (period.formations || []).map((formation) => formation.offerId)),
+  );
 
-        const activeOffers = adminOffers.filter((offer) =>
-            offer.status === "ACTIVE" &&
-            sessions.some((session: any) => session.formations?.some((f: any) => f.offerId === offer.id))
-        );
+  const visibleOffers = (school.offers || []).filter((offer) => publishedOfferIds.has(offer.id));
+  if (visibleOffers.length === 0) {
+    return null;
+  }
 
-        // Load school settings (name, address, etc.)
-        const settingsRaw = localStorage.getItem("school_settings");
-        const settings = settingsRaw ? JSON.parse(settingsRaw) : null;
+  const permitFeatures = Array.from(
+    new Set(visibleOffers.map((offer) => `Permis ${offer.permitType || "B"}`)),
+  );
 
-        // If no active offers AND no settings, no real school to show
-        if (activeOffers.length === 0 && !settings) return [];
+  return {
+    id: school.id,
+    name: school.name,
+    address: school.address || "Adresse non renseignee",
+    city: school.city || "Ville non renseignee",
+    price: school.minPrice || Math.min(...visibleOffers.map((offer) => offer.price || 0)),
+    rating: school.rating || 4.5,
+    reviewCount: 0,
+    imageUrl:
+      school.imageUrl ||
+      "https://images.unsplash.com/photo-1517649763962-0c623066013b?q=80&w=800&auto=format&fit=crop",
+    coordinates: [school.latitude || 3.848, school.longitude || 11.5021],
+    features: permitFeatures.length > 0 ? permitFeatures : ["Formations publiees"],
+    isVerified: true,
+    description: school.description || "Auto-ecole partenaire",
+    offers: visibleOffers.map(mapSchoolOfferToUiOffer),
+    reviews: [],
+  };
+}
 
-        // Create a "real" school entry from admin data
-        const schoolName = settings?.name || "Auto-École Nouvelle Génération";
-        const schoolAddress = settings?.address || "Yaoundé, Cameroun";
-        const schoolCity = settings?.city || "Yaoundé";
-        const schoolDesc = settings?.description || "Une auto-école moderne pour une réussite assurée.";
+async function loadApiSchools(city?: string): Promise<DrivingSchool[]> {
+  const schools = await publicCatalogService.listSchools();
+  const mapped = await Promise.all(
+    schools.map(async (school) => {
+      try {
+        return await buildUiSchool(school);
+      } catch {
+        return null;
+      }
+    }),
+  );
 
-        const realSchool: DrivingSchool = {
-            id: "admin-school",
-            name: schoolName,
-            address: schoolAddress,
-            city: schoolCity,
-            price: activeOffers[0]?.price || 0,
-            rating: 4.9,
-            reviewCount: 12,
-            imageUrl: "https://images.unsplash.com/photo-1517649763962-0c623066013b?q=80&w=800&auto=format&fit=crop",
-            coordinates: schoolCity === "Douala" ? [4.0511, 9.7679] : [3.8480, 11.5021],
-            features: activeOffers.length > 0
-                ? [...new Set(activeOffers.map(o => `Permis ${o.permitType}`))]
-                : ["Formation complète", "Code & Conduite"],
-            isVerified: true,
-            description: schoolDesc,
-            offers: activeOffers.map(adminOfferToSchoolOffer),
-            reviews: [
-                { id: "rev-1", user: "Mamadou B.", rating: 5, date: "Aujourd'hui", comment: "Excellente formation, très recommandé !" }
-            ],
-        };
-
-        // Only return if it has offers (as requested: "relie le catalogue aux offres")
-        // but let's be generous: if settings exist, show it as "Ouverture prochaine" or similar if no offers
-        return activeOffers.length > 0 ? [realSchool] : [];
-    } catch {
-        return [];
-    }
+  const ready = mapped.filter((school): school is DrivingSchool => school !== null);
+  if (!city) return ready;
+  return ready.filter((school) => school.city === city);
 }
 
 export function useSchools(city?: string) {
-    const [schools, setSchools] = useState<DrivingSchool[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+  const [schools, setSchools] = useState<DrivingSchool[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-    const fetchSchools = useCallback(async () => {
-        setLoading(true);
-        try {
-            await new Promise(resolve => setTimeout(resolve, 300));
+  const fetchSchools = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const remoteSchools = await loadApiSchools(city);
+      setSchools(remoteSchools);
+    } catch {
+      const fallback = city ? MOCK_SCHOOLS.filter((school) => school.city === city) : MOCK_SCHOOLS;
+      setSchools(fallback);
+      setError("Impossible de charger les auto-ecoles");
+    } finally {
+      setLoading(false);
+    }
+  }, [city]);
 
-            // Merge mock schools + admin-created real schools
-            const allSchools = [...MOCK_SCHOOLS, ...loadAdminSchools()];
+  useEffect(() => {
+    void fetchSchools();
+  }, [fetchSchools]);
 
-            const filtered = city
-                ? allSchools.filter(s => s.city === city)
-                : allSchools;
-            setSchools(filtered);
-        } catch (err) {
-            setError("Impossible de charger les auto-écoles");
-        } finally {
-            setLoading(false);
-        }
-    }, [city]);
-
-    useEffect(() => {
-        fetchSchools();
-    }, [fetchSchools]);
-
-    return { schools, loading, error, refetch: fetchSchools };
+  return { schools, loading, error, refetch: fetchSchools };
 }
 
 export function useSchool(id: string) {
-    const [school, setSchool] = useState<DrivingSchool | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+  const [school, setSchool] = useState<DrivingSchool | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-    useEffect(() => {
-        const fetchSchool = async () => {
-            setLoading(true);
-            try {
-                await new Promise(resolve => setTimeout(resolve, 200));
+  useEffect(() => {
+    const fetchSchool = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const apiSchool = await publicCatalogService.getSchool(id);
+        const mapped = await buildUiSchool(apiSchool);
+        if (!mapped) {
+          setSchool(null);
+          setError("Aucune session publiee disponible pour cette auto-ecole");
+        } else {
+          setSchool(mapped);
+        }
+      } catch {
+        const fallback = MOCK_SCHOOLS.find((s) => s.id === id) || null;
+        setSchool(fallback);
+        if (!fallback) setError("Auto-ecole introuvable");
+      } finally {
+        setLoading(false);
+      }
+    };
+    void fetchSchool();
+  }, [id]);
 
-                // Check mock schools first
-                let found = MOCK_SCHOOLS.find(s => s.id === id) || null;
-
-                // If not in mocks, check admin school
-                if (!found) {
-                    const adminSchools = loadAdminSchools();
-                    found = adminSchools.find(s => s.id === id) || null;
-                }
-
-                setSchool(found);
-                if (!found) setError("Auto-école introuvable");
-            } catch {
-                setError("Erreur de chargement");
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchSchool();
-    }, [id]);
-
-    return { school, loading, error };
+  return { school, loading, error };
 }

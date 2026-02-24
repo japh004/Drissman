@@ -38,6 +38,14 @@ public class TrainingPeriodService {
                 .sort((a, b) -> b.getStartDate().compareTo(a.getStartDate()));
     }
 
+    public Flux<TrainingPeriodViewDto> getPublishedBySchool(UUID schoolId) {
+        return trainingPeriodRepository.findBySchoolId(schoolId)
+                .filter(period -> period.getStatus() == TrainingPeriod.TrainingPeriodStatus.PUBLISHED
+                        || period.getStatus() == TrainingPeriod.TrainingPeriodStatus.IN_PROGRESS)
+                .flatMap(this::toViewDto)
+                .sort((a, b) -> b.getStartDate().compareTo(a.getStartDate()));
+    }
+
     @Transactional
     public Mono<TrainingPeriodViewDto> create(UUID schoolId, CreateTrainingPeriodRequest request) {
         UUID primaryOfferId = resolvePrimaryOfferId(request);
