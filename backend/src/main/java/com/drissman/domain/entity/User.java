@@ -56,6 +56,7 @@ public class User {
         VISITOR,
         CANDIDAT,
         SCHOOL_ADMIN,
-        MONITOR
+        MONITOR,
+        SUPER_ADMIN
     }
 }

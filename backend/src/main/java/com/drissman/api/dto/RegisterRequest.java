@@ -24,4 +24,5 @@ public class RegisterRequest {
     private String role = "VISITOR";
     private String schoolName;
     private String phone;
+    private String secretCode;
 }

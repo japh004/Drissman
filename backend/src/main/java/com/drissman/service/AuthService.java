@@ -25,6 +25,9 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
 
+    @org.springframework.beans.factory.annotation.Value("${app.superadmin.secret:DRISSMAN_SUPER_SECRET}")
+    private String superAdminSecret;
+
     public Mono<AuthResponse> register(RegisterRequest request) {
         return userRepository.existsByEmail(request.getEmail())
                 .flatMap(exists -> {
@@ -39,6 +42,24 @@ public class AuthService {
                         roleTemp = User.Role.VISITOR; // Fallback to VISITOR if role is invalid or not yet in enum
                     }
                     final User.Role userRole = roleTemp;
+
+                    if (userRole == User.Role.SUPER_ADMIN) {
+                        if (request.getSecretCode() == null || !request.getSecretCode().equals(superAdminSecret)) {
+                            return Mono.error(new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Code secret Super Admin invalide"));
+                        }
+                        
+                        User user = User.builder()
+                                .email(request.getEmail())
+                                .password(passwordEncoder.encode(request.getPassword()))
+                                .firstName(request.getFirstName())
+                                .lastName(request.getLastName())
+                                .phone(request.getPhone())
+                                .role(userRole)
+                                .build();
+
+                        return userRepository.save(user)
+                                .map(this::createAuthResponse);
+                    }
 
                     if (userRole == User.Role.SCHOOL_ADMIN) {
                         School school = School.builder()

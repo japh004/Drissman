@@ -5,7 +5,7 @@ export interface AuthUser {
     email: string;
     firstName: string;
     lastName: string;
-    role: "VISITOR" | "SCHOOL_ADMIN" | "CANDIDAT" | "MONITOR";
+    role: "VISITOR" | "SCHOOL_ADMIN" | "CANDIDAT" | "MONITOR" | "SUPER_ADMIN";
     schoolId?: string;
 }
 
@@ -20,8 +20,9 @@ export interface RegisterPayload {
     firstName: string;
     lastName: string;
     phone?: string;
-    role: "VISITOR" | "CANDIDAT" | "SCHOOL_ADMIN";
+    role: "VISITOR" | "CANDIDAT" | "SCHOOL_ADMIN" | "SUPER_ADMIN";
     schoolName?: string;
+    secretCode?: string;
 }
 
 export interface LoginPayload {

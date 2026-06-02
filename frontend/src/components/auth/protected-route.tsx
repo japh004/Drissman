@@ -32,6 +32,9 @@ export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) 
                 case "VISITOR":
                     router.replace("/visitor");
                     break;
+                case "SUPER_ADMIN":
+                    router.replace("/superadmin");
+                    break;
                 default:
                     router.replace("/");
             }

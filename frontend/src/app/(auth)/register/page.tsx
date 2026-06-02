@@ -7,7 +7,7 @@ import { useAuth } from "@/hooks";
 import { toast } from "sonner";
 import { Loader2, Eye, EyeOff, Mail, Lock, User, Phone, Building2, Car, GraduationCap, ArrowLeft, Compass } from "lucide-react";
 
-type AccountType = "VISITOR" | "CANDIDAT" | "SCHOOL_ADMIN";
+type AccountType = "VISITOR" | "CANDIDAT" | "SCHOOL_ADMIN" | "SUPER_ADMIN";
 
 export default function RegisterPage() {
     const router = useRouter();
@@ -22,6 +22,7 @@ export default function RegisterPage() {
     const [lastName, setLastName] = useState("");
     const [phone, setPhone] = useState("");
     const [schoolName, setSchoolName] = useState("");
+    const [secretCode, setSecretCode] = useState("");
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
 
@@ -50,11 +51,15 @@ export default function RegisterPage() {
                 phone: phone || undefined,
                 role: accountType,
                 schoolName: accountType === "SCHOOL_ADMIN" ? schoolName : undefined,
+                secretCode: accountType === "SUPER_ADMIN" ? secretCode : undefined,
             });
             toast.success("Compte créé avec succès !");
             switch (response.user.role) {
                 case "SCHOOL_ADMIN":
                     router.push("/admin");
+                    break;
+                case "SUPER_ADMIN":
+                    router.push("/superadmin");
                     break;
                 case "CANDIDAT":
                     router.push("/candidat");
@@ -157,6 +162,24 @@ export default function RegisterPage() {
                                         </div>
                                     </div>
                                 </button>
+
+                                {/* Super Admin option (Hidden but accessible) */}
+                                <button
+                                    onClick={() => handleChoose("SUPER_ADMIN")}
+                                    className="w-full group bg-white/5 border border-white/10 rounded-2xl p-6 text-left hover:border-rose-500/40 hover:bg-rose-500/5 transition-all mt-4"
+                                >
+                                    <div className="flex items-start gap-4">
+                                        <div className="bg-rose-500/10 p-3 rounded-xl group-hover:bg-rose-500/20 transition-colors">
+                                            <Lock className="h-6 w-6 text-rose-500" />
+                                        </div>
+                                        <div>
+                                            <h3 className="text-snow font-bold mb-1">Super Administrateur</h3>
+                                            <p className="text-mist/70 text-xs leading-relaxed">
+                                                Code d'accès secret requis.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </button>
                             </div>
                         </>
                     ) : (
@@ -176,8 +199,10 @@ export default function RegisterPage() {
                                         <><Compass className="h-3.5 w-3.5" /> Compte Visiteur</>
                                     ) : accountType === "CANDIDAT" ? (
                                         <><GraduationCap className="h-3.5 w-3.5" /> Compte Élève</>
-                                    ) : (
+                                    ) : accountType === "SCHOOL_ADMIN" ? (
                                         <><Building2 className="h-3.5 w-3.5" /> Compte Gérant auto-école</>
+                                    ) : (
+                                        <><Lock className="h-3.5 w-3.5" /> Compte Super Admin</>
                                     )}
                                 </div>
                                 <h1 className="text-2xl font-black text-snow">Inscription</h1>
@@ -225,6 +250,24 @@ export default function RegisterPage() {
                                                 onChange={(e) => setSchoolName(e.target.value)}
                                                 placeholder="Mon Auto-École"
                                                 className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-3 py-3 text-snow placeholder:text-mist/40 focus:outline-none focus:border-signal/50 focus:ring-2 focus:ring-signal/20 transition-all text-sm"
+                                                required
+                                            />
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Secret Code (only for SUPER_ADMIN) */}
+                                {accountType === "SUPER_ADMIN" && (
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-bold text-mist uppercase tracking-wider">Code Secret</label>
+                                        <div className="relative">
+                                            <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-mist/50" />
+                                            <input
+                                                type={showPassword ? "text" : "password"}
+                                                value={secretCode}
+                                                onChange={(e) => setSecretCode(e.target.value)}
+                                                placeholder="Code secret"
+                                                className="w-full bg-white/5 border border-rose-500/30 rounded-xl pl-10 pr-3 py-3 text-snow placeholder:text-mist/40 focus:outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20 transition-all text-sm"
                                                 required
                                             />
                                         </div>
