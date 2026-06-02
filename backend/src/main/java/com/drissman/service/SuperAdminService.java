@@ -24,12 +24,9 @@ public class SuperAdminService {
     }
 
     public Mono<School> validateSchool(UUID schoolId) {
-        return schoolRepository.findById(schoolId)
-                .switchIfEmpty(Mono.error(new RuntimeException("Auto-école non trouvée")))
-                .flatMap(school -> {
-                    school.setIsVerified(true);
-                    return schoolRepository.save(school);
-                });
+        return schoolRepository.validateSchool(schoolId)
+                .then(schoolRepository.findById(schoolId))
+                .switchIfEmpty(Mono.error(new RuntimeException("Auto-école non trouvée")));
     }
 
     public Mono<GlobalStatsDto> getGlobalStats() {

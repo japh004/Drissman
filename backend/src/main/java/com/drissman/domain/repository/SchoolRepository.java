@@ -12,4 +12,8 @@ public interface SchoolRepository extends ReactiveCrudRepository<School, UUID> {
 
     @Query("SELECT * FROM schools WHERE city ILIKE :city ORDER BY rating DESC")
     Flux<School> findByCityOrderByRatingDesc(String city);
+
+    @org.springframework.data.r2dbc.repository.Modifying
+    @Query("UPDATE schools SET is_verified = true WHERE id = :id")
+    reactor.core.publisher.Mono<Integer> validateSchool(UUID id);
 }
