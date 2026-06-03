@@ -16,4 +16,11 @@ public interface SchoolRepository extends ReactiveCrudRepository<School, UUID> {
     @org.springframework.data.r2dbc.repository.Modifying
     @Query("UPDATE schools SET is_verified = true WHERE id = :id")
     reactor.core.publisher.Mono<Integer> validateSchool(UUID id);
+
+    @org.springframework.data.r2dbc.repository.Modifying
+    @Query("UPDATE schools SET is_verified = :isVerified WHERE id = :id")
+    reactor.core.publisher.Mono<Integer> updateVerificationStatus(java.util.UUID id, boolean isVerified);
+
+    @Query("SELECT * FROM schools ORDER BY created_at DESC LIMIT 10")
+    Flux<School> findRecentSchools();
 }

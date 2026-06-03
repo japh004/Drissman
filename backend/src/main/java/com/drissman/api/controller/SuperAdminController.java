@@ -31,4 +31,24 @@ public class SuperAdminController {
     public Mono<School> validateSchool(@PathVariable UUID id) {
         return superAdminService.validateSchool(id);
     }
+
+    @GetMapping("/schools")
+    public Flux<School> getAllSchools() {
+        return superAdminService.getAllSchools();
+    }
+
+    @PutMapping("/schools/{id}/toggle-verify")
+    public Mono<School> toggleSchoolVerification(@PathVariable UUID id) {
+        return superAdminService.toggleSchoolVerification(id);
+    }
+
+    @GetMapping("/users")
+    public Flux<com.drissman.domain.entity.User> getAllUsers() {
+        return superAdminService.getAllUsers();
+    }
+
+    @PutMapping("/users/{id}/toggle-active")
+    public Mono<com.drissman.domain.entity.User> toggleUserActive(@PathVariable UUID id) {
+        return superAdminService.toggleUserActive(id);
+    }
 }

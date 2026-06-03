@@ -13,4 +13,8 @@ public interface UserRepository extends ReactiveCrudRepository<User, UUID> {
     Mono<User> findFirstByEmailIgnoreCase(String email);
 
     Mono<Boolean> existsByEmail(String email);
+
+    @org.springframework.data.r2dbc.repository.Modifying
+    @org.springframework.data.r2dbc.repository.Query("UPDATE users SET is_active = :isActive WHERE id = :id")
+    Mono<Integer> updateActiveStatus(java.util.UUID id, boolean isActive);
 }

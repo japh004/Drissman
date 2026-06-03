@@ -5,7 +5,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
-    Loader2, LayoutDashboard, Building2,
+    Loader2, LayoutDashboard, Building2, Users,
     Settings, LogOut, Menu, X, Car, ChevronRight, Lock
 } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -18,9 +18,10 @@ const navGroups = [
         ],
     },
     {
-        label: "Validation",
+        label: "Administration",
         items: [
-            { name: "Auto-écoles en attente", href: "/superadmin/schools", icon: Building2 },
+            { name: "Auto-écoles", href: "/superadmin/schools", icon: Building2 },
+            { name: "Utilisateurs", href: "/superadmin/users", icon: Users },
         ],
     },
 ];
