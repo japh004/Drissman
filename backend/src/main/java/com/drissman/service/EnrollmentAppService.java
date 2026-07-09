@@ -28,6 +28,7 @@ public class EnrollmentAppService {
     private final OfferRepository offerRepository;
     private final UserRepository userRepository;
     private final SchoolRepository schoolRepository;
+    private final PaymentService paymentService;
 
     public Mono<EnrollmentViewDto> createEnrollment(UUID userId, UUID offerId) {
         Mono<User> userMono = userRepository.findById(userId)
@@ -106,6 +107,9 @@ public class EnrollmentAppService {
                     enrollment.setStatus(nextStatus);
                     return enrollmentRepository.save(enrollment);
                 })
+                // Pont paiement : activer/annuler l'inscription synchronise ses factures.
+                .flatMap(saved -> paymentService.onEnrollmentStatusChanged(saved.getId(), nextStatus)
+                        .thenReturn(saved))
                 .flatMap(this::toViewDto);
     }
 

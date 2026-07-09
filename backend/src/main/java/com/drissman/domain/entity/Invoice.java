@@ -43,6 +43,9 @@ public class Invoice {
     @Column("payment_reference")
     private String paymentReference;
 
+    @Column("payment_phone")
+    private String paymentPhone;
+
     @Column("created_at")
     private LocalDateTime createdAt;
 

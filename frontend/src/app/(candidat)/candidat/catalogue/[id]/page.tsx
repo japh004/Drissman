@@ -7,6 +7,7 @@ import Link from "next/link";
 import { toast } from "sonner";
 import { PageTransition } from "@/components/ui/motion";
 import { enrollmentService, EnrollmentDto } from "@/lib/enrollment-service";
+import { paymentService } from "@/lib/payment-service";
 
 interface Enrollment {
     id: string;
@@ -98,12 +99,18 @@ export default function CatalogueDetailPage({ params }: PageProps) {
     const handleSubmitPayment = async () => {
         if (!paymentMethod || !paymentPhone || !paymentModal || !user) return;
         setSubmitting(true);
-        await new Promise(resolve => setTimeout(resolve, 1200));
 
         let enrollment: Enrollment;
         try {
             if (!token) throw new Error("no-token");
             const created = await enrollmentService.createEnrollment(paymentModal.id, token);
+            // Initie le paiement réel : la méthode et le téléphone sont désormais
+            // transmis au backend (facture PENDING, confirmée ensuite par l'école).
+            try {
+                await paymentService.initiate(created.id, paymentMethod, paymentPhone, token);
+            } catch {
+                toast.warning("Inscription créée, mais l'initiation du paiement a échoué. Contactez l'auto-école.");
+            }
             enrollment = {
                 id: created.id,
                 offerId: created.offerId,

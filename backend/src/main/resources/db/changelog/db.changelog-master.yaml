@@ -75,3 +75,7 @@ databaseChangeLog:
       file: db/changelog/changes/036-add-module-lesson-to-sessions.yaml
   - include:
       file: db/changelog/changes/037-add-kernel-user-id-to-users.yaml
+  - include:
+      file: db/changelog/changes/038-add-payment-phone-to-invoices.yaml
+  - include:
+      file: db/changelog/changes/039-relax-invoice-booking-id.yaml
