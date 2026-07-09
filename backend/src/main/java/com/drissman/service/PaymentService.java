@@ -7,6 +7,7 @@ import com.drissman.domain.entity.Invoice;
 import com.drissman.domain.repository.EnrollmentRepository;
 import com.drissman.domain.repository.InvoiceRepository;
 import com.drissman.domain.repository.OfferRepository;
+import com.drissman.domain.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -38,6 +39,7 @@ public class PaymentService {
     private final InvoiceRepository invoiceRepository;
     private final EnrollmentRepository enrollmentRepository;
     private final OfferRepository offerRepository;
+    private final UserRepository userRepository;
 
     public Mono<PaymentDto> initiate(UUID userId, InitiatePaymentRequest request) {
         Invoice.PaymentMethod method;
@@ -94,6 +96,34 @@ public class PaymentService {
     public Flux<PaymentDto> getPaymentsForUser(UUID userId) {
         return invoiceRepository.findByUserId(userId)
                 .map(this::toDto)
+                .sort((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt()));
+    }
+
+    /** Paiements reçus par une école, enrichis (élève + offre) pour la vue admin. */
+    public Flux<PaymentDto> getPaymentsForSchool(UUID schoolId) {
+        return invoiceRepository.findBySchoolId(schoolId)
+                .flatMap(invoice -> {
+                    Mono<String> studentName = userRepository.findById(invoice.getUserId())
+                            .map(u -> (u.getFirstName() != null ? u.getFirstName() : "") + " "
+                                    + (u.getLastName() != null ? u.getLastName() : ""))
+                            .map(String::trim)
+                            .defaultIfEmpty("Élève inconnu");
+
+                    Mono<String> offerName = invoice.getEnrollmentId() == null
+                            ? Mono.just("—")
+                            : enrollmentRepository.findById(invoice.getEnrollmentId())
+                                    .flatMap(e -> offerRepository.findById(e.getOfferId()))
+                                    .map(o -> o.getName() != null ? o.getName() : "Offre")
+                                    .defaultIfEmpty("—");
+
+                    return Mono.zip(studentName, offerName)
+                            .map(t -> {
+                                PaymentDto dto = toDto(invoice);
+                                dto.setStudentName(t.getT1());
+                                dto.setOfferName(t.getT2());
+                                return dto;
+                            });
+                })
                 .sort((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt()));
     }
 

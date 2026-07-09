@@ -18,6 +18,11 @@ public class PaymentDto {
 
     private UUID enrollmentId;
 
+    /** Renseignés sur la vue école (liste des paiements reçus). */
+    private String studentName;
+
+    private String offerName;
+
     private Integer amount;
 
     private String status;

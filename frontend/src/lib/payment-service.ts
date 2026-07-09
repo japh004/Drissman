@@ -3,6 +3,8 @@ import { apiClient } from "./api-client";
 export interface PaymentDto {
     id: string;
     enrollmentId: string;
+    studentName?: string;
+    offerName?: string;
     amount: number;
     status: "PENDING" | "PAID" | "FAILED" | "REFUNDED";
     method: string;
@@ -11,6 +13,13 @@ export interface PaymentDto {
     createdAt: string;
     paidAt: string | null;
 }
+
+export const paymentMethodLabels: Record<string, string> = {
+    ORANGE_MONEY: "Orange Money",
+    MTN_MOMO: "MTN MoMo",
+    CARD: "Carte",
+    CASH: "Espèces",
+};
 
 /** Mappe les libellés UI vers les codes backend (Invoice.PaymentMethod). */
 export function toPaymentMethodCode(label: string): string {
@@ -31,6 +40,9 @@ export const paymentService = {
 
     getMyPayments: (token: string) =>
         apiClient.get<PaymentDto[]>("/payments/me", token),
+
+    listForSchool: (token: string) =>
+        apiClient.get<PaymentDto[]>("/schools/admin/payments", token),
 
     confirm: (invoiceId: string, token: string) =>
         apiClient.post<PaymentDto>(`/schools/admin/payments/${invoiceId}/confirm`, undefined, token),

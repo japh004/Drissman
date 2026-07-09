@@ -51,6 +51,13 @@ public class AdminEnrollmentController {
                 .flatMapMany(invoiceQueryService::getInvoicesForSchool);
     }
 
+    /** Paiements réels reçus par l'école (source de vérité, vue Finances). */
+    @GetMapping("/payments")
+    public Flux<PaymentDto> getSchoolPayments(Principal principal) {
+        return getSchoolId(principal)
+                .flatMapMany(paymentService::getPaymentsForSchool);
+    }
+
     /** Confirme la réception d'un paiement : facture PAID + inscription ACTIVE. */
     @PostMapping("/payments/{invoiceId}/confirm")
     public Mono<PaymentDto> confirmPayment(Principal principal, @PathVariable UUID invoiceId) {
