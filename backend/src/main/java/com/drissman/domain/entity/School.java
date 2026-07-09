@@ -47,6 +47,10 @@ public class School {
 
     private Double longitude;
 
+    /** Organisation kernel (yowyob) correspondante. Null = pas encore provisionnée. */
+    @Column("kernel_organization_id")
+    private UUID kernelOrganizationId;
+
     @Column("is_verified")
     @Builder.Default
     private Boolean isVerified = false;

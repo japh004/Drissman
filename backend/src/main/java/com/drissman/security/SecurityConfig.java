@@ -84,6 +84,7 @@ public class SecurityConfig {
                         .pathMatchers(HttpMethod.GET, "/api/availabilities/**").permitAll()
 
                         // Role-scoped areas
+                        .pathMatchers("/api/kernel/admin/**").hasAnyRole("SCHOOL_ADMIN", "SUPER_ADMIN")
                         .pathMatchers("/api/superadmin/**").hasRole("SUPER_ADMIN")
                         .pathMatchers("/api/schools/admin/**").hasRole("SCHOOL_ADMIN")
                         .pathMatchers("/api/monitors/**").hasAnyRole("MONITOR", "SCHOOL_ADMIN")
