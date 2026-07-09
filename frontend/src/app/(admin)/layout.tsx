@@ -30,6 +30,7 @@ const navGroups = [
         items: [
             { name: "Planning", href: "/admin/planning", icon: CalendarClock },
             { name: "Promotions", href: "/admin/sessions", icon: CalendarDays },
+            { name: "Véhicules", href: "/admin/vehicles", icon: Car },
         ],
     },
     {
