@@ -51,6 +51,10 @@ public class School {
     @Column("kernel_organization_id")
     private UUID kernelOrganizationId;
 
+    /** BusinessActor kernel du propriétaire de l'école. */
+    @Column("kernel_business_actor_id")
+    private UUID kernelBusinessActorId;
+
     @Column("is_verified")
     @Builder.Default
     private Boolean isVerified = false;
