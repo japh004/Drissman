@@ -52,7 +52,8 @@ export function SchoolDetailView({ school }: SchoolDetailViewProps) {
     const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
     const [confirmOfferId, setConfirmOfferId] = useState<string | null>(null);
 
-    // Load enrollments from API first, then localStorage fallback.
+    // L'API est la seule source de vérité pour les inscriptions
+    // (plus de copie localStorage, source de désynchronisation).
     useEffect(() => {
         let cancelled = false;
 
@@ -77,15 +78,9 @@ export function SchoolDetailView({ school }: SchoolDetailViewProps) {
                     studentName: e.studentName,
                 }));
                 setEnrollments(mapped);
-                localStorage.setItem("candidat_enrollments", JSON.stringify(mapped));
-                return;
             } catch {
-                // fallback below
+                // L'utilisateur verra l'état vide ; un rechargement réessaiera.
             }
-            try {
-                const stored = localStorage.getItem("candidat_enrollments");
-                if (stored) setEnrollments(JSON.parse(stored));
-            } catch { /* ignore */ }
         };
 
         loadRemote();
@@ -94,7 +89,6 @@ export function SchoolDetailView({ school }: SchoolDetailViewProps) {
 
     const saveEnrollments = (updated: Enrollment[]) => {
         setEnrollments(updated);
-        localStorage.setItem("candidat_enrollments", JSON.stringify(updated));
     };
 
     const isEnrolled = (offerId: string) =>

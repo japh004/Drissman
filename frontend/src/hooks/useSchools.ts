@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
-import { MOCK_SCHOOLS, DrivingSchool, Offer } from "@/lib/data";
+import { DrivingSchool, Offer } from "@/lib/data";
 import { publicCatalogService, type PublicSchoolDto } from "@/lib/public-catalog-service";
 
 function mapPermitTypeToOfferType(permitType?: string): Offer["type"] {
@@ -40,14 +40,14 @@ async function buildUiSchool(school: PublicSchoolDto): Promise<DrivingSchool | n
     address: school.address || "Adresse non renseignee",
     city: school.city || "Ville non renseignee",
     price: school.minPrice || Math.min(...visibleOffers.map((offer) => offer.price || 0)),
-    rating: school.rating || 4.5,
-    reviewCount: 0,
+    rating: school.rating || 0,
+    reviewCount: school.reviewCount || 0,
     imageUrl:
       school.imageUrl ||
       "https://images.unsplash.com/photo-1517649763962-0c623066013b?q=80&w=800&auto=format&fit=crop",
     coordinates: [school.latitude || 3.848, school.longitude || 11.5021],
     features: permitFeatures.length > 0 ? permitFeatures : ["Formations publiees"],
-    isVerified: true,
+    isVerified: school.isVerified === true,
     description: school.description || "Auto-ecole partenaire",
     offers: visibleOffers.map(mapSchoolOfferToUiOffer),
     reviews: [],
@@ -83,8 +83,8 @@ export function useSchools(city?: string) {
       const remoteSchools = await loadApiSchools(city);
       setSchools(remoteSchools);
     } catch {
-      const fallback = city ? MOCK_SCHOOLS.filter((school) => school.city === city) : MOCK_SCHOOLS;
-      setSchools(fallback);
+      // Pas de repli sur des données fictives : on affiche l'erreur réelle.
+      setSchools([]);
       setError("Impossible de charger les auto-ecoles");
     } finally {
       setLoading(false);
@@ -117,9 +117,8 @@ export function useSchool(id: string) {
           setSchool(mapped);
         }
       } catch {
-        const fallback = MOCK_SCHOOLS.find((s) => s.id === id) || null;
-        setSchool(fallback);
-        if (!fallback) setError("Auto-ecole introuvable");
+        setSchool(null);
+        setError("Auto-ecole introuvable");
       } finally {
         setLoading(false);
       }

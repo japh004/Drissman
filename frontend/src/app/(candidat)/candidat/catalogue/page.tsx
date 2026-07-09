@@ -18,9 +18,6 @@ export default function CataloguePage() {
             .map(school => ({
                 ...school,
                 price: (school as any).offers?.[0]?.price || 0,
-                rating: 4.0 + (school.id.split("").reduce((a, b) => a + b.charCodeAt(0), 0) % 10) / 10,
-                reviewCount: (school.id.split("").reduce((a, b) => a + b.charCodeAt(0), 0) % 50) + 10,
-                isVerified: school.id.charCodeAt(0) % 2 === 0,
                 offersCount: (school as any).offers?.length || 0,
                 features: (school as any).offers?.map((o: any) => o.name).slice(0, 3) || [],
             }))

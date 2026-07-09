@@ -165,12 +165,8 @@ export default function CatalogueDetailPage({ params }: PageProps) {
         );
     }
 
-    const schoolData = {
-        ...school,
-        rating: 4.0 + (school.id.split("").reduce((a: number, b: string) => a + b.charCodeAt(0), 0) % 10) / 10,
-        reviewCount: (school.id.split("").reduce((a: number, b: string) => a + b.charCodeAt(0), 0) % 50) + 10,
-        isVerified: school.id.charCodeAt(0) % 2 === 0,
-    };
+    // Données réelles de l'API (note, avis, badge vérifié) — plus de valeurs fabriquées.
+    const schoolData = school;
 
     return (
         <PageTransition className="space-y-8">

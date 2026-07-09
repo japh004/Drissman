@@ -26,6 +26,8 @@ public class SchoolDto {
     private Double latitude;
     private Double longitude;
     private Integer minPrice;
+    private Boolean isVerified;
+    private Long reviewCount;
     private List<OfferDto> offers;
 
     @Data

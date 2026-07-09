@@ -63,9 +63,9 @@ export function SchoolCard({ school }: SchoolCardProps) {
 
                         {/* Feature badges - Enhanced styling */}
                         <div className="flex flex-wrap gap-2 mb-4">
-                            {school.features.slice(0, 3).map((feature) => (
+                            {school.features.slice(0, 3).map((feature, index) => (
                                 <span
-                                    key={feature}
+                                    key={`${feature}-${index}`}
                                     className="text-[10px] bg-white/5 text-mist/90 px-3 py-1.5 rounded-lg border border-white/10 font-bold uppercase tracking-wider hover:border-signal/20 hover:text-snow transition-colors"
                                 >
                                     {feature}
