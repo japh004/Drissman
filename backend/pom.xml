@@ -29,6 +29,12 @@
             <artifactId>spring-boot-starter-webflux</artifactId>
         </dependency>
 
+        <!-- Actuator (healthcheck /actuator/health exigé par l'infra yowyob) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+
         <!-- Spring Data R2DBC (Reactive DB) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

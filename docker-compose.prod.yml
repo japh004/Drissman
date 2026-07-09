@@ -1,0 +1,62 @@
+# ============================================================================
+#  Drissman backend — déploiement sur l'infra yowyob (voir .gitlab-ci.yml)
+#  Secrets : fichier .env déposé MANUELLEMENT dans /home/gi/drissman
+#  (jamais commité — voir .env.example pour la liste des variables).
+# ============================================================================
+services:
+
+  drissman-backend:
+    image: "${APP_IMAGE:?APP_IMAGE requis - construit par le CI}"
+    container_name: drissman-backend
+    pull_policy: never
+    restart: unless-stopped
+    env_file: [.env]
+    build:
+      context: ./backend
+    environment:
+      SERVER_PORT: "8080"
+      SPRING_PROFILES_ACTIVE: "prod"
+      # --- PostgreSQL : base dédiée (créée par l'admin de l'infra) ---
+      SPRING_R2DBC_URL: "r2dbc:postgresql://database:5432/drissman"
+      SPRING_DATASOURCE_URL: "jdbc:postgresql://database:5432/drissman"
+      SPRING_LIQUIBASE_URL: "jdbc:postgresql://database:5432/drissman"
+      DB_USERNAME: "${DB_USERNAME:?requis dans .env}"
+      DB_PASSWORD: "${DB_PASSWORD:?requis dans .env}"
+      # --- kernel-core (réseau interne yowyob) ---
+      KERNEL_BASE_URL: "http://kernel-core-kernel-layer-1:8080"
+      KERNEL_CLIENT_ID: "${KERNEL_CLIENT_ID:?requis dans .env}"
+      KERNEL_API_KEY: "${KERNEL_API_KEY:?requis dans .env}"
+      KERNEL_TENANT_ID: "${KERNEL_TENANT_ID:?requis dans .env}"
+      # --- Secrets applicatifs ---
+      JWT_SECRET: "${JWT_SECRET:?requis dans .env}"
+      SUPERADMIN_SECRET: "${SUPERADMIN_SECRET:?requis dans .env}"
+      # --- CORS (frontend Vercel + domaine yowyob) ---
+      APP_CORS_ALLOWED_ORIGINS: "${APP_CORS_ALLOWED_ORIGINS:-https://drissman0.vercel.app}"
+      # --- Derrière Traefik en path-routing ---
+      SERVER_FORWARD_HEADERS_STRATEGY: "framework"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8080/actuator/health >/dev/null"]
+      interval: 20s
+      timeout: 10s
+      retries: 15
+      start_period: 90s
+    labels:
+      - "traefik.enable=true"
+      # Un domaine, backend sous /drissman-api (option B recommandée)
+      - "traefik.http.routers.drissman.rule=Host(`drissman.yowyob.com`) && PathPrefix(`/drissman-api`)"
+      - "traefik.http.routers.drissman.entrypoints=websecure"
+      - "traefik.http.routers.drissman.tls=true"
+      - "traefik.http.routers.drissman.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.drissman.priority=100"
+      - "traefik.http.middlewares.drissman-strip.stripprefix.prefixes=/drissman-api"
+      - "traefik.http.routers.drissman.middlewares=drissman-strip"
+      - "traefik.http.services.drissman.loadbalancer.server.port=8080"
+      - "traefik.docker.network=yowyob"
+    networks:
+      - yowyob
+
+networks:
+  # Réseau partagé EXISTANT du serveur (Traefik / Postgres / Kafka / kernel-core).
+  yowyob:
+    external: true
+    name: yowyob
