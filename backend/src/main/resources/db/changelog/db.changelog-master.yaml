@@ -56,6 +56,8 @@ databaseChangeLog:
   - include:
       file: db/changelog/changes/026-add-user-id-to-monitors.yaml
   - include:
+      file: db/changelog/changes/028-add-school-id-to-invoices.yaml
+  - include:
       file: db/changelog/changes/029-fix-invoice-school-id.yaml
   - include:
       file: db/changelog/changes/030-create-training-periods-table.yaml
@@ -71,3 +73,5 @@ databaseChangeLog:
       file: db/changelog/changes/035-create-session-offers-table.yaml
   - include:
       file: db/changelog/changes/036-add-module-lesson-to-sessions.yaml
+  - include:
+      file: db/changelog/changes/037-add-kernel-user-id-to-users.yaml

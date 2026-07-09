@@ -8,6 +8,7 @@ import com.drissman.domain.entity.School;
 import com.drissman.domain.entity.User;
 import com.drissman.domain.repository.SchoolRepository;
 import com.drissman.domain.repository.UserRepository;
+import com.drissman.kernel.KernelAuthService;
 import com.drissman.security.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -24,6 +25,7 @@ public class AuthService {
     private final SchoolRepository schoolRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
+    private final KernelAuthService kernelAuthService;
 
     @org.springframework.beans.factory.annotation.Value("${app.superadmin.secret:DRISSMAN_SUPER_SECRET}")
     private String superAdminSecret;
@@ -58,15 +60,15 @@ public class AuthService {
                                 .build();
 
                         return userRepository.save(user)
-                                .map(this::createAuthResponse);
+                                .map(this::authenticated);
                     }
 
                     if (userRole == User.Role.SCHOOL_ADMIN) {
                         School school = School.builder()
                                 .name(request.getSchoolName() != null ? request.getSchoolName()
-                                        : "Ma Nouvelle Auto-École")
-                                .address("Adresse à compléter")
-                                .city("Yaoundé") // Default city
+                                        : "Ma Nouvelle Auto-Ecole")
+                                .address("Adresse a completer")
+                                .city("Yaounde") // Default city
                                 .build();
 
                         return schoolRepository.save(school)
@@ -82,7 +84,7 @@ public class AuthService {
                                             .build();
                                     return userRepository.save(user);
                                 })
-                                .map(this::createAuthResponse);
+                                .map(this::authenticated);
                     } else {
                         // VISITOR/CANDIDAT/MONITOR: simple user creation without school
                         User user = User.builder()
@@ -95,24 +97,24 @@ public class AuthService {
                                 .build();
 
                         return userRepository.save(user)
-                                .map(this::createAuthResponse);
+                                .map(this::authenticated);
                     }
                 });
     }
 
     public Mono<AuthResponse> upgradeVisitorRole(java.util.UUID userId, UpgradeVisitorRoleRequest request) {
         return userRepository.findById(userId)
-                .switchIfEmpty(Mono.error(new RuntimeException("Utilisateur non trouvÃ©")))
+                .switchIfEmpty(Mono.error(new RuntimeException("Utilisateur non trouvé")))
                 .flatMap(user -> {
                     if (user.getRole() != User.Role.VISITOR) {
-                        return Mono.error(new RuntimeException("Seul un compte visiteur peut changer de rÃ´le"));
+                        return Mono.error(new RuntimeException("Seul un compte visiteur peut changer de rôle"));
                     }
 
                     User.Role targetRole;
                     try {
                         targetRole = User.Role.valueOf(request.getTargetRole().toUpperCase());
                     } catch (IllegalArgumentException | NullPointerException e) {
-                        return Mono.error(new RuntimeException("RÃ´le cible invalide"));
+                        return Mono.error(new RuntimeException("Rôle cible invalide"));
                     }
 
                     if (targetRole != User.Role.CANDIDAT && targetRole != User.Role.SCHOOL_ADMIN) {
@@ -122,15 +124,15 @@ public class AuthService {
                     if (targetRole == User.Role.CANDIDAT) {
                         user.setRole(User.Role.CANDIDAT);
                         user.setSchoolId(null);
-                        return userRepository.save(user).map(this::createAuthResponse);
+                        return userRepository.save(user).map(this::authenticated);
                     }
 
                     School school = School.builder()
                             .name(request.getSchoolName() != null && !request.getSchoolName().isBlank()
                                     ? request.getSchoolName()
-                                    : "Ma Nouvelle Auto-Ã‰cole")
-                            .address("Adresse Ã  complÃ©ter")
-                            .city("YaoundÃ©")
+                                    : "Ma Nouvelle Auto-Ecole")
+                            .address("Adresse a completer")
+                            .city("Yaounde")
                             .build();
 
                     return schoolRepository.save(school)
@@ -139,7 +141,7 @@ public class AuthService {
                                 user.setSchoolId(savedSchool.getId());
                                 return userRepository.save(user);
                             })
-                            .map(this::createAuthResponse);
+                            .map(this::authenticated);
                 });
     }
 
@@ -159,21 +161,30 @@ public class AuthService {
                             && passwordEncoder.matches(trimmedPassword, storedPassword);
 
                     if (matchesRaw || matchesTrimmed) {
-                        return Mono.just(createAuthResponse(user));
+                        return Mono.just(authenticated(user));
                     }
 
                     // Backward compatibility for legacy rows stored in plain text.
                     if (!rawPassword.isEmpty() && rawPassword.equals(storedPassword)) {
                         user.setPassword(passwordEncoder.encode(rawPassword));
-                        return userRepository.save(user).map(this::createAuthResponse);
+                        return userRepository.save(user).map(this::authenticated);
                     }
                     if (!trimmedPassword.isEmpty() && trimmedPassword.equals(storedPassword)) {
                         user.setPassword(passwordEncoder.encode(trimmedPassword));
-                        return userRepository.save(user).map(this::createAuthResponse);
+                        return userRepository.save(user).map(this::authenticated);
                     }
 
                     return Mono.error(new RuntimeException("Invalid credentials"));
                 });
+    }
+
+    /**
+     * Réponse d'authentification + synchronisation kernel en arrière-plan
+     * (compte-miroir + token 15 min). Best-effort : ne bloque jamais le login.
+     */
+    private AuthResponse authenticated(User user) {
+        kernelAuthService.syncUserInBackground(user);
+        return createAuthResponse(user);
     }
 
     private AuthResponse createAuthResponse(User user) {
@@ -196,3 +207,4 @@ public class AuthService {
                 .build();
     }
 }
+
