@@ -39,6 +39,18 @@ public class ImageStorageService {
                 .thenReturn(filename);
     }
 
+    /** Sauvegarde depuis un tableau d'octets (le contenu a déjà été lu). */
+    public Mono<String> saveBytes(byte[] bytes, String originalFilename) {
+        String safeName = originalFilename != null
+                ? originalFilename.replaceAll("[^A-Za-z0-9._-]", "_")
+                : "image";
+        String filename = UUID.randomUUID() + "_" + safeName;
+        return Mono.fromCallable(() -> {
+            Files.write(root.resolve(filename), bytes);
+            return filename;
+        }).subscribeOn(reactor.core.scheduler.Schedulers.boundedElastic());
+    }
+
     public Resource load(String filename) {
         try {
             Path file = root.resolve(filename);

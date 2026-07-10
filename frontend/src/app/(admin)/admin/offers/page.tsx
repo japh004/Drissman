@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Plus, Search, Package, Trash2 } from "lucide-react";
+import { Plus, Search, Package, Trash2, ImagePlus, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks";
-import { adminOfferService, type AdminOfferDto } from "@/lib/admin-offer-service";
+import { adminOfferService, backendImageUrl, type AdminOfferDto } from "@/lib/admin-offer-service";
 import { adminModuleService, type AdminModuleDto } from "@/lib/admin-module-service";
 
 function formatPrice(amount: number) {
@@ -24,6 +24,8 @@ export default function OffersPage() {
   const [formPrice, setFormPrice] = useState(0);
   const [formHours, setFormHours] = useState(20);
   const [formPermit, setFormPermit] = useState("B");
+  const [formImageUrl, setFormImageUrl] = useState("");
+  const [uploadingImage, setUploadingImage] = useState(false);
   const [selectedModuleIds, setSelectedModuleIds] = useState<string[]>([]);
 
   const filteredOffers = useMemo(
@@ -64,7 +66,24 @@ export default function OffersPage() {
     setFormPrice(0);
     setFormHours(20);
     setFormPermit("B");
+    setFormImageUrl("");
     setSelectedModuleIds([]);
+  };
+
+  const handleImageUpload = async (file: File | undefined) => {
+    if (!file || !token) return;
+    if (!file.type.startsWith("image/")) return toast.error("Choisissez une image");
+    if (file.size > 5 * 1024 * 1024) return toast.error("Image trop lourde (5 Mo max)");
+    setUploadingImage(true);
+    try {
+      const url = await adminOfferService.uploadImage(file, token);
+      setFormImageUrl(url);
+      toast.success("Image ajoutée (archivée dans le kernel)");
+    } catch (error: any) {
+      toast.error(error.message || "Échec de l'upload");
+    } finally {
+      setUploadingImage(false);
+    }
   };
 
   const toggleModule = (moduleId: string) => {
@@ -87,6 +106,7 @@ export default function OffersPage() {
           price: formPrice,
           hours: formHours,
           permitType: formPermit,
+          imageUrl: formImageUrl || undefined,
         },
         token,
       );
@@ -159,8 +179,13 @@ export default function OffersPage() {
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {filteredOffers.map((offer) => (
             <div key={offer.id} className="bg-white/[0.03] rounded-2xl border border-white/[0.06] overflow-hidden hover:border-white/10 transition-all">
-              <div className="relative h-28 bg-gradient-to-br from-signal/5 to-blue-500/5 flex items-center justify-center">
-                <span className="text-4xl">{offer.permitType === "A" ? "🏍️" : offer.permitType === "C" ? "🚛" : "🚗"}</span>
+              <div className="relative h-28 bg-gradient-to-br from-signal/5 to-blue-500/5 flex items-center justify-center overflow-hidden">
+                {offer.imageUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={backendImageUrl(offer.imageUrl) || undefined} alt={offer.name} className="absolute inset-0 w-full h-full object-cover" />
+                ) : (
+                  <span className="text-4xl">{offer.permitType === "A" ? "🏍️" : offer.permitType === "C" ? "🚛" : "🚗"}</span>
+                )}
                 <div className="absolute top-3 left-3">
                   <span className="bg-green-500/10 text-green-400 text-[10px] font-bold px-2 py-0.5 rounded-lg uppercase">Actif</span>
                 </div>
@@ -194,6 +219,20 @@ export default function OffersPage() {
             <h2 className="text-lg font-black text-snow">Nouvelle Offre</h2>
             <input type="text" value={formName} onChange={(e) => setFormName(e.target.value)} placeholder="Nom" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-snow text-sm" />
             <textarea value={formDesc} onChange={(e) => setFormDesc(e.target.value)} rows={2} placeholder="Description" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-snow text-sm resize-none" />
+
+            {/* Image de présentation du cours */}
+            <label className={`relative flex items-center justify-center gap-2 h-28 rounded-xl border-2 border-dashed cursor-pointer transition-all overflow-hidden ${formImageUrl ? "border-signal/40" : "border-white/10 hover:border-white/25"}`}>
+              {formImageUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={backendImageUrl(formImageUrl) || undefined} alt="Aperçu" className="absolute inset-0 w-full h-full object-cover" />
+              ) : uploadingImage ? (
+                <span className="flex items-center gap-2 text-xs text-mist/60"><Loader2 className="h-4 w-4 animate-spin" /> Upload en cours...</span>
+              ) : (
+                <span className="flex items-center gap-2 text-xs text-mist/60"><ImagePlus className="h-4 w-4" /> Ajouter une image de présentation</span>
+              )}
+              <input type="file" accept="image/*" className="hidden" disabled={uploadingImage}
+                onChange={(e) => void handleImageUpload(e.target.files?.[0])} />
+            </label>
             <div className="grid grid-cols-2 gap-3">
               <input type="number" value={formPrice || ""} onChange={(e) => setFormPrice(parseInt(e.target.value, 10) || 0)} placeholder="Prix" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-snow text-sm" />
               <input type="number" value={formHours || ""} onChange={(e) => setFormHours(parseInt(e.target.value, 10) || 0)} placeholder="Heures" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-snow text-sm" />

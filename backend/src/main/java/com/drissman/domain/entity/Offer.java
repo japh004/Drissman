@@ -33,4 +33,8 @@ public class Offer {
 
     @Column("permit_type")
     private String permitType; // A, B, C, D, E, F, G, etc.
+
+    /** Image de présentation du cours (colonne présente depuis la migration 009). */
+    @Column("image_url")
+    private String imageUrl;
 }

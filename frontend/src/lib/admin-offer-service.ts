@@ -1,5 +1,7 @@
 import { apiClient } from "@/lib/api-client";
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api";
+
 export interface AdminOfferDto {
   id: string;
   name: string;
@@ -7,6 +9,15 @@ export interface AdminOfferDto {
   price: number;
   hours: number;
   permitType: string;
+  imageUrl?: string | null;
+}
+
+/** Résout une URL d'image servie par le backend (/api/images/...). */
+export function backendImageUrl(url?: string | null): string | null {
+  if (!url) return null;
+  if (url.startsWith("http")) return url;
+  if (url.startsWith("/api/")) return API_BASE_URL.replace(/\/api$/, "") + url;
+  return url;
 }
 
 export interface OfferModuleDto {
@@ -23,9 +34,27 @@ export interface CreateAdminOfferPayload {
   price: number;
   hours: number;
   permitType: string;
+  imageUrl?: string;
 }
 
 export const adminOfferService = {
+  /**
+   * Upload d'une image de cours : stockée par le backend et archivée dans le
+   * file-core du kernel. Retourne l'URL à mettre dans imageUrl.
+   */
+  uploadImage: async (file: File, token: string): Promise<string> => {
+    const formData = new FormData();
+    formData.append("file", file);
+    const res = await fetch(`${API_BASE_URL}/images/upload`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+      body: formData,
+    });
+    if (!res.ok) throw new Error("Échec de l'upload de l'image");
+    const data = await res.json();
+    return data.url as string;
+  },
+
   list: (token: string) => apiClient.get<AdminOfferDto[]>("/schools/admin/offers", token),
   create: (payload: CreateAdminOfferPayload, token: string) =>
     apiClient.post<AdminOfferDto>("/schools/admin/offers", payload, token),

@@ -15,4 +15,5 @@ public class UpdateOfferRequest {
     private Integer price;
     private Integer hours;
     private String permitType;
+    private String imageUrl;
 }

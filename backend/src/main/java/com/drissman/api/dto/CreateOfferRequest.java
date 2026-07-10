@@ -32,4 +32,7 @@ public class CreateOfferRequest {
 
     @NotBlank
     private String permitType;
+
+    /** URL de l'image de présentation (obtenue via POST /api/images/upload). */
+    private String imageUrl;
 }
