@@ -58,3 +58,6 @@ extract_diagrams.py
 extract_text.py
 extracted_diagrams/
 extracted_text/
+
+# Uploads locaux (images archivees dans le kernel)
+backend/uploads/
