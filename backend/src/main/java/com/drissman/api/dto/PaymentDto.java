@@ -36,4 +36,7 @@ public class PaymentDto {
     private LocalDateTime createdAt;
 
     private LocalDateTime paidAt;
+
+    /** URL Stripe Checkout à ouvrir pour payer par carte (transitoire). */
+    private String checkoutUrl;
 }

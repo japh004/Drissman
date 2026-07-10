@@ -87,3 +87,5 @@ databaseChangeLog:
       file: db/changelog/changes/041-add-kernel-actor-to-schools.yaml
   - include:
       file: db/changelog/changes/042-create-vehicles-tables.yaml
+  - include:
+      file: db/changelog/changes/043-add-provider-reference-to-invoices.yaml

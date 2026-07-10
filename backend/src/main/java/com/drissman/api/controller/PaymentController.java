@@ -34,6 +34,13 @@ public class PaymentController {
                 .flatMapMany(paymentService::getPaymentsForUser);
     }
 
+    /** Interroge le prestataire (paiement carte) et met le statut à jour. */
+    @GetMapping("/{invoiceId}/refresh")
+    public Mono<PaymentDto> refresh(Principal principal, @PathVariable UUID invoiceId) {
+        return requireUser(principal)
+                .flatMap(userId -> paymentService.refresh(userId, invoiceId));
+    }
+
     private Mono<UUID> requireUser(Principal principal) {
         if (principal == null) {
             return Mono.error(new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Authentification requise"));

@@ -5,6 +5,7 @@ import com.drissman.domain.entity.Vehicle;
 import com.drissman.domain.entity.VehiclePosition;
 import com.drissman.domain.repository.VehiclePositionRepository;
 import com.drissman.domain.repository.VehicleRepository;
+import com.drissman.kernel.KernelResourceService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -37,6 +38,7 @@ public class VehicleService {
 
     private final VehicleRepository vehicleRepository;
     private final VehiclePositionRepository positionRepository;
+    private final KernelResourceService kernelResourceService;
 
     /** Un flux de diffusion par école (multicast, sans replay). */
     private final Map<UUID, Sinks.Many<VehicleDto>> schoolStreams = new ConcurrentHashMap<>();
@@ -52,7 +54,9 @@ public class VehicleService {
                 .isActive(true)
                 .createdAt(LocalDateTime.now())
                 .build();
-        return vehicleRepository.save(vehicle).map(this::toDto);
+        return vehicleRepository.save(vehicle)
+                .doOnNext(kernelResourceService::mirrorVehicleInBackground)
+                .map(this::toDto);
     }
 
     public Flux<VehicleDto> getForSchool(UUID schoolId) {
@@ -104,6 +108,7 @@ public class VehicleService {
                     return positionRepository.save(position)
                             .then(vehicleRepository.save(vehicle));
                 })
+                .doOnNext(kernelResourceService::pushPositionInBackground)
                 .map(this::toDto)
                 .doOnNext(dto -> broadcast(dto.getSchoolId(), dto));
     }

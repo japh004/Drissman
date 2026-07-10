@@ -54,6 +54,23 @@ public class KernelAuthService {
     }
 
     /**
+     * Token kernel de l'utilisateur : depuis le cache, sinon re-login du
+     * miroir (mot de passe dérivé). Mono vide si le kernel est indisponible
+     * ou le miroir non vérifié — l'appelant doit traiter ce cas en best-effort.
+     */
+    public Mono<String> ensureToken(User user) {
+        return Mono.justOrEmpty(tokenStore.get(user.getId()))
+                .switchIfEmpty(
+                        syncUser(user)
+                                .then(Mono.defer(() -> Mono.justOrEmpty(tokenStore.get(user.getId()))))
+                                .onErrorResume(e -> {
+                                    log.debug("Token kernel indisponible pour {} : {}", user.getEmail(),
+                                            e.getMessage());
+                                    return Mono.empty();
+                                }));
+    }
+
+    /**
      * Stratégie login-first : tente le login kernel avec le mot de passe dérivé ;
      * si le compte n'existe pas encore, le crée (sign-up) puis stocke le token.
      */

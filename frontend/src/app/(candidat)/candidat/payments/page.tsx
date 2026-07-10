@@ -42,6 +42,7 @@ export default function MyPaymentsPage() {
     const { token } = useAuth();
     const [payments, setPayments] = useState<PaymentDto[]>([]);
     const [loading, setLoading] = useState(true);
+    const [refreshingId, setRefreshingId] = useState<string | null>(null);
 
     useEffect(() => {
         if (!token) return;
@@ -55,6 +56,28 @@ export default function MyPaymentsPage() {
             }
         })();
     }, [token]);
+
+    // Paiement carte : vérifie le statut chez le prestataire ; si toujours en
+    // attente, rouvre la page Stripe Checkout.
+    const handleRefresh = async (p: PaymentDto) => {
+        if (!token) return;
+        setRefreshingId(p.id);
+        try {
+            const updated = await paymentService.refresh(p.id, token);
+            setPayments((prev) => prev.map((x) => (x.id === p.id ? { ...x, ...updated } : x)));
+            if (updated.status === "PAID") {
+                toast.success("Paiement confirmé — votre inscription est active !");
+            } else if (updated.checkoutUrl) {
+                window.open(updated.checkoutUrl, "_blank", "noopener");
+            } else {
+                toast.info("Paiement toujours en attente.");
+            }
+        } catch (error: any) {
+            toast.error(error.message || "Vérification impossible");
+        } finally {
+            setRefreshingId(null);
+        }
+    };
 
     return (
         <PageTransition className="space-y-6">
@@ -103,7 +126,18 @@ export default function MyPaymentsPage() {
                                         {p.paidAt && <p className="text-green-400/70">Confirmé le {new Date(p.paidAt).toLocaleDateString("fr-FR")}</p>}
                                     </div>
                                 </div>
-                                <p className="text-xs text-mist/40 mt-3 pt-3 border-t border-white/5">{st.hint}</p>
+                                <div className="flex items-center justify-between gap-3 mt-3 pt-3 border-t border-white/5">
+                                    <p className="text-xs text-mist/40">{st.hint}</p>
+                                    {p.status === "PENDING" && p.method === "CARD" && (
+                                        <button
+                                            onClick={() => void handleRefresh(p)}
+                                            disabled={refreshingId === p.id}
+                                            className="shrink-0 text-xs font-bold text-signal border border-signal/30 bg-signal/10 hover:bg-signal/20 px-3 py-1.5 rounded-lg transition-all disabled:opacity-50"
+                                        >
+                                            {refreshingId === p.id ? "Vérification..." : "Payer / Vérifier"}
+                                        </button>
+                                    )}
+                                </div>
                             </div>
                         );
                     })}

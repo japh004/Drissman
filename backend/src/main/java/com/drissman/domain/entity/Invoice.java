@@ -46,6 +46,10 @@ public class Invoice {
     @Column("payment_phone")
     private String paymentPhone;
 
+    /** Référence de la transaction chez le prestataire (Yowyob Payment / Stripe). */
+    @Column("provider_reference")
+    private String providerReference;
+
     @Column("created_at")
     private LocalDateTime createdAt;
 

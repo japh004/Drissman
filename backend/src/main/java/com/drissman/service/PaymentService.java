@@ -8,6 +8,7 @@ import com.drissman.domain.repository.EnrollmentRepository;
 import com.drissman.domain.repository.InvoiceRepository;
 import com.drissman.domain.repository.OfferRepository;
 import com.drissman.domain.repository.UserRepository;
+import com.drissman.payment.YowyobPaymentClient;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -40,6 +41,7 @@ public class PaymentService {
     private final EnrollmentRepository enrollmentRepository;
     private final OfferRepository offerRepository;
     private final UserRepository userRepository;
+    private final YowyobPaymentClient yowyobPaymentClient;
 
     public Mono<PaymentDto> initiate(UUID userId, InitiatePaymentRequest request) {
         Invoice.PaymentMethod method;
@@ -89,8 +91,80 @@ public class PaymentService {
                             .paymentReference(generateReference())
                             .createdAt(LocalDateTime.now())
                             .build();
+
+                    // Paiement par carte : transaction Stripe Checkout via le
+                    // service Yowyob Payment (l'URL est retournée au candidat).
+                    if (method == Invoice.PaymentMethod.CARD) {
+                        if (!yowyobPaymentClient.isConfigured()) {
+                            return Mono.error(new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
+                                    "Le paiement par carte n'est pas disponible pour le moment"));
+                        }
+                        return yowyobPaymentClient.startCardPayment(invoice.getAmount())
+                                .flatMap(tx -> {
+                                    invoice.setProviderReference(tx.path("reference").asText(null));
+                                    return invoiceRepository.save(invoice)
+                                            .map(saved -> {
+                                                checkoutUrls.put(saved.getId(),
+                                                        tx.path("stripeCheckoutUrl").asText(null));
+                                                return saved;
+                                            });
+                                })
+                                .onErrorResume(e -> e instanceof ResponseStatusException ? Mono.error(e)
+                                        : Mono.error(new ResponseStatusException(HttpStatus.BAD_GATEWAY,
+                                                "Prestataire de paiement indisponible, réessayez plus tard")));
+                    }
+
                     return invoiceRepository.save(invoice);
                 });
+    }
+
+    /** URLs Stripe Checkout transitoires, servies une fois au DTO. */
+    private final java.util.Map<UUID, String> checkoutUrls = new java.util.concurrent.ConcurrentHashMap<>();
+
+    /**
+     * Rafraîchit le statut d'un paiement carte auprès du prestataire ;
+     * un succès confirme la facture et active l'inscription.
+     */
+    public Mono<PaymentDto> refresh(UUID userId, UUID invoiceId) {
+        return invoiceRepository.findById(invoiceId)
+                .switchIfEmpty(Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND, "Paiement introuvable")))
+                .filter(invoice -> userId.equals(invoice.getUserId()))
+                .switchIfEmpty(Mono.error(new ResponseStatusException(HttpStatus.FORBIDDEN,
+                        "Ce paiement ne vous appartient pas")))
+                .flatMap(invoice -> {
+                    if (invoice.getStatus() != Invoice.InvoiceStatus.PENDING
+                            || invoice.getProviderReference() == null) {
+                        return Mono.just(invoice);
+                    }
+                    return yowyobPaymentClient.getByReference(invoice.getProviderReference())
+                            .flatMap(tx -> {
+                                String status = tx.path("status").asText("").toUpperCase(Locale.ROOT);
+                                if (status.equals("SUCCESS") || status.equals("COMPLETED")
+                                        || status.equals("PAID") || status.equals("SUCCEEDED")) {
+                                    invoice.setStatus(Invoice.InvoiceStatus.PAID);
+                                    invoice.setPaidAt(LocalDateTime.now());
+                                    return invoiceRepository.save(invoice)
+                                            .flatMap(saved -> activateEnrollment(saved).thenReturn(saved));
+                                }
+                                if (status.equals("FAILED") || status.equals("CANCELLED")
+                                        || status.equals("EXPIRED")) {
+                                    invoice.setStatus(Invoice.InvoiceStatus.FAILED);
+                                    return invoiceRepository.save(invoice);
+                                }
+                                // Toujours en attente : réexpose l'URL de paiement.
+                                String url = tx.path("stripeCheckoutUrl").asText(null);
+                                if (url != null && !url.isBlank()) {
+                                    checkoutUrls.put(invoice.getId(), url);
+                                }
+                                return Mono.just(invoice);
+                            })
+                            .onErrorResume(e -> {
+                                log.debug("Prestataire injoignable pour {} : {}",
+                                        invoice.getPaymentReference(), e.getMessage());
+                                return Mono.just(invoice);
+                            });
+                })
+                .map(this::toDto);
     }
 
     public Flux<PaymentDto> getPaymentsForUser(UUID userId) {
@@ -195,6 +269,7 @@ public class PaymentService {
                 .reference(invoice.getPaymentReference())
                 .createdAt(invoice.getCreatedAt())
                 .paidAt(invoice.getPaidAt())
+                .checkoutUrl(invoice.getId() != null ? checkoutUrls.remove(invoice.getId()) : null)
                 .build();
     }
 }

@@ -30,6 +30,10 @@ services:
       # --- Secrets applicatifs ---
       JWT_SECRET: "${JWT_SECRET:?requis dans .env}"
       SUPERADMIN_SECRET: "${SUPERADMIN_SECRET:?requis dans .env}"
+      # --- Yowyob Payment (paiement carte) ---
+      PAYMENT_EMAIL: "${PAYMENT_EMAIL:-}"
+      PAYMENT_PASSWORD: "${PAYMENT_PASSWORD:-}"
+      PAYMENT_WALLET_ID: "${PAYMENT_WALLET_ID:-}"
       # --- CORS (frontend Vercel + domaine yowyob) ---
       APP_CORS_ALLOWED_ORIGINS: "${APP_CORS_ALLOWED_ORIGINS:-https://drissman0.vercel.app}"
       # --- Derrière Traefik en path-routing ---

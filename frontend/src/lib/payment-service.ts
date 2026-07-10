@@ -12,6 +12,8 @@ export interface PaymentDto {
     reference: string;
     createdAt: string;
     paidAt: string | null;
+    /** URL Stripe Checkout (paiement carte en attente). */
+    checkoutUrl?: string | null;
 }
 
 export const paymentMethodLabels: Record<string, string> = {
@@ -43,6 +45,10 @@ export const paymentService = {
 
     listForSchool: (token: string) =>
         apiClient.get<PaymentDto[]>("/schools/admin/payments", token),
+
+    /** Interroge le prestataire carte et retourne le statut à jour. */
+    refresh: (invoiceId: string, token: string) =>
+        apiClient.get<PaymentDto>(`/payments/${invoiceId}/refresh`, token),
 
     confirm: (invoiceId: string, token: string) =>
         apiClient.post<PaymentDto>(`/schools/admin/payments/${invoiceId}/confirm`, undefined, token),

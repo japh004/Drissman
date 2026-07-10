@@ -42,6 +42,9 @@ class PaymentServiceTest {
         @Mock
         private UserRepository userRepository;
 
+        @Mock
+        private com.drissman.payment.YowyobPaymentClient yowyobPaymentClient;
+
         @InjectMocks
         private PaymentService paymentService;
 
