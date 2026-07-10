@@ -5,6 +5,7 @@ import com.drissman.api.dto.RegisterRequest;
 import com.drissman.domain.entity.User;
 import com.drissman.domain.repository.SchoolRepository;
 import com.drissman.domain.repository.UserRepository;
+import com.drissman.kernel.KernelAuthService;
 import com.drissman.security.JwtTokenProvider;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -34,6 +35,9 @@ class AuthServiceTest {
 
         @Mock
         private JwtTokenProvider jwtTokenProvider;
+
+        @Mock
+        private KernelAuthService kernelAuthService;
 
         @InjectMocks
         private AuthService authService;

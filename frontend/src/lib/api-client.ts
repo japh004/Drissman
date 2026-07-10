@@ -21,6 +21,15 @@ async function request<T>(endpoint: string, options: RequestOptions = {}): Promi
         headers,
     });
 
+    // Session expirée : un appel AUTHENTIFIÉ qui reçoit 401 signifie que le
+    // token n'est plus valide → purge de la session et retour au login.
+    if (response.status === 401 && token && typeof window !== "undefined") {
+        localStorage.removeItem("drissman_token");
+        localStorage.removeItem("drissman_user");
+        window.location.href = "/login?expired=1";
+        throw new Error("Session expirée, veuillez vous reconnecter.");
+    }
+
     if (!response.ok) {
         const errorBody = await response.json().catch(() => ({}));
         const message =

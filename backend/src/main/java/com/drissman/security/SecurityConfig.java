@@ -27,6 +27,11 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
+    /** Origines CORS autorisées, séparées par des virgules (surchargées en prod). */
+    @org.springframework.beans.factory.annotation.Value(
+            "${app.cors.allowed-origins:https://drissman0.vercel.app,http://localhost:3000}")
+    private String allowedOrigins;
+
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -41,9 +46,7 @@ public class SecurityConfig {
     @Order(Ordered.HIGHEST_PRECEDENCE)
     public CorsWebFilter corsWebFilter() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(Arrays.asList(
-                "https://drissman0.vercel.app",
-                "http://localhost:3000"));
+        config.setAllowedOrigins(Arrays.asList(allowedOrigins.split("\\s*,\\s*")));
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"));
         config.setAllowedHeaders(Arrays.asList("*"));
         config.setExposedHeaders(Arrays.asList("*"));
@@ -70,20 +73,22 @@ public class SecurityConfig {
 
                         // Public endpoints — no auth required
                         .pathMatchers("/api/auth/**").permitAll()
-                        .pathMatchers("/api/health").permitAll()
+                        .pathMatchers("/api/health/**", "/api/health").permitAll()
+                        .pathMatchers("/actuator/health").permitAll()
                         .pathMatchers(HttpMethod.GET, "/api/schools/**").permitAll()
                         .pathMatchers(HttpMethod.GET, "/api/reviews/**").permitAll()
                         .pathMatchers(HttpMethod.GET, "/api/offers/**").permitAll()
                         .pathMatchers(HttpMethod.GET, "/api/images/**").permitAll()
                         .pathMatchers(HttpMethod.GET, "/api/training-periods/published/**").permitAll()
 
-                        // Demo-mode endpoints
-                        .pathMatchers(HttpMethod.GET, "/api/partner/stats").permitAll()
-                        .pathMatchers(HttpMethod.GET, "/api/partner/enrollments").permitAll()
-                        .pathMatchers(HttpMethod.GET, "/api/student/progress").permitAll()
-                        .pathMatchers(HttpMethod.GET, "/api/availabilities/**").permitAll()
+                        // Véhicules (P5) : lecture + flux SSE publics (carte),
+                        // mise à jour de position réservée aux moniteurs/écoles
+                        .pathMatchers(HttpMethod.GET, "/api/vehicles/school/**").permitAll()
+                        .pathMatchers(HttpMethod.POST, "/api/vehicles/*/position")
+                        .hasAnyRole("MONITOR", "SCHOOL_ADMIN")
 
                         // Role-scoped areas
+                        .pathMatchers("/api/kernel/admin/**").hasAnyRole("SCHOOL_ADMIN", "SUPER_ADMIN")
                         .pathMatchers("/api/superadmin/**").hasRole("SUPER_ADMIN")
                         .pathMatchers("/api/schools/admin/**").hasRole("SCHOOL_ADMIN")
                         .pathMatchers("/api/monitors/**").hasAnyRole("MONITOR", "SCHOOL_ADMIN")

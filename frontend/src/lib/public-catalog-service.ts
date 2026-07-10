@@ -22,6 +22,8 @@ export interface PublicSchoolDto {
   latitude?: number;
   longitude?: number;
   minPrice?: number;
+  isVerified?: boolean;
+  reviewCount?: number;
   offers: PublicSchoolOfferDto[];
 }
 

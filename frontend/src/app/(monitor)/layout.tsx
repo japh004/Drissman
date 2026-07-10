@@ -10,6 +10,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 const navItems = [
     { name: "Accueil", href: "/monitor", icon: LayoutDashboard },
     { name: "Mon Planning", href: "/monitor/planning", icon: CalendarDays },
+    { name: "Suivi GPS", href: "/monitor/tracking", icon: Car },
     { name: "Mes Élèves", href: "/monitor/students", icon: Users },
     { name: "Mon Profil", href: "/monitor/profile", icon: User },
 ];

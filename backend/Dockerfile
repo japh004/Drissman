@@ -16,6 +16,9 @@ RUN mvn clean package -DskipTests
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 
+# curl requis par le healthcheck Docker (infra yowyob)
+RUN apk add --no-cache curl
+
 # Create a non-root user
 RUN addgroup -S spring && adduser -S spring -G spring
 USER spring:spring

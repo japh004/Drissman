@@ -29,6 +29,12 @@
             <artifactId>spring-boot-starter-webflux</artifactId>
         </dependency>
 
+        <!-- Actuator (healthcheck /actuator/health exigé par l'infra yowyob) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+
         <!-- Spring Data R2DBC (Reactive DB) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -149,11 +155,14 @@
                 <groupId>org.liquibase</groupId>
                 <artifactId>liquibase-maven-plugin</artifactId>
                 <version>4.24.0</version>
+                <!-- Identifiants via variables d'environnement — jamais en dur.
+                     Usage : mvnw liquibase:update -DDB_URL=... -DDB_USERNAME=... -DDB_PASSWORD=...
+                     (les migrations tournent de toute façon au démarrage de l'app) -->
                 <configuration>
                     <changeLogFile>src/main/resources/db/changelog/db.changelog-master.yaml</changeLogFile>
-                    <url>jdbc:postgresql://127.0.0.1:5433/drissman</url>
-                    <username>drissman</username>
-                    <password>drissman_secret</password>
+                    <url>${DB_URL}</url>
+                    <username>${DB_USERNAME}</username>
+                    <password>${DB_PASSWORD}</password>
                 </configuration>
             </plugin>
         </plugins>

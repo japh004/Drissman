@@ -2,11 +2,13 @@ package com.drissman.api.controller;
 
 import com.drissman.api.dto.EnrollmentViewDto;
 import com.drissman.api.dto.InvoiceViewDto;
+import com.drissman.api.dto.PaymentDto;
 import com.drissman.api.dto.UpdateEnrollmentStatusRequest;
 import com.drissman.domain.entity.User;
 import com.drissman.domain.repository.UserRepository;
 import com.drissman.service.EnrollmentAppService;
 import com.drissman.service.InvoiceQueryService;
+import com.drissman.service.PaymentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -25,6 +27,7 @@ public class AdminEnrollmentController {
 
     private final EnrollmentAppService enrollmentAppService;
     private final InvoiceQueryService invoiceQueryService;
+    private final PaymentService paymentService;
     private final UserRepository userRepository;
 
     @GetMapping("/enrollments")
@@ -46,6 +49,20 @@ public class AdminEnrollmentController {
     public Flux<InvoiceViewDto> getSchoolInvoices(Principal principal) {
         return getSchoolId(principal)
                 .flatMapMany(invoiceQueryService::getInvoicesForSchool);
+    }
+
+    /** Paiements réels reçus par l'école (source de vérité, vue Finances). */
+    @GetMapping("/payments")
+    public Flux<PaymentDto> getSchoolPayments(Principal principal) {
+        return getSchoolId(principal)
+                .flatMapMany(paymentService::getPaymentsForSchool);
+    }
+
+    /** Confirme la réception d'un paiement : facture PAID + inscription ACTIVE. */
+    @PostMapping("/payments/{invoiceId}/confirm")
+    public Mono<PaymentDto> confirmPayment(Principal principal, @PathVariable UUID invoiceId) {
+        return getSchoolId(principal)
+                .flatMap(schoolId -> paymentService.confirm(schoolId, invoiceId));
     }
 
     private Mono<UUID> getSchoolId(Principal principal) {

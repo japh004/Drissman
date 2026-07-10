@@ -39,6 +39,10 @@ public class User {
     @Column("school_id")
     private UUID schoolId;
 
+    /** Identifiant du compte-miroir sur le kernel-core (yowyob). Null = pas encore synchronisé. */
+    @Column("kernel_user_id")
+    private UUID kernelUserId;
+
     @Column("avatar_url")
     private String avatarUrl;
 

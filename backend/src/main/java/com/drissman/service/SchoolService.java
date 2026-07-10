@@ -21,6 +21,7 @@ public class SchoolService {
 
         private final SchoolRepository schoolRepository;
         private final OfferRepository offerRepository;
+        private final com.drissman.domain.repository.ReviewRepository reviewRepository;
 
         /** Earth radius in km for Haversine formula */
         private static final double EARTH_RADIUS_KM = 6371.0;
@@ -60,7 +61,7 @@ public class SchoolService {
                                                                 .toList();
                                                 dto.setOffers(offerDtos);
 
-                                                return Mono.just(dto);
+                                                return withReviewCount(dto);
                                         });
                 });
         }
@@ -129,7 +130,8 @@ public class SchoolService {
                                                         .map(offers -> {
                                                                 dto.setOffers(offers);
                                                                 return dto;
-                                                        });
+                                                        })
+                                                        .flatMap(this::withReviewCount);
                                 });
         }
 
@@ -180,6 +182,17 @@ public class SchoolService {
                                 .imageUrl(school.getImageUrl())
                                 .latitude(school.getLatitude())
                                 .longitude(school.getLongitude())
+                                .isVerified(school.getIsVerified())
                                 .build();
+        }
+
+        /** Complète le DTO avec le nombre réel d'avis. */
+        private Mono<SchoolDto> withReviewCount(SchoolDto dto) {
+                return reviewRepository.countBySchoolId(dto.getId())
+                                .defaultIfEmpty(0L)
+                                .map(count -> {
+                                        dto.setReviewCount(count);
+                                        return dto;
+                                });
         }
 }

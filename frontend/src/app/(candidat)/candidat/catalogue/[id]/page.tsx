@@ -7,6 +7,7 @@ import Link from "next/link";
 import { toast } from "sonner";
 import { PageTransition } from "@/components/ui/motion";
 import { enrollmentService, EnrollmentDto } from "@/lib/enrollment-service";
+import { paymentService } from "@/lib/payment-service";
 
 interface Enrollment {
     id: string;
@@ -98,12 +99,25 @@ export default function CatalogueDetailPage({ params }: PageProps) {
     const handleSubmitPayment = async () => {
         if (!paymentMethod || !paymentPhone || !paymentModal || !user) return;
         setSubmitting(true);
-        await new Promise(resolve => setTimeout(resolve, 1200));
 
         let enrollment: Enrollment;
         try {
             if (!token) throw new Error("no-token");
             const created = await enrollmentService.createEnrollment(paymentModal.id, token);
+            // Initie le paiement réel : la méthode et le téléphone sont désormais
+            // transmis au backend (facture PENDING, confirmée ensuite par l'école).
+            // Carte bancaire : le backend retourne une URL Stripe Checkout à ouvrir.
+            try {
+                const isCard = paymentMethod === "Carte bancaire";
+                const payment = await paymentService.initiate(
+                    created.id, paymentMethod, isCard ? "" : paymentPhone, token);
+                if (isCard && payment.checkoutUrl) {
+                    window.open(payment.checkoutUrl, "_blank", "noopener");
+                    toast.info("Fenêtre de paiement Stripe ouverte — finalisez le règlement puis revenez sur Mes Paiements.");
+                }
+            } catch {
+                toast.warning("Inscription créée, mais l'initiation du paiement a échoué. Contactez l'auto-école.");
+            }
             enrollment = {
                 id: created.id,
                 offerId: created.offerId,
@@ -158,12 +172,8 @@ export default function CatalogueDetailPage({ params }: PageProps) {
         );
     }
 
-    const schoolData = {
-        ...school,
-        rating: 4.0 + (school.id.split("").reduce((a: number, b: string) => a + b.charCodeAt(0), 0) % 10) / 10,
-        reviewCount: (school.id.split("").reduce((a: number, b: string) => a + b.charCodeAt(0), 0) % 50) + 10,
-        isVerified: school.id.charCodeAt(0) % 2 === 0,
-    };
+    // Données réelles de l'API (note, avis, badge vérifié) — plus de valeurs fabriquées.
+    const schoolData = school;
 
     return (
         <PageTransition className="space-y-8">
@@ -302,7 +312,7 @@ export default function CatalogueDetailPage({ params }: PageProps) {
                         <div className="p-5 space-y-4">
                             <div>
                                 <p className="text-xs font-bold text-mist/40 uppercase tracking-wider mb-3">Moyen de paiement</p>
-                                <div className="grid grid-cols-2 gap-3">
+                                <div className="grid grid-cols-3 gap-3">
                                     <button onClick={() => setPaymentMethod("Orange Money")}
                                         className={`p-4 rounded-xl border-2 transition-all text-center ${paymentMethod === "Orange Money" ? "border-orange-500 bg-orange-500/10" : "border-white/10 bg-white/[0.02] hover:border-white/20"}`}>
                                         <div className="text-2xl mb-1">🟠</div>
@@ -313,10 +323,15 @@ export default function CatalogueDetailPage({ params }: PageProps) {
                                         <div className="text-2xl mb-1">🟡</div>
                                         <p className="text-xs font-bold text-snow">MTN MoMo</p>
                                     </button>
+                                    <button onClick={() => { setPaymentMethod("Carte bancaire"); setPaymentPhone("—"); }}
+                                        className={`p-4 rounded-xl border-2 transition-all text-center ${paymentMethod === "Carte bancaire" ? "border-blue-500 bg-blue-500/10" : "border-white/10 bg-white/[0.02] hover:border-white/20"}`}>
+                                        <div className="text-2xl mb-1">💳</div>
+                                        <p className="text-xs font-bold text-snow">Carte</p>
+                                    </button>
                                 </div>
                             </div>
 
-                            {paymentMethod && (
+                            {paymentMethod && paymentMethod !== "Carte bancaire" && (
                                 <div>
                                     <p className="text-xs font-bold text-mist/40 uppercase tracking-wider mb-2">Numéro de téléphone</p>
                                     <div className="relative">
