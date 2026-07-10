@@ -31,17 +31,25 @@ public class VehicleController {
         return vehicleService.getForSchool(schoolId);
     }
 
-    /** Mise à jour de position (moniteur / dispositif embarqué). */
+    /**
+     * Mise à jour de position (moniteur / dispositif embarqué).
+     * Réservée aux séances de conduite / examen blanc en cours (cf. service).
+     */
     @PostMapping("/{vehicleId}/position")
-    public Mono<VehicleDto> updatePosition(@PathVariable UUID vehicleId,
+    public Mono<VehicleDto> updatePosition(java.security.Principal principal,
+            @PathVariable UUID vehicleId,
             @RequestBody Map<String, Double> body) {
+        if (principal == null) {
+            return Mono.error(new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.UNAUTHORIZED, "Authentification requise"));
+        }
         Double lat = body.get("latitude");
         Double lng = body.get("longitude");
         if (lat == null || lng == null) {
             return Mono.error(new org.springframework.web.server.ResponseStatusException(
                     org.springframework.http.HttpStatus.BAD_REQUEST, "latitude et longitude requis"));
         }
-        return vehicleService.updatePosition(vehicleId, lat, lng);
+        return vehicleService.updatePosition(vehicleId, lat, lng, UUID.fromString(principal.getName()));
     }
 
     /**

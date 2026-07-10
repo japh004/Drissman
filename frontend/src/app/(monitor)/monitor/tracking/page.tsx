@@ -71,8 +71,13 @@ export default function TrackingPage() {
             setLastSentAt(new Date());
             setSentCount((c) => c + 1);
           })
-          .catch(() => {
-            /* envoi raté : le prochain point réessaiera */
+          .catch((err: Error) => {
+            // Refus métier (pas de séance de conduite en cours) : on arrête.
+            if (err.message && err.message.includes("séance")) {
+              setGeoError(err.message);
+              stopSharing();
+            }
+            /* autre échec réseau : le prochain point réessaiera */
           });
       },
       (err) => {

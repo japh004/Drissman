@@ -16,4 +16,21 @@ public interface SessionRepository extends ReactiveCrudRepository<Session, UUID>
 
     @org.springframework.data.r2dbc.repository.Query("SELECT s.* FROM sessions s JOIN enrollments e ON s.enrollment_id = e.id WHERE e.school_id = :schoolId")
     Flux<Session> findBySchoolId(UUID schoolId);
+
+    /**
+     * Séances de conduite (ou examen blanc) en cours pour un moniteur :
+     * aujourd'hui, à l'heure actuelle (marge 15 min), non annulées.
+     * Un module CODE ne donne PAS droit au partage de position.
+     */
+    @org.springframework.data.r2dbc.repository.Query("""
+            SELECT COUNT(*) FROM sessions s
+            LEFT JOIN modules mo ON s.module_id = mo.id
+            WHERE s.monitor_id = :monitorId
+              AND s.date = CURRENT_DATE
+              AND CURRENT_TIME >= s.start_time - INTERVAL '15 minutes'
+              AND CURRENT_TIME <= s.end_time + INTERVAL '15 minutes'
+              AND s.status IN ('SCHEDULED', 'CONFIRMED', 'IN_PROGRESS')
+              AND (mo.category IS NULL OR mo.category IN ('CONDUITE', 'EXAMEN_BLANC'))
+            """)
+    reactor.core.publisher.Mono<Long> countActiveDrivingSessions(UUID monitorId);
 }

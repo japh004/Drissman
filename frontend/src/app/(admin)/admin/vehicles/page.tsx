@@ -33,7 +33,7 @@ export default function VehiclesPage() {
   }, [token]);
 
   const handleCreate = async () => {
-    if (!token) return;
+    if (!token) return toast.error("Session expirée — reconnectez-vous");
     if (!formName.trim()) return toast.error("Nom du véhicule obligatoire");
     if (!formPlate.trim()) return toast.error("Immatriculation obligatoire");
     try {
