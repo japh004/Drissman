@@ -81,12 +81,6 @@ public class SecurityConfig {
                         .pathMatchers(HttpMethod.GET, "/api/images/**").permitAll()
                         .pathMatchers(HttpMethod.GET, "/api/training-periods/published/**").permitAll()
 
-                        // Demo-mode endpoints
-                        .pathMatchers(HttpMethod.GET, "/api/partner/stats").permitAll()
-                        .pathMatchers(HttpMethod.GET, "/api/partner/enrollments").permitAll()
-                        .pathMatchers(HttpMethod.GET, "/api/student/progress").permitAll()
-                        .pathMatchers(HttpMethod.GET, "/api/availabilities/**").permitAll()
-
                         // Véhicules (P5) : lecture + flux SSE publics (carte),
                         // mise à jour de position réservée aux moniteurs/écoles
                         .pathMatchers(HttpMethod.GET, "/api/vehicles/school/**").permitAll()
