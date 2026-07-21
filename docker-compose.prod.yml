@@ -20,6 +20,8 @@ services:
       SPRING_R2DBC_URL: "r2dbc:postgresql://database:5432/drissman"
       SPRING_DATASOURCE_URL: "jdbc:postgresql://database:5432/drissman"
       SPRING_LIQUIBASE_URL: "jdbc:postgresql://database:5432/drissman"
+      # Exclut les changesets de seed tagués context:dev (données de démo).
+      LIQUIBASE_CONTEXTS: "prod"
       DB_USERNAME: "${DB_USERNAME:?requis dans .env}"
       DB_PASSWORD: "${DB_PASSWORD:?requis dans .env}"
       # --- kernel-core (réseau interne yowyob) ---
