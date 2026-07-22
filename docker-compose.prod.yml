@@ -29,6 +29,8 @@ services:
       KERNEL_CLIENT_ID: "${KERNEL_CLIENT_ID:?requis dans .env}"
       KERNEL_API_KEY: "${KERNEL_API_KEY:?requis dans .env}"
       KERNEL_TENANT_ID: "${KERNEL_TENANT_ID:?requis dans .env}"
+      # Payment Core kernel : URL publique notifiée par le kernel (statut final).
+      KERNEL_PAYMENT_CALLBACK_URL: "https://drisman.yowyob.com/drisman-api/api/payments/webhook"
       # --- Secrets applicatifs ---
       JWT_SECRET: "${JWT_SECRET:?requis dans .env}"
       SUPERADMIN_SECRET: "${SUPERADMIN_SECRET:?requis dans .env}"
