@@ -107,16 +107,23 @@ class KernelAuthServiceTest {
         }
 
         @Test
-        void syncUser_shouldSignUp_whenLoginFails() throws Exception {
+        void syncUser_shouldSignUpThenRequireEmailVerification_whenLoginFails() throws Exception {
                 when(kernelClient.post(eq("/api/auth/login"), any()))
                                 .thenReturn(Mono.error(new RuntimeException("401 Unauthorized")));
                 when(kernelClient.post(eq("/api/auth/sign-up"), any()))
                                 .thenReturn(Mono.just(response(
                                                 "{\"email\":\"test@drissman.cm\",\"status\":\"EMAIL_VERIFICATION_REQUIRED\"}")));
 
-                StepVerifier.create(kernelAuthService.syncUser(user)).verifyComplete();
+                // Règle produit : la connexion est bloquée tant que l'email n'est pas
+                // vérifié côté kernel (le compte-miroir, lui, est bien créé).
+                StepVerifier.create(kernelAuthService.syncUser(user))
+                                .expectErrorMatches(e -> e instanceof org.springframework.web.server.ResponseStatusException
+                                                && ((org.springframework.web.server.ResponseStatusException) e)
+                                                                .getStatusCode().value() == 403
+                                                && e.getMessage().contains("EMAIL_VERIFICATION_REQUIRED"))
+                                .verify();
 
-                // Compte créé mais en attente de vérification : pas de token, pas d'id.
+                // Pas de token, pas d'id persisté.
                 verify(tokenStore, never()).put(any(), anyString(), org.mockito.ArgumentMatchers.anyLong());
                 verify(userRepository, never()).save(any());
         }
