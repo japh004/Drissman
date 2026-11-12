@@ -88,11 +88,14 @@ class PaymentServiceTest {
                 when(offerRepository.findById(offerId))
                                 .thenReturn(Mono.just(Offer.builder().id(offerId).price(250000).build()));
                 when(invoiceRepository.save(any(Invoice.class)))
-                                .thenAnswer(inv -> Mono.just(inv.getArgument(0, Invoice.class)));
+                                .thenAnswer(inv -> {
+                                        Invoice saved = inv.getArgument(0, Invoice.class);
+                                        if (saved.getId() == null) saved.setId(UUID.randomUUID());
+                                        return Mono.just(saved);
+                                });
                 when(kernelPaymentGatewayClient.initiatePayment(any(String.class), anyLong(), any(String.class), any(String.class), any(String.class), any(String.class)))
                                 .thenReturn(Mono.just(com.fasterxml.jackson.databind.node.JsonNodeFactory.instance.objectNode()
-                                        .put("id", "tx-123")
-                                        .put("redirectUrl", "http://test.com")));
+                                        .put("id", "tx-123")));
 
                 StepVerifier.create(paymentService.initiate(userId, request("ORANGE_MONEY", "+237691234567")))
                                 .assertNext(dto -> {
@@ -132,10 +135,10 @@ class PaymentServiceTest {
         }
 
         @Test
-        void initiate_shouldRejectDuplicatePayment() {
+        void initiate_shouldRejectWhenAlreadyPaid() {
                 when(enrollmentRepository.findById(enrollmentId)).thenReturn(Mono.just(enrollment));
                 when(invoiceRepository.findByEnrollmentId(enrollmentId)).thenReturn(Flux.just(
-                                Invoice.builder().status(Invoice.InvoiceStatus.PENDING).build()));
+                                Invoice.builder().status(Invoice.InvoiceStatus.PAID).build()));
 
                 StepVerifier.create(paymentService.initiate(userId, request("CASH", null)))
                                 .expectErrorMatches(e -> e instanceof ResponseStatusException
@@ -204,5 +207,52 @@ class PaymentServiceTest {
                                 .verifyComplete();
 
                 org.junit.jupiter.api.Assertions.assertEquals(Invoice.InvoiceStatus.FAILED, pending.getStatus());
+        }
+
+        // ----- Webhook : le statut du corps n'est jamais une source de vérité -----
+
+        private Invoice pendingInvoiceWithRef(String ref) {
+                return Invoice.builder()
+                                .id(UUID.randomUUID())
+                                .enrollmentId(enrollmentId)
+                                .schoolId(schoolId)
+                                .amount(250000)
+                                .providerReference(ref)
+                                .status(Invoice.InvoiceStatus.PENDING)
+                                .build();
+        }
+
+        @Test
+        void webhook_shouldIgnoreForgedSuccess_whenGatewaySaysPending() {
+                Invoice invoice = pendingInvoiceWithRef("tx-forged");
+                when(invoiceRepository.findByProviderReference("tx-forged")).thenReturn(Mono.just(invoice));
+                when(kernelPaymentGatewayClient.getPaymentOrder("tx-forged"))
+                                .thenReturn(Mono.just(com.fasterxml.jackson.databind.node.JsonNodeFactory.instance
+                                                .objectNode().put("status", "PENDING")));
+
+                StepVerifier.create(paymentService.handleProviderWebhook("tx-forged", "SUCCESS")).verifyComplete();
+
+                org.junit.jupiter.api.Assertions.assertEquals(Invoice.InvoiceStatus.PENDING, invoice.getStatus());
+                verify(invoiceRepository, never()).save(any());
+        }
+
+        @Test
+        void webhook_shouldMarkPaid_whenGatewayConfirms() {
+                Invoice invoice = pendingInvoiceWithRef("tx-ok");
+                when(invoiceRepository.findByProviderReference("tx-ok")).thenReturn(Mono.just(invoice));
+                when(kernelPaymentGatewayClient.getPaymentOrder("tx-ok"))
+                                .thenReturn(Mono.just(com.fasterxml.jackson.databind.node.JsonNodeFactory.instance
+                                                .objectNode().put("status", "SUCCESS")));
+                when(invoiceRepository.save(any(Invoice.class)))
+                                .thenAnswer(inv -> Mono.just(inv.getArgument(0, Invoice.class)));
+                when(enrollmentRepository.findById(enrollmentId)).thenReturn(Mono.just(enrollment));
+                when(enrollmentRepository.save(any(Enrollment.class)))
+                                .thenAnswer(inv -> Mono.just(inv.getArgument(0, Enrollment.class)));
+
+                // Même avec un statut de corps absent, c'est la passerelle qui décide.
+                StepVerifier.create(paymentService.handleProviderWebhook("tx-ok", null)).verifyComplete();
+
+                org.junit.jupiter.api.Assertions.assertEquals(Invoice.InvoiceStatus.PAID, invoice.getStatus());
+                org.junit.jupiter.api.Assertions.assertEquals(Enrollment.EnrollmentStatus.ACTIVE, enrollment.getStatus());
         }
 }

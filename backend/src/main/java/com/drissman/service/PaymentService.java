@@ -115,8 +115,12 @@ public class PaymentService {
                                 invoice.setProviderReference(tx.path("id").asText(null));
                                 return invoiceRepository.save(invoice)
                                         .map(saved -> {
-                                            checkoutUrls.put(saved.getId(),
-                                                    tx.path("redirectUrl").asText(null));
+                                            // Mobile Money n'a généralement pas d'URL de redirection :
+                                            // ConcurrentHashMap refuse les null (NPE → faux 502).
+                                            String redirectUrl = tx.path("redirectUrl").asText(null);
+                                            if (saved.getId() != null && redirectUrl != null && !redirectUrl.isBlank()) {
+                                                checkoutUrls.put(saved.getId(), redirectUrl);
+                                            }
                                             return saved;
                                         });
                             })
@@ -147,24 +151,7 @@ public class PaymentService {
                         return Mono.just(invoice);
                     }
                     return kernelPaymentGatewayClient.getPaymentOrder(invoice.getProviderReference())
-                            .flatMap(tx -> {
-                                String status = tx.path("status").asText("").toUpperCase(Locale.ROOT);
-                                if (status.equals("SUCCESS") || status.equals("COMPLETED")
-                                        || status.equals("PAID") || status.equals("SUCCEEDED")) {
-                                    return finalizePaid(invoice);
-                                }
-                                if (status.equals("FAILED") || status.equals("CANCELLED")
-                                        || status.equals("EXPIRED")) {
-                                    invoice.setStatus(Invoice.InvoiceStatus.FAILED);
-                                    return invoiceRepository.save(invoice);
-                                }
-                                // Toujours en attente : réexpose l'URL de paiement.
-                                String url = tx.path("redirectUrl").asText(null);
-                                if (url != null && !url.isBlank()) {
-                                    checkoutUrls.put(invoice.getId(), url);
-                                }
-                                return Mono.just(invoice);
-                            })
+                            .flatMap(tx -> applyGatewayStatus(invoice, tx))
                             .onErrorResume(e -> {
                                 log.debug("Prestataire injoignable pour {} : {}",
                                         invoice.getPaymentReference(), e.getMessage());
@@ -233,21 +220,41 @@ public class PaymentService {
         if (providerReference == null || providerReference.isBlank()) {
             return Mono.empty();
         }
-        String status = rawStatus == null ? "" : rawStatus.trim().toUpperCase(Locale.ROOT);
+        // Le callback est public et non signé : son statut n'est PAS une source
+        // de vérité. On le traite comme un simple signal et on relit le statut
+        // réel auprès de la passerelle avant toute transition.
         return invoiceRepository.findByProviderReference(providerReference)
                 .filter(invoice -> invoice.getStatus() == Invoice.InvoiceStatus.PENDING)
-                .flatMap(invoice -> {
-                    if (status.equals("SUCCESS") || status.equals("COMPLETED")
-                            || status.equals("PAID") || status.equals("SUCCEEDED")) {
-                        return finalizePaid(invoice);
-                    }
-                    if (status.equals("FAILED") || status.equals("CANCELLED") || status.equals("EXPIRED")) {
-                        invoice.setStatus(Invoice.InvoiceStatus.FAILED);
-                        return invoiceRepository.save(invoice);
-                    }
-                    return Mono.just(invoice);
-                })
+                .flatMap(invoice -> kernelPaymentGatewayClient.getPaymentOrder(providerReference)
+                        .flatMap(tx -> applyGatewayStatus(invoice, tx))
+                        .onErrorResume(e -> {
+                            log.warn("Webhook {} : statut passerelle illisible ({}), facture laissée PENDING",
+                                    providerReference, e.getMessage());
+                            return Mono.just(invoice);
+                        }))
                 .then();
+    }
+
+    /**
+     * Applique le statut lu auprès de la passerelle à une facture PENDING.
+     * Seule source de vérité pour les transitions PAID / FAILED.
+     */
+    private Mono<Invoice> applyGatewayStatus(Invoice invoice, com.fasterxml.jackson.databind.JsonNode tx) {
+        String status = tx.path("status").asText("").trim().toUpperCase(Locale.ROOT);
+        if (status.equals("SUCCESS") || status.equals("COMPLETED")
+                || status.equals("PAID") || status.equals("SUCCEEDED")) {
+            return finalizePaid(invoice);
+        }
+        if (status.equals("FAILED") || status.equals("CANCELLED") || status.equals("EXPIRED")) {
+            invoice.setStatus(Invoice.InvoiceStatus.FAILED);
+            return invoiceRepository.save(invoice);
+        }
+        // Toujours en attente : réexpose l'URL de paiement.
+        String url = tx.path("redirectUrl").asText(null);
+        if (invoice.getId() != null && url != null && !url.isBlank()) {
+            checkoutUrls.put(invoice.getId(), url);
+        }
+        return Mono.just(invoice);
     }
 
     /** Transition unique vers PAID : facture réglée, inscription activée, reflet cashier-core. */
