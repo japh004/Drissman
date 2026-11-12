@@ -52,15 +52,28 @@ public class ImageStorageService {
     }
 
     public Resource load(String filename) {
+        // Anti path-traversal : la variable de chemin est décodée par WebFlux
+        // (« ..%2F » devient « ../ »), on n'accepte donc qu'un nom de fichier simple.
+        if (filename == null || filename.isBlank() || filename.contains("..")
+                || filename.contains("/") || filename.contains("\\")) {
+            throw new RuntimeException("Could not read the file: " + filename);
+        }
         try {
             Path file = root.resolve(filename);
             Resource resource = new UrlResource(file.toUri());
 
-            if (resource.exists() || resource.isReadable()) {
+            if (resource.exists() && resource.isReadable()) {
                 return resource;
-            } else {
-                throw new RuntimeException("Could not read the file!");
             }
+
+            // Fallback: check parent uploads directory
+            Path parentFile = Paths.get("../uploads/images").resolve(filename);
+            Resource parentResource = new UrlResource(parentFile.toUri());
+            if (parentResource.exists() && parentResource.isReadable()) {
+                return parentResource;
+            }
+
+            throw new RuntimeException("Could not read the file: " + filename);
         } catch (MalformedURLException e) {
             throw new RuntimeException("Error: " + e.getMessage());
         }
