@@ -36,7 +36,7 @@
 
 ## 3. Répartition
 
-### Lead (niveau 5, chef de projet)
+### David — lead (niveau 5, chef de projet)
 
 Rôle de lead : relire et valider **toutes** les PR, fusionner `develop` → `main` (donc déployer), être l'interlocuteur du DevOps et de l'admin Yowyob, arbitrer le métier.
 
@@ -46,11 +46,12 @@ Rôle de lead : relire et valider **toutes** les PR, fusionner `develop` → `ma
 | P1.2 | Obtenir du DevOps le **chemin de déploiement réel** : dépôt, compose, nom du conteneur, variables du `.env` de prod | 🔴 | — |
 | P1.3 | Aligner `docker-compose.prod.yml` et la CI GitLab sur la réalité du VPS : `Host(drisman.yowyob.com)`, callback `/drissman-api`, service frontend | 🔴 | P1.2 |
 | P1.4 | Retirer les secrets par défaut de `application.properties` ; faire révoquer la clé Kernel compromise `prod-platform-backend` | 🔴 | P1.2 |
-| P1.5 | Diagnostiquer « **aucune création ne marche en prod** ». En local, toutes les créations fonctionnent (offre, module, moniteur, promotion, séance, véhicule) : la cause est propre à la prod (compte, base ou configuration). Relever la réponse HTTP exacte dans l'onglet Réseau du navigateur. | 🔴 | — |
+| P1.5 | « **Aucune création ne marche en prod** » — *diagnostiqué* : la prod répond `400 « The mapper … returned a null value »`, car le compte gérant a `school_id = NULL`. Origine probable : les migrations du dépôt mobile `059` (`UPDATE users SET school_id = NULL` sur **tous** les comptes, puis suppression de toutes les écoles) ou `060` (gérant `schooladmin@drissman.com` créé sans école). Correctif de code fait (message 403 clair « Compte non associé à une école »). **Reste** : avec le DevOps, lister les gérants sans école (`SELECT id, email FROM users WHERE role='SCHOOL_ADMIN' AND school_id IS NULL`) et les rattacher à leur école ou leur en créer une ; relever `SELECT id, dateexecuted FROM databasechangelog WHERE id LIKE '05%' OR id LIKE '06%'` pour savoir quelles purges ont tourné. | 🔴 | P1.2 |
+| P1.6 | **Comptes injectés par migration en prod** : `060` crée un `SUPER_ADMIN` `admin@drissman.com` et un gérant `schooladmin@drissman.com` avec un hash de mot de passe versionné dans un dépôt. Les supprimer ou changer leur mot de passe en prod, et vérifier qu'aucune donnée n'y est rattachée. | 🔴 | P1.2 |
 | P2.5 | **Modèle A** : rétablir `KernelOrganization` (organisation unique) pour la comptabilité et les ressources véhicules, depuis `f9069cf` ; supprimer `/api/kernel/admin/organizations/{schoolId}` (une organisation par école, contraire au modèle) | 🔴 | P1.1 |
 | T.1 | Mettre en place l'**agent de relecture de PR** (voir section 6) | 🟠 | P1.1 |
 
-### Membre niveau 5 — B : séances
+### Owen (niveau 5) : séances et connexion
 
 | ID | Tâche | Crit. | Dépend de |
 |---|---|---|---|
@@ -81,7 +82,7 @@ Rôle de lead : relire et valider **toutes** les PR, fusionner `develop` → `ma
 - Login Google : vérifier `email_verified` ; bouton Google sur le web (le client ID existe déjà, autoriser l'origine web dans la console Google).
 - ⚠️ Vérifier **avant** que le fournisseur d'email du Kernel est configuré en prod. Sinon, plus aucun nouvel inscrit ne peut se connecter.
 
-### Membre niveau 5 — C : rôles et paiement
+### Japhet (niveau 5) : rôles et paiement
 
 | ID | Tâche | Crit. | Dépend de |
 |---|---|---|---|
@@ -120,18 +121,18 @@ Rôle de lead : relire et valider **toutes** les PR, fusionner `develop` → `ma
 
 ## 4. Ordre de passage
 
-| Vague | Lead | Niveau 5 — B | Niveau 5 — C | Niveau 4 |
+| Vague | David (lead) | Owen | Japhet | Niveau 4 |
 |---|---|---|---|---|
-| **0, maintenant** | P1.1, P1.2, P1.5 | installation locale (CONTRIBUTING) | installation locale | installation locale, L4.1 |
+| **0, maintenant** | P1.1, P1.2, P1.5, P1.6 | installation locale (CONTRIBUTING) | installation locale | installation locale, L4.1 |
 | **1** | P1.3, P1.4, P2.5, T.1 | P2.2 | P2.1 puis P2.3 | L4.2 à L4.6, L4.8 |
 | **2** | relecture, déploiement | P2.4 | renfort P2.2 / tests | L4.7 |
 | **3** | phase 4 (ci-dessous) | phase 4 | phase 4 | phase 4 |
 
 **Zones de conflit à surveiller** (plusieurs personnes dans les mêmes fichiers) :
-- `AuthService` : P2.1 (C) **avant** P2.4 (B).
-- `PaymentService` et `EnrollmentAppService` : P2.1 et P2.3, la même personne (C).
-- `OfferService` / page Offres : P2.2 (B) retire les moniteurs par offre. L4.2 construit l'écran de modification **sans** ce champ.
-- `MonitorService` : L4.6 (niveau 4) et P2.2 (B, suppression des moniteurs par offre). Se coordonner.
+- `AuthService` : P2.1 (Japhet) **avant** P2.4 (Owen).
+- `PaymentService` et `EnrollmentAppService` : P2.1 et P2.3, la même personne (Japhet).
+- `OfferService` / page Offres : P2.2 (Owen) retire les moniteurs par offre. L4.2 construit l'écran de modification **sans** ce champ.
+- `MonitorService` : L4.6 (niveau 4) et P2.2 (Owen, suppression des moniteurs par offre). Se coordonner.
 - Page Planning : réservée à P2.2.
 
 ## 5. Phase 4 — à attribuer à la fin de la phase 2
