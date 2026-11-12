@@ -119,6 +119,8 @@ Rôle de lead : relire et valider **toutes** les PR, fusionner `develop` → `ma
 
 **Dans ce bloc, les points qui demandent le plus de prudence** : L4.6 touche aux comptes et au Kernel, et L4.7 doit suivre les contrats au fur et à mesure que les PR de P2 sont fusionnées. Le chef niveau 4 confie ces deux sous-lots à ses membres les plus à l'aise et demande une relecture attentive au lead.
 
+> **Numérotation des migrations** : la table `databasechangelog` de la prod contient déjà `055` à `061` (dépôt mobile). Toute nouvelle migration est numérotée **à partir de `070`**.
+
 ## 4. Ordre de passage
 
 | Vague | David (lead) | Owen | Japhet | Niveau 4 |

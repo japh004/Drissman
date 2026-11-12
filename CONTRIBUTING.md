@@ -59,7 +59,7 @@ Créez-les via l'écran d'inscription : choisissez « Auto-école » pour un com
 
 ## 4. Règles de code
 
-- **Base de données** : toute évolution du schéma passe par un **nouveau** changeset Liquibase, ajouté **en fin** de `db.changelog-master.yaml`. Ne modifiez jamais un changeset déjà exécuté quelque part. Les données de démo et les opérations destructrices portent `context: dev`.
+- **Base de données** : toute évolution du schéma passe par un **nouveau** changeset Liquibase, ajouté **en fin** de `db.changelog-master.yaml` et **numéroté à partir de `070`** (la base de prod contient déjà des identifiants `055` à `061` venus du dépôt mobile). Ne modifiez jamais un changeset déjà exécuté quelque part. Les données de démo et les opérations destructrices portent `context: dev`.
 - **Secrets** : aucun mot de passe, clé d'API ni identifiant en dur, que ce soit dans le code, les migrations ou les tests. Tout passe par des variables d'environnement (voir `.env.example`).
 - **Tests** : chaque règle métier ajoutée ou modifiée a son test unitaire (Mockito + `StepVerifier` côté backend, Vitest côté front).
 - **Erreurs** : remontez le vrai message à l'utilisateur. Un `toast.error("Création impossible")` qui masque la cause rend tout diagnostic impossible.
