@@ -40,7 +40,7 @@ L'équipe compte **trois personnes** : David (lead), Japhet et Owen. Chacun poss
 
 ### David — lead (chef de projet)
 
-Rôle de lead : relire et valider **toutes** les PR, fusionner `develop` → `main` (donc déployer), être l'interlocuteur du DevOps et de l'admin Yowyob, arbitrer le métier.
+Rôle de lead : relire et valider **toutes** les PR, fusionner `develop` → `main` (donc déployer), être l'interlocuteur du DevOps et de l'admin Yowyob, arbitrer le métier. Les PR de David sont relues par Japhet ou Owen (pas d'auto-validation).
 
 | ID | Tâche | Crit. | Dépend de |
 |---|---|---|---|
@@ -62,7 +62,7 @@ Rôle de lead : relire et valider **toutes** les PR, fusionner `develop` → `ma
 | P2.2 | **Retour au modèle web des séances** (le plus gros chantier) | 🔴 | P1.1 |
 | P2.4 | **Connexion et Google** | 🟠 | P2.1 |
 | F.2a | Écrans gérant : modifier une offre (sans moniteurs), retirer un module d'une offre, changer le statut d'une promotion | 🟢 | P2.2 |
-| F.4 | Libellés « promotion » et élèves d'une séance (espace moniteur) | 🟢 | — |
+| F.4 | Libellés « promotion » et élèves d'une séance (espace moniteur) | 🟢 | F.1 |
 | F.7a | App mobile : contrats de P2.2 (séance = `enrollmentId` + `monitorId`) et P2.4 (Google) | 🟠 | P2.2, P2.4 |
 
 **P2.2 en détail**
