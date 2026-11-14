@@ -61,8 +61,7 @@ public class AdminMonitorController {
             return Mono.error(new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Authentification requise"));
         }
         return userRepository.findById(UUID.fromString(principal.getName()))
-                .map(User::getSchoolId)
-                .filter(schoolId -> schoolId != null)
+                .flatMap(user -> Mono.justOrEmpty(user.getSchoolId())) // map() interdit de renvoyer null
                 .switchIfEmpty(Mono.error(
                         new ResponseStatusException(HttpStatus.BAD_REQUEST, "Utilisateur non associe a une ecole")));
     }

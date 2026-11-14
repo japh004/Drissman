@@ -64,6 +64,7 @@ class AuthServiceTest {
 
                 when(userRepository.save(any(User.class))).thenReturn(Mono.just(savedUser));
                 when(jwtTokenProvider.generateToken(any(), any(), any(), any())).thenReturn("mockToken");
+                when(kernelAuthService.syncUser(any(User.class))).thenReturn(Mono.empty());
 
                 Mono<AuthResponse> result = authService.register(request);
 

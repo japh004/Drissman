@@ -65,3 +65,9 @@ backend/uploads/
 # Service Accounts & Credentials
 *firebase-service-account*.json
 
+
+# Logs et dumps de debug (ne pas versionner)
+*.log
+build_log.txt
+compile_log.txt
+school_api_*.json
